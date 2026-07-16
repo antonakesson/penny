@@ -7,3 +7,7 @@ export const GATHER = {
   yieldMin: 1,
   yieldMax: 3,
 };
+
+export const EQUIPMENT = {
+  slots: 2, // how many gear items can be equipped at once
+};
