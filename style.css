@@ -1,0 +1,120 @@
+:root {
+  --bg: #f4f3ef;
+  --fg: #1e1c1a;
+  --muted: #6b6660;
+  --accent: #8a3324;
+  --surface: #e8e6e0;
+  --border: #cfccc4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171513;
+    --fg: #e9e6e0;
+    --muted: #9a958c;
+    --accent: #c9663f;
+    --surface: #211e1b;
+    --border: #35312c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Courier New', Consolas, monospace;
+}
+
+#app {
+  width: min(420px, 90vw);
+  padding: 2rem;
+  text-align: center;
+}
+
+#app p {
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  margin: 0 0 1.5rem;
+}
+
+#resource-count {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+button {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font: inherit;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+button:last-child {
+  margin-bottom: 0;
+}
+
+button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.slot-btn {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  text-align: left;
+}
+
+.slot-btn:disabled {
+  cursor: default;
+}
+
+.slot-btn.active {
+  border-color: var(--accent);
+}
+
+.slot-btn.recovery {
+  color: var(--muted);
+}
+
+.slot-status {
+  font-size: 0.7rem;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--muted);
+}
+
+.slot-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: var(--pct, 0%);
+  background: var(--accent);
+  transition: width 0.1s linear;
+}

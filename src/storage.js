@@ -5,11 +5,14 @@ const SAVE_KEY = 'idle-game-save';
 // Bump on breaking changes only (renamed/removed/retyped fields).
 // New additive fields need no bump — state.js defaults fill in for
 // saves that predate them via Object.assign.
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
 
 // version N -> N+1 transform. Add one entry per breaking bump.
 const migrations = {
-  // 1: (old) => ({ ...old, newName: old.oldName }),
+  1: (old) => {
+    const { nets, ...rest } = old;
+    return nets ? { ...rest, slots: nets } : rest;
+  },
 };
 
 export function saveState() {
