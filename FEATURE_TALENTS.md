@@ -1,5 +1,9 @@
-# Talents — mental note
+# Talents — (proposed feature - undecided)
 
+**Depends on**
+- Level/experience system
+
+**Lose ideas**
 - Three freeform trees, no class lock — invest points into any/all:
   - **Fishing** → `successChance`, `yieldMultiplier`
   - **Travel** → `travelCost`, `travelTimeMs` reduction
@@ -8,4 +12,3 @@
   by that tree's own actions (catches → Fishing, voyages → Travel,
   drops → Scavenger)
 - TBD: respec — free, costly, or permanent once spent
-- Depends on [[FEATURE_ZONES]] existing (talents buff numbers zones/engine already define)
