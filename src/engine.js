@@ -4,7 +4,6 @@ import {
   setSlotStatus,
   setSlotZone,
   setSlotTargetZone,
-  addResource,
   addItem,
   equip,
   unequip,
@@ -15,6 +14,7 @@ import { ZONES } from './zones.js';
 import { findRoute } from './travel.js';
 import { TREASURE_CLASSES } from './treasureClasses.js';
 import { ITEMS } from './items.js';
+import { RECIPES } from './recipes.js';
 import { EQUIPMENT } from './config.js';
 
 const MAX_DROP_DEPTH = 8; // guards a cyclic treasure-class reference
@@ -32,9 +32,8 @@ export function sailSlot(index, targetZoneId) {
   if (!slot || slot.status !== 'idle' || !ZONES[targetZoneId] || targetZoneId === slot.zoneId) return;
 
   const route = findRoute(slot.zoneId, targetZoneId);
-  if (!route || state.resource < route.cost) return;
+  if (!route) return;
 
-  addResource(-route.cost);
   setSlotTargetZone(index, targetZoneId);
   setSlotStatus(index, 'sailing');
   emit('slotSailing', { index, targetZoneId, route });
@@ -58,6 +57,21 @@ export function unequipItem(itemId) {
 
   unequip(itemId);
   emit('itemUnequipped', { itemId });
+}
+
+export function canCraft(recipeId, state = getState()) {
+  const recipe = RECIPES[recipeId];
+  if (!recipe) return false;
+  return Object.entries(recipe.inputs).every(([itemId, qty]) => (state.inventory[itemId] ?? 0) >= qty);
+}
+
+export function craftItem(recipeId) {
+  const recipe = RECIPES[recipeId];
+  if (!recipe || !canCraft(recipeId)) return;
+
+  for (const [itemId, qty] of Object.entries(recipe.inputs)) addItem(itemId, -qty);
+  addItem(recipeId, 1);
+  emit('itemCrafted', { recipeId });
 }
 
 export function tick() {
@@ -85,13 +99,6 @@ export function tick() {
 function resolveSlot(index) {
   const slot = getState().slots[index];
 
-  let amount = 0;
-  if (Math.random() < GATHER.successChance) {
-    const roll = GATHER.yieldMin + Math.random() * (GATHER.yieldMax - GATHER.yieldMin);
-    amount = Math.round(roll * GATHER.yieldMultiplier);
-    addResource(amount);
-  }
-
   const zone = ZONES[slot.zoneId];
   const itemId = zone ? resolveDrop(zone.dropTable) : null;
   if (itemId) {
@@ -100,7 +107,7 @@ function resolveSlot(index) {
   }
 
   setSlotStatus(index, 'recovery');
-  emit('slotResolved', { index, amount });
+  emit('slotResolved', { index });
 }
 
 // D2-style TreasureClass resolution: roll the weighted table, then if

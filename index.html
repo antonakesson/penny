@@ -8,13 +8,24 @@
 </head>
 <body>
   <div id="app">
-    <p><span id="resource-label">Resource</span>: <span id="resource-count">0</span></p>
-    <p><span id="inventory-label">Inventory</span></p>
-    <div id="inventory-list"></div>
-    <p><span id="equipped-label">Equipped</span>: <span id="equipped-list">—</span></p>
-    <p><span id="stats-label">Stats</span>: <span id="stats-list">—</span></p>
     <div id="slots"></div>
     <button data-action="save">Save</button>
+  </div>
+  <div id="console-bar">
+    <div class="console-panel console-panel-status">
+      <p class="console-label"><span id="equipped-label">Equipped</span></p>
+      <p class="console-value"><span id="equipped-list">—</span></p>
+      <p class="console-label"><span id="stats-label">Stats</span></p>
+      <p class="console-value"><span id="stats-list">—</span></p>
+    </div>
+    <div class="console-panel console-panel-inventory">
+      <p class="console-label"><span id="inventory-label">Inventory</span></p>
+      <div id="inventory-list"></div>
+    </div>
+    <div class="console-panel console-panel-craft">
+      <p class="console-label"><span id="craft-label">Craft</span></p>
+      <div id="craft-list"></div>
+    </div>
   </div>
   <script type="module" src="src/main.js"></script>
 </body>

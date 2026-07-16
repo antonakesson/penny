@@ -7,6 +7,12 @@ the demand side: right now everything in `state.inventory` just
 accumulates. Nothing consumes it — equipping the one gear item isn't a
 sink, the item stays owned.
 
+**Update:** `state.resource` ("Loot") was removed — it was a
+click-test currency that never gained a second purpose beyond gating
+travel cost, and travel is free now. The Vendor outlet below assumed
+that currency already existed for free; if Vendor gets picked up later
+it needs its own currency (or to sell for items/barter instead).
+
 ## Goal
 
 Give materials (non-gear items) a reason to be farmed for, specific to

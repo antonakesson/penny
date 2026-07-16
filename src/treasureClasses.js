@@ -21,7 +21,7 @@ export const TREASURE_CLASSES = {
     entries: [
       { id: 'frostbittenScrap', weight: 3 },
       { id: 'tidalPearl', weight: 1 },
-      { id: 'captainZoransBinoculars', weight: 1 },
+      { id: 'fivefootpole', weight: 1 },
     ],
   },
 };

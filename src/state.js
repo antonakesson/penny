@@ -2,7 +2,6 @@ import { GATHER } from './config.js';
 import { DEFAULT_ZONE_ID } from './zones.js';
 
 const state = {
-  resource: 0,
   slots: [],
   inventory: {},
   equipped: [],
@@ -41,11 +40,6 @@ export function subscribe(listener) {
 
 function notify() {
   for (const listener of listeners) listener(state);
-}
-
-export function addResource(amount) {
-  state.resource += amount;
-  notify();
 }
 
 export function setSlotStatus(index, status, startedAt = Date.now()) {

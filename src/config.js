@@ -1,11 +1,11 @@
+// Starter mode is bare-handed rummaging: short and cheap, so the slot
+// engine's active/recovery gate (not a raw click spam) still feels
+// like quick repeated action rather than the long net-and-wait cycle
+// nets bring later.
 export const GATHER = {
-  activeMs: 3000,        // slot is occupied performing the action
-  recoveryMs: 1500,      // cooldown before the slot can be reused
+  activeMs: 1500,        // slot is occupied performing the action
+  recoveryMs: 400,       // cooldown before the slot can be reused
   slotCount: 1,          // parallel actions available
-  yieldMultiplier: 1,    // scales resource gained per success
-  successChance: 0.9,    // odds a resolved action yields anything
-  yieldMin: 1,
-  yieldMax: 3,
 };
 
 export const EQUIPMENT = {

@@ -1,24 +1,22 @@
 // Names/numbers are placeholders — flavor pass comes later (see
-// FEATURE_ZONES.md). This is a trimmed skeleton (4 zones) to prove out
-// sailing + drop-table mechanics, not the full 14-zone draft list.
+// FEATURE_ZONES.md). This is a skeleton to prove out sailing +
+// drop-table mechanics, not the full zone list.
 // dropTable entries are {id, weight} resolved recursively by engine.js's
 // resolveDrop: id is checked against TREASURE_CLASSES first (nested
 // table, e.g. 'misc'/'treasure' shared across zones), then falls back
 // to a leaf item id. 'nothing' is just an id that resolves to neither —
 // no separate drop-chance roll, "no drop" is folded into the weights.
 export const ZONES = {
-  zone1: {
-    id: 'zone1',
-    name: 'Zone 1',
+  starter: {
+    name: 'Auspicious cove',
     zoneLevel: 1,
     dropTable: [
       { id: 'nothing', weight: 100 },
       { id: 'kelpFragment', weight: 15 }, // zone-exclusive junk
     ],
   },
-  zone2: {
-    id: 'zone2',
-    name: 'Zone 2',
+  reef: {
+    name: 'Tetanus Reef',
     zoneLevel: 2,
     dropTable: [
       { id: 'nothing', weight: 90 },
@@ -26,44 +24,22 @@ export const ZONES = {
       { id: 'misc', weight: 5 },
     ],
   },
-  zone3: {
-    id: 'zone3',
-    name: 'Zone 3',
-    zoneLevel: 3,
-    dropTable: [
-      { id: 'nothing', weight: 75 },
-      { id: 'misc', weight: 20 },
-      { id: 'treasure', weight: 5 },
-    ],
-  },
-  zone4: {
-    id: 'zone4',
-    name: 'Zone 4',
-    zoneLevel: 4,
-    dropTable: [
-      { id: 'nothing', weight: 60 },
-      { id: 'misc', weight: 20 },
-      { id: 'treasure', weight: 20 },
-    ],
-  },
 };
 
-export const DEFAULT_ZONE_ID = 'zone1';
+export const DEFAULT_ZONE_ID = 'starter';
 
-export const ZONE_LIST = Object.values(ZONES);
+// id is injected here (not hand-authored on each zone above) so the
+// object key is the single source of truth — can't drift out of sync.
+export const ZONE_LIST = Object.entries(ZONES).map(([id, zone]) => ({ id, ...zone }));
 
-// Travel is a graph, not a per-destination flat cost: zones only connect
-// to their listed neighbors, so reaching a non-adjacent zone means
-// routing (and paying) through whatever's in between — same as having
-// to stop at an outpost before pushing on to the deep arctic. Edges are
-// undirected (symmetric cost/time both ways) and hand-authored, same
-// spirit as GATHER in config.js. cost/timeMs per leg is where
-// stormy-seas/cold-temps flavor lives later (just tune the leg).
-//
-// Linear chain (1-2-3-4) on purpose for this skeleton, so zone1->zone4
-// has to prove out multi-hop routing, not just direct point-to-point.
+// Travel is a graph, not a flat per-destination time: zones only
+// connect to their listed neighbors, so reaching a non-adjacent zone
+// means routing (and spending time) through whatever's in between —
+// findRoute (travel.js) is what solves that. Edges are undirected
+// (symmetric both ways) and hand-authored, same spirit as GATHER in
+// config.js. timeMs per leg is where stormy-seas/cold-temps flavor
+// lives later (just tune the leg) — and eventually what time spent
+// traveling draws down (hunger/energy/health), once those exist.
 export const ZONE_EDGES = [
-  { from: 'zone1', to: 'zone2', cost: 15, timeMs: 3000 },
-  { from: 'zone2', to: 'zone3', cost: 20, timeMs: 4000 },
-  { from: 'zone3', to: 'zone4', cost: 30, timeMs: 6000 },
+  { from: 'starter', to: 'reef', timeMs: 3000 },
 ];
