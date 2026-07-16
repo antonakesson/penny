@@ -4,9 +4,10 @@
 export const ITEMS = {
 
   kelpFragment: { name: 'Kelp Fragment', rarity: 'common' },
+  carBattery: { name: 'Car Battery', rarity: 'rare', description: 'Where else would you throw it?' },
   rustyHook: { name: 'Rusty Hook', rarity: 'common' },
   bluefinScale: { name: 'Bluefin Scale', rarity: 'common' },
-  waterloggedLedger: { name: 'Waterlogged Ledger', rarity: 'uncommon' },
+  waterloggedLedger: { name: 'Waterlogged Ledger', rarity: 'uncommon', description: 'Half a mutiny plan. The other half was apparently the important half.' },
 
   frostbittenScrap: { name: 'Frostbitten Scrap', rarity: 'common' },
   tidalPearl: { name: 'Tidal Pearl', rarity: 'rare' },

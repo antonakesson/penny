@@ -129,6 +129,7 @@ function renderInventory(state) {
     const row = document.createElement('div');
     row.className = 'inventory-row';
     row.textContent = `${item.name} x${count} `;
+    if (item.description) row.title = item.description;
 
     if (item.stats) {
       const equipped = state.equipped.includes(itemId);

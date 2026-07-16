@@ -13,6 +13,7 @@ export const ZONES = {
     dropTable: [
       { id: 'nothing', weight: 100 },
       { id: 'kelpFragment', weight: 15 }, // zone-exclusive junk
+      { id: 'carBattery', weight: 2 }, // zone-exclusive junk, rare
     ],
   },
   reef: {

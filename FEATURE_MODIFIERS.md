@@ -201,3 +201,11 @@ it can be forgotten.
   level/XP system, so this registry can be built and validated against
   gear alone first, with talents/buffs as later modifier sources
   slotting into the same query interface.
+- **Buffs specifically**: a buff is a modifier record with an added
+  `expiresAt`, sourced from a consumed item (`FEATURE_USE_ITEMS.md`,
+  itself blocked on this doc) rather than equipped gear. Open: does
+  `resolve` filter expired records lazily on every read (simplest,
+  consistent with "stay derived, don't store aggregates"), or does
+  something need to prune `state` on a timer for records that also
+  drive UI (e.g. a "time remaining" display can't wait for the next
+  `resolve` call that happens to touch that `id`)?
