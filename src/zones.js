@@ -8,7 +8,7 @@
 // no separate drop-chance roll, "no drop" is folded into the weights.
 export const ZONES = {
   starter: {
-    name: 'Auspicious cove',
+    name: 'Tetanus Cove',
     zoneLevel: 1,
     dropTable: [
       { id: 'nothing', weight: 100 },
@@ -16,7 +16,7 @@ export const ZONES = {
     ],
   },
   reef: {
-    name: 'Tetanus Reef',
+    name: 'Driftwood Banks',
     zoneLevel: 2,
     dropTable: [
       { id: 'nothing', weight: 90 },
@@ -40,6 +40,14 @@ export const ZONE_LIST = Object.entries(ZONES).map(([id, zone]) => ({ id, ...zon
 // config.js. timeMs per leg is where stormy-seas/cold-temps flavor
 // lives later (just tune the leg) — and eventually what time spent
 // traveling draws down (hunger/energy/health), once those exist.
+// This first leg is a short swim/walk, deliberately free of any
+// requirement. Longer-range legs later (raft tiers, arctic sailing,
+// hollow-earth transit, eventually interplanetary — planning long
+// ahead here) will need a `requires` field gating the edge on
+// something the player has (a raft tier, a suit, a ship), checked in
+// findRoute alongside timeMs. See FEATURE_MODIFIERS.md's
+// `zoneAccessOverride` — that's the exception case (bypass a
+// requirement); the requirement itself has to exist on the edge first.
 export const ZONE_EDGES = [
   { from: 'starter', to: 'reef', timeMs: 3000 },
 ];
