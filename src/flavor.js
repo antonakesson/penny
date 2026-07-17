@@ -15,5 +15,6 @@ export const STATUS_LABEL = {
   idle: 'Rummage',
   active: 'Rummaging…',
   recovery: 'Catching breath…',
-  sailing: 'Sailing…',
+  sailing: 'Swimming…',
+  crafting: 'Crafting…',
 };

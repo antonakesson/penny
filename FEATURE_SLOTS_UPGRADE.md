@@ -60,6 +60,19 @@ branches everywhere.
 - Count starts at 0 (no nets yet) and grows via whatever unlocks nets —
   that trigger is still undecided (see Open questions).
 
+### Vessel — shared location, not per-slot
+
+- One `vessel: { zoneId, status, targetZoneId, startedAt }` object,
+  replacing `zoneId`/`targetZoneId` living on each slot. There's one
+  boat — nets don't grow legs and sail off on their own. Self slot and
+  tool slots all read the vessel's `zoneId`; only the self slot pilots
+  (`sailSlot` moves the vessel, tool slots just come along for the
+  ride).
+- Resolves the tool-slot travel open question below: it's the same
+  trip, not a separate one per net.
+- Tiers/upgrades (raft, amenities, `requires`-gated edges) are out of
+  scope here — stubbed separately in `FEATURE_VESSEL.md`.
+
 ### Rummage table vs. fish table, not resource vs. item
 
 Earlier draft of this doc framed the self-slot split as resource-table
@@ -101,9 +114,10 @@ one item roll.
 
 ## Implementation shape (sketch, not final)
 
-- `state.js`: replace `slots: []` with `selfSlot: {...}` (single
-  object, same shape as today's slot) and `toolSlots: []` (array, same
-  shape, `GATHER`-driven count like today's `slotCount`).
+- `state.js`: replace `slots: []` with `vessel: {...}` (shared
+  location, see above), `selfSlot: {...}` (single object, action state
+  only — no `zoneId`), and `toolSlots: []` (array, same shape,
+  `GATHER`-driven count like today's `slotCount`).
 - `engine.js`: `tick()` branches — self slot's `recovery` resolves to
   `idle` (as today); tool slots' `recovery` resolves straight back to
   `active` (auto-recast). `activateSlot`/`sailSlot` need an
@@ -118,9 +132,9 @@ one item roll.
 - What actually unlocks the first tool slot (craft a net item?
   zone-gated? something else)? Still undecided — flagged in an earlier
   conversation and deliberately deferred.
-- Do tool slots share the self slot's zone-travel graph/costs as-is, or
-  do untended nets travel differently (e.g. cheaper/slower since
-  nothing's "piloting" them)?
+- ~~Do tool slots share the self slot's zone-travel graph/costs as-is,
+  or do untended nets travel differently~~ — resolved, see "Vessel —
+  shared location" above: one shared vessel, no separate net travel.
 - Is there ever more than one *type* of tool (net vs. trap vs. snare
   simultaneously, each with their own table-pair), or is "tool slot"
   singular-typed until stated otherwise?

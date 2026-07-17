@@ -50,5 +50,5 @@ export const ZONE_LIST = Object.entries(ZONES).map(([id, zone]) => ({ id, ...zon
 // `zoneAccessOverride` — that's the exception case (bypass a
 // requirement); the requirement itself has to exist on the edge first.
 export const ZONE_EDGES = [
-  { from: 'starter', to: 'reef', timeMs: 3000 },
+  { from: 'starter', to: 'reef', timeMs: 30000 },
 ];

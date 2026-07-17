@@ -3,6 +3,7 @@
   --fg: #1e1c1a;
   --muted: #6b6660;
   --accent: #8a3324;
+  --recovery: #4c7a4f;
   --surface: #e8e6e0;
   --border: #cfccc4;
 }
@@ -13,6 +14,7 @@
     --fg: #e9e6e0;
     --muted: #9a958c;
     --accent: #c9663f;
+    --recovery: #6fae72;
     --surface: #211e1b;
     --border: #35312c;
   }
@@ -129,6 +131,11 @@ button:active {
   border-style: dashed;
 }
 
+.slot-btn.crafting {
+  color: var(--muted);
+  border-style: dotted;
+}
+
 .slot-zone,
 .slot-status {
   font-size: 0.7rem;
@@ -164,6 +171,13 @@ button:active {
   width: var(--pct, 0%);
   background: var(--accent);
   transition: width 0.1s linear;
+}
+
+/* Recovery drains rather than fills — full bar at the start of the
+   catch-your-breath beat, empty when idle's about to kick back in.
+   Reverse of every other status, which builds up toward completion. */
+.slot-btn.recovery .slot-progress {
+  background: var(--recovery);
 }
 
 /* Command bar: docked at the bottom of the viewport, RTS-style — a

@@ -56,10 +56,11 @@ Screenshots land in `.claude/skills/run-p2/screenshots/<name>.png`
 | `wait-for <selector>` | wait for selector |
 | `click <selector>` | click |
 | `fill <selector> <value>` | fill an input |
-| `select <selector> <value>` | choose a `<select>` option (e.g. the slot's "Sail to…" dropdown) |
+| `select <selector> <value>` | choose a `<select>` option (e.g. the slot's "Swim to…" dropdown) |
 | `press <key>` | keyboard press |
 | `seed-save <json>` | write a save to `localStorage` merged over `{slots:[],inventory:{},equipped:[]}` — see Gotchas, ordering matters |
 | `reload` | reload the page |
+| `sleep <ms>` | wait, e.g. to let `setInterval(tick, 100)` fire before asserting |
 | `eval <js>` | `page.evaluate`, prints the JSON result |
 | `screenshot [name]` | PNG to `screenshots/` |
 | `console --errors` | print collected console/page errors so far |

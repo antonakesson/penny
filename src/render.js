@@ -54,7 +54,7 @@ function buildSlots(state) {
     // Cost/time depend on where this net currently is, so labels are
     // filled in by render() rather than baked in here.
     select.innerHTML =
-      `<option value="">Sail to…</option>` + ZONE_LIST.map((zone) => `<option value="${zone.id}">${zone.name}</option>`).join('');
+      `<option value="">Swim to…</option>` + ZONE_LIST.map((zone) => `<option value="${zone.id}">${zone.name}</option>`).join('');
 
     wrapper.append(btn, select);
     container.appendChild(wrapper);
@@ -78,17 +78,26 @@ function render(state) {
     btn.classList.toggle('active', slot.status === 'active');
     btn.classList.toggle('recovery', slot.status === 'recovery');
     btn.classList.toggle('sailing', slot.status === 'sailing');
+    btn.classList.toggle('crafting', slot.status === 'crafting');
     btn.disabled = slot.status !== 'idle';
 
     setText('.slot-zone', zone ? zone.name : '—', btn);
-    setText('.slot-status', STATUS_LABEL[slot.status], btn);
+    setText(
+      '.slot-status',
+      slot.status === 'crafting' ? `Crafting ${ITEMS[slot.craftRecipeId]?.name ?? '…'}` : STATUS_LABEL[slot.status],
+      btn
+    );
 
     let total = GATHER.activeMs;
     if (slot.status === 'recovery') total = GATHER.recoveryMs;
-    if (slot.status === 'sailing') total = ZONES[slot.targetZoneId]?.travelTimeMs ?? 0;
+    if (slot.status === 'sailing') total = findRoute(slot.zoneId, slot.targetZoneId)?.timeMs ?? 0;
+    if (slot.status === 'crafting') total = RECIPES[slot.craftRecipeId]?.craftMs ?? 0;
 
-    const pct =
+    const rawPct =
       slot.status === 'idle' ? 0 : total === 0 ? 100 : Math.min(100, ((Date.now() - slot.startedAt) / total) * 100);
+    // Recovery reads as draining stamina rather than building progress —
+    // starts full, empties out as the cooldown elapses.
+    const pct = slot.status === 'recovery' ? 100 - rawPct : rawPct;
     qs('.slot-progress', btn).style.setProperty('--pct', `${pct}%`);
 
     select.disabled = slot.status !== 'idle';
