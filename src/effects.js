@@ -9,6 +9,6 @@
 // alongside its message without changing how items reference it — the
 // id an item points at doesn't change meaning, only what it resolves to.
 export const EFFECTS = {
-  tetanus: { name: 'Tetanus', message: 'You get tetanus.' },
-  chafing: { name: 'Chafing', message: 'You get chafing.' },
+  tetanus: { name: 'Tetanus', message: 'You may have tetanus.' },
+  chafing: { name: 'Chafing', message: 'Uncomfortable chafing.' },
 };

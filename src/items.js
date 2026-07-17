@@ -3,16 +3,16 @@
 // separate scope/task.
 export const ITEMS = {
 
-  kelpFragment: { name: 'Kelp Fragment', rarity: 'common' },
-  carBattery: { name: 'Car Battery', rarity: 'rare', description: 'Where else would you throw it?' },
-  rustyHook: { name: 'Rusty Hook', rarity: 'common', onUseEffect: 'tetanus' },
-  bluefinScale: { name: 'Bluefin Scale', rarity: 'common' },
-  waterloggedLedger: { name: 'Waterlogged Ledger', rarity: 'uncommon', description: 'Half a mutiny plan. The other half was apparently the important half.' },
+  kelpFragment: { name: 'Kelp Fragment' },
+  carBattery: { name: 'Car Battery', description: 'Where else would you throw it?' },
+  rustyHook: { name: 'Rusty Hook', onUseEffect: 'tetanus' },
+  bluefinScale: { name: 'Unidentified Scales' },
+  waterloggedLedger: { name: 'Waterlogged Ledger', description: 'Half a mutiny plan. The other half was apparently the important half.' },
 
-  frostbittenScrap: { name: 'Frostbitten Scrap', rarity: 'common' },
-  tidalPearl: { name: 'Tidal Pearl', rarity: 'rare' },
+  frostbittenScrap: { name: 'Frostbitten Scrap' },
+  tidalPearl: { name: 'Tidal Pearl' },
 
-  fivefootpole: { name: 'Five Foot Pole', rarity: 'rare' },
+  fivefootpole: { name: 'Five Foot Pole' },
 
   // Gear: an item with `stats` is equippable (see engine.js equipItem);
   // items without `stats` are plain materials. Stat values are
@@ -21,13 +21,11 @@ export const ITEMS = {
   // Crafted, not dropped — see recipes.js.
   fishingRodOfDesperation: {
     name: 'Fishing Rod of Desperation',
-    rarity: 'rare',
     stats: { yieldMultiplier: 0.1 },
   },
   kelpGString: {
-    name: 'Kelp G-String',
-    rarity: 'uncommon',
-    description: 'So snug it doubles as a tourniquet.',
+    name: 'Kelp Thong',
+    description: 'Snug as a tourniquet.',
     onUseEffect: 'chafing',
   },
 };

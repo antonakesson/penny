@@ -49,24 +49,72 @@ body {
 }
 
 #inventory-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 0.5rem;
   font-size: 0.8rem;
   text-align: left;
 }
 
 .inventory-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 132px;
+  flex-shrink: 0;
+  padding: 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  cursor: default;
+}
+
+.inventory-header {
+  display: flex;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.2rem 0;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.inventory-name {
+  font-size: 0.72rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inventory-count {
+  font-size: 0.68rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.inventory-desc {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.inventory-actions {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: auto;
 }
 
 .inventory-equip-btn {
-  display: inline;
+  display: block;
+  flex: 1;
   width: auto;
   margin: 0;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.65rem;
+  padding: 0.3rem 0.4rem;
+  font-size: 0.62rem;
 }
 
 button {
@@ -136,12 +184,26 @@ button:active {
   border-style: dotted;
 }
 
+.slot-header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
 .slot-zone,
-.slot-status {
+.slot-status,
+.slot-timer {
   font-size: 0.7rem;
   letter-spacing: normal;
   text-transform: none;
   color: var(--muted);
+}
+
+.slot-timer {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .slot-travel {

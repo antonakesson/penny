@@ -41,7 +41,10 @@ function buildSlots(state) {
     btn.dataset.slot = String(i);
     btn.className = 'slot-btn';
     btn.innerHTML = `
-      <span class="slot-label">${SLOT_LABEL(i)}</span>
+      <span class="slot-header">
+        <span class="slot-label">${SLOT_LABEL(i)}</span>
+        <span class="slot-timer"></span>
+      </span>
       <span class="slot-zone"></span>
       <span class="slot-status"></span>
       <span class="slot-progress"></span>
@@ -59,6 +62,16 @@ function buildSlots(state) {
     wrapper.append(btn, select);
     container.appendChild(wrapper);
   });
+}
+
+function formatDuration(ms) {
+  const totalSec = Math.ceil(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}h${String(m).padStart(2, '0')}m${String(s).padStart(2, '0')}s`;
+  if (m > 0) return `${m}m${String(s).padStart(2, '0')}s`;
+  return `${s}s`;
 }
 
 function render(state) {
@@ -100,6 +113,9 @@ function render(state) {
     const pct = slot.status === 'recovery' ? 100 - rawPct : rawPct;
     qs('.slot-progress', btn).style.setProperty('--pct', `${pct}%`);
 
+    const remainingMs = slot.status === 'idle' ? 0 : Math.max(0, total - (Date.now() - slot.startedAt));
+    setText('.slot-timer', slot.status === 'idle' ? '' : formatDuration(remainingMs), btn);
+
     select.disabled = slot.status !== 'idle';
     for (const option of select.options) {
       if (!option.value) continue; // placeholder
@@ -139,8 +155,41 @@ function renderInventory(state) {
 
     const row = document.createElement('div');
     row.className = 'inventory-row';
-    row.textContent = `${item.name} x${count} `;
-    if (item.description) row.title = item.description;
+    row.title = item.description ? `${item.name}\n${item.description}` : item.name;
+
+    const header = document.createElement('div');
+    header.className = 'inventory-header';
+
+    const name = document.createElement('span');
+    name.className = 'inventory-name';
+    name.textContent = item.name;
+    header.appendChild(name);
+
+    const stack = document.createElement('span');
+    stack.className = 'inventory-count';
+    stack.textContent = `x${count}`;
+    header.appendChild(stack);
+
+    row.appendChild(header);
+
+    if (item.description) {
+      const desc = document.createElement('div');
+      desc.className = 'inventory-desc';
+      desc.textContent = item.description;
+      row.appendChild(desc);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'inventory-actions';
+
+    if (item.onUseEffect) {
+      const btn = document.createElement('button');
+      btn.className = 'inventory-equip-btn';
+      btn.dataset.action = 'use';
+      btn.dataset.item = itemId;
+      btn.textContent = 'Use';
+      actions.appendChild(btn);
+    }
 
     if (item.stats) {
       const equipped = state.equipped.includes(itemId);
@@ -149,18 +198,10 @@ function renderInventory(state) {
       btn.dataset.action = equipped ? 'unequip' : 'equip';
       btn.dataset.item = itemId;
       btn.textContent = equipped ? 'Unequip' : 'Equip';
-      row.appendChild(btn);
+      actions.appendChild(btn);
     }
 
-    if (item.onUseEffect) {
-      const btn = document.createElement('button');
-      btn.className = 'inventory-equip-btn';
-      btn.dataset.action = 'use';
-      btn.dataset.item = itemId;
-      btn.textContent = 'Use';
-      row.appendChild(btn);
-    }
-
+    row.appendChild(actions);
     container.appendChild(row);
   }
 }
