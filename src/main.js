@@ -4,8 +4,10 @@ import { loadSavedState } from './storage.js';
 import { activateSlot, sailSlot, equipItem, unequipItem, craftItem, useItem, tick } from './engine.js';
 import { on } from './events.js';
 import { unlockAudio, playCoin } from './audio.js';
+import { initDebug } from './debug.js';
 
 loadSavedState();
+initDebug();
 
 on('itemDropped', () => playCoin());
 
