@@ -24,4 +24,10 @@ export const ITEMS = {
     rarity: 'rare',
     stats: { yieldMultiplier: 0.1 },
   },
+  kelpGString: {
+    name: 'Kelp G-String',
+    rarity: 'uncommon',
+    description: 'So snug it doubles as a tourniquet.',
+    onUseEffect: 'chafing',
+  },
 };

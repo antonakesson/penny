@@ -172,7 +172,6 @@ it can be forgotten.
 | id | scope (params) | op | what it exposes |
 |---|---|---|---|
 | `rummageDropChance` / `fishDropChance` | per action-table, optional zone | add | needs a scope, not just global |
-| `rarityUpgradeChance` | global | add (rolled post-hoc) | **post-roll transform**, not a pre-roll weight — different hook point in `resolveDrop` |
 | `fatigueReduction` | global | add | targets the **cost** side of an action, not the reward side |
 | `travelTimeReduction` | global or per-edge | add | cross-cutting into `travel.js`, not gather-only |
 | `weatherResistance` | per weather type | add | inert today, load-bearing once dynamic weather exists — define the id now anyway |

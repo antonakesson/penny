@@ -55,6 +55,15 @@ C/scurvy, temperature.
 
 ### Craft — combine/smelt/smoke → new items, raft upgrades, tech tiers
 
+**Status: implemented, timed.** `RECIPES` (`recipes.js`) consume N
+items to produce one output item. Crafting claims the self slot (same
+one rummaging/sailing use — see `FEATURE_SLOTS_UPGRADE.md`) for the
+recipe's `craftMs`, blocking other hands-on actions until it resolves
+via `tick()` (`engine.js`) — it's not a free parallel action. A recipe
+with no `craftMs` resolves on the next tick (effectively instant),
+which is how the original `fishingRodOfDesperation` recipe still
+behaves.
+
 What: recipes consuming N items (+ maybe resource) to produce a new
 item, a raft upgrade, or an equipment-slot/tech-tier unlock.
 

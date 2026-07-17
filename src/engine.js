@@ -4,6 +4,7 @@ import {
   setSlotStatus,
   setSlotZone,
   setSlotTargetZone,
+  setSlotCraftRecipe,
   addItem,
   equip,
   unequip,
@@ -19,6 +20,12 @@ import { EQUIPMENT } from './config.js';
 import { EFFECTS } from './effects.js';
 
 const MAX_DROP_DEPTH = 8; // guards a cyclic treasure-class reference
+
+// Crafting uses your hands, same as rummaging — it claims the self
+// slot rather than running as an independent parallel process. Only
+// one slot exists at all until FEATURE_SLOTS_UPGRADE.md's self/tool
+// split lands; slot 0 is that self slot in the meantime.
+const SELF_SLOT_INDEX = 0;
 
 export function activateSlot(index) {
   const slot = getState().slots[index];
@@ -74,6 +81,7 @@ export function useItem(itemId) {
 export function canCraft(recipeId, state = getState()) {
   const recipe = RECIPES[recipeId];
   if (!recipe) return false;
+  if (state.slots[SELF_SLOT_INDEX]?.status !== 'idle') return false; // hands are busy
   return Object.entries(recipe.inputs).every(([itemId, qty]) => (state.inventory[itemId] ?? 0) >= qty);
 }
 
@@ -82,8 +90,9 @@ export function craftItem(recipeId) {
   if (!recipe || !canCraft(recipeId)) return;
 
   for (const [itemId, qty] of Object.entries(recipe.inputs)) addItem(itemId, -qty);
-  addItem(recipeId, 1);
-  emit('itemCrafted', { recipeId });
+  setSlotCraftRecipe(SELF_SLOT_INDEX, recipeId);
+  setSlotStatus(SELF_SLOT_INDEX, 'crafting');
+  emit('craftStarted', { recipeId });
 }
 
 export function tick() {
@@ -93,6 +102,15 @@ export function tick() {
       resolveSlot(i);
     } else if (slot.status === 'recovery' && now - slot.startedAt >= GATHER.recoveryMs) {
       setSlotStatus(i, 'idle', null);
+    } else if (slot.status === 'crafting') {
+      const recipeId = slot.craftRecipeId;
+      const recipe = RECIPES[recipeId];
+      if (recipe && now - slot.startedAt >= (recipe.craftMs ?? 0)) {
+        addItem(recipeId, 1);
+        setSlotCraftRecipe(i, null);
+        setSlotStatus(i, 'idle', null);
+        emit('itemCrafted', { recipeId });
+      }
     } else if (slot.status === 'sailing') {
       // slot.zoneId is still the origin until arrival, so this is the
       // same route sailSlot priced — safe to recompute rather than

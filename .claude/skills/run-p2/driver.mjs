@@ -143,6 +143,12 @@ async function handle(line) {
       }
       break;
     }
+    case 'sleep': {
+      const ms = Number(rest[0]) || 0;
+      await new Promise((r) => setTimeout(r, ms));
+      log(`[sleep] ${ms}ms`);
+      break;
+    }
     case 'reload': {
       await page.reload();
       log('[reload] ok');

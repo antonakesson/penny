@@ -10,7 +10,7 @@ const state = {
 const listeners = new Set();
 
 function createSlot() {
-  return { status: 'idle', startedAt: null, zoneId: DEFAULT_ZONE_ID, targetZoneId: null };
+  return { status: 'idle', startedAt: null, zoneId: DEFAULT_ZONE_ID, targetZoneId: null, craftRecipeId: null };
 }
 
 function reconcileSlots() {
@@ -18,12 +18,13 @@ function reconcileSlots() {
   while (state.slots.length < slotCount) state.slots.push(createSlot());
   if (state.slots.length > slotCount) state.slots.length = slotCount;
 
-  // Patch slots loaded from saves that predate zoneId/targetZoneId —
-  // Object.assign in loadState only merges top-level state, not the
-  // shape of each saved slot.
+  // Patch slots loaded from saves that predate zoneId/targetZoneId/
+  // craftRecipeId — Object.assign in loadState only merges top-level
+  // state, not the shape of each saved slot.
   for (const slot of state.slots) {
     if (slot.zoneId === undefined) slot.zoneId = DEFAULT_ZONE_ID;
     if (slot.targetZoneId === undefined) slot.targetZoneId = null;
+    if (slot.craftRecipeId === undefined) slot.craftRecipeId = null;
   }
 }
 
@@ -77,6 +78,13 @@ export function equip(itemId) {
 
 export function unequip(itemId) {
   state.equipped = state.equipped.filter((id) => id !== itemId);
+  notify();
+}
+
+export function setSlotCraftRecipe(index, recipeId) {
+  const slot = state.slots[index];
+  if (!slot) return;
+  slot.craftRecipeId = recipeId;
   notify();
 }
 
