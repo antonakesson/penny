@@ -1,7 +1,7 @@
 import { actions } from './actions.js';
 import { initRender } from './render.js';
 import { loadSavedState } from './storage.js';
-import { activateSlot, sailSlot, equipItem, unequipItem, craftItem, tick } from './engine.js';
+import { activateSlot, sailSlot, equipItem, unequipItem, craftItem, useItem, tick } from './engine.js';
 import { on } from './events.js';
 import { unlockAudio, playCoin } from './audio.js';
 
@@ -30,6 +30,10 @@ document.addEventListener('click', (event) => {
   }
   if (action === 'craft') {
     craftItem(target.dataset.recipe);
+    return;
+  }
+  if (action === 'use') {
+    useItem(target.dataset.item);
     return;
   }
 

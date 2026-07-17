@@ -16,6 +16,7 @@ import { TREASURE_CLASSES } from './treasureClasses.js';
 import { ITEMS } from './items.js';
 import { RECIPES } from './recipes.js';
 import { EQUIPMENT } from './config.js';
+import { EFFECTS } from './effects.js';
 
 const MAX_DROP_DEPTH = 8; // guards a cyclic treasure-class reference
 
@@ -57,6 +58,17 @@ export function unequipItem(itemId) {
 
   unequip(itemId);
   emit('itemUnequipped', { itemId });
+}
+
+export function useItem(itemId) {
+  const state = getState();
+  const item = ITEMS[itemId];
+  const effect = item?.onUseEffect ? EFFECTS[item.onUseEffect] : null;
+  if (!effect) return; // not usable
+  if (!state.inventory[itemId]) return; // must own at least one
+
+  addItem(itemId, -1);
+  emit('itemUsed', { itemId, effectId: item.onUseEffect, message: effect.message });
 }
 
 export function canCraft(recipeId, state = getState()) {

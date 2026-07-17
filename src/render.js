@@ -15,6 +15,7 @@ import { RECIPES } from './recipes.js';
 import { findRoute } from './travel.js';
 import { getEquippedStats } from './stats.js';
 import { canCraft } from './engine.js';
+import { on } from './events.js';
 
 export function initRender() {
   qs('#inventory-label').textContent = INVENTORY_LABEL;
@@ -24,6 +25,7 @@ export function initRender() {
   buildSlots(getState());
   render(getState());
   subscribe(render);
+  on('itemUsed', ({ message }) => setText('#status-message', message));
 }
 
 function buildSlots(state) {
@@ -138,6 +140,15 @@ function renderInventory(state) {
       btn.dataset.action = equipped ? 'unequip' : 'equip';
       btn.dataset.item = itemId;
       btn.textContent = equipped ? 'Unequip' : 'Equip';
+      row.appendChild(btn);
+    }
+
+    if (item.onUseEffect) {
+      const btn = document.createElement('button');
+      btn.className = 'inventory-equip-btn';
+      btn.dataset.action = 'use';
+      btn.dataset.item = itemId;
+      btn.textContent = 'Use';
       row.appendChild(btn);
     }
 
