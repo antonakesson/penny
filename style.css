@@ -1,0 +1,283 @@
+:root {
+  --bg: #f4f3ef;
+  --fg: #1e1c1a;
+  --muted: #6b6660;
+  --accent: #8a3324;
+  --enemy-hp: #c0392b;
+  --recovery: #4c7a4f;
+  --surface: #e8e6e0;
+  --border: #cfccc4;
+  --rarity-uncommon: #2f8a43;
+  --rarity-rare: #3172c4;
+  --rarity-epic: #9c4fc4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171513;
+    --fg: #e9e6e0;
+    --muted: #9a958c;
+    --accent: #c9663f;
+    --enemy-hp: #e0564a;
+    --recovery: #6fae72;
+    --surface: #211e1b;
+    --border: #35312c;
+    --rarity-uncommon: #5cbf72;
+    --rarity-rare: #6ea8e0;
+    --rarity-epic: #c98af0;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Courier New', Consolas, monospace;
+  cursor: pointer;
+}
+
+#app {
+  width: min(420px, 90vw);
+  padding: 2rem;
+  text-align: center;
+}
+
+#app p {
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  margin: 0 0 1.5rem;
+}
+
+button,
+.slot-btn {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font: inherit;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+button:last-child {
+  margin-bottom: 0;
+}
+
+button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.slot {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
+/* Floating combat text: spawned on the .slot wrapper (not .slot-btn,
+   which clips via overflow:hidden for its progress bar) so it can rise
+   past the button's edge unclipped. Each spawn is an independent DOM
+   node removed on its own timer, so multiple can overlap freely. */
+.floating-text {
+  position: absolute;
+  left: 50%;
+  top: 0.2rem;
+  transform: translate(-50%, 0);
+  pointer-events: none;
+  font-size: 1.05rem;
+  font-weight: bold;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  opacity: 1;
+  z-index: 5;
+  white-space: nowrap;
+  /* Two-phase motion: rise for 0.7s, hold in place, then fade over the
+     last 0.6s — opacity's transition-delay is what creates the hold,
+     since it only starts once the rise has long finished. */
+  transition: transform 0.7s ease-out, opacity 0.6s ease-in 1.6s;
+}
+
+.floating-text-miss {
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.floating-text-damage {
+  color: var(--accent);
+}
+
+/* Rarity tiers, applied to floating loot text. 'common' is deliberately
+   absent — no class means no color override, so it inherits the
+   surrounding text color same as any unstyled item, not an
+   accent/highlight color. */
+.rarity-uncommon {
+  color: var(--rarity-uncommon);
+}
+
+.rarity-rare {
+  color: var(--rarity-rare);
+}
+
+.rarity-epic {
+  color: var(--rarity-epic);
+  font-weight: bold;
+}
+
+.floating-text-rise {
+  transform: translate(-50%, -2.4rem);
+  opacity: 0;
+}
+
+.slot-btn {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  text-align: left;
+  margin-bottom: 0.35rem;
+  /* Extra bottom room beyond the shared button padding so the
+     absolutely-positioned progress bar has clear space below the
+     status text instead of sitting right under its descenders. */
+  padding-bottom: 1.4rem;
+}
+
+.slot-btn.active {
+  border-color: var(--accent);
+}
+
+.slot-btn.recovery {
+  color: var(--muted);
+}
+
+.slot-header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.slot-status,
+.slot-timer {
+  font-size: 0.7rem;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--muted);
+}
+
+.slot-timer {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.save-btn {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 12;
+  width: auto;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+
+/* Static build marker, stacked under the save button in the same
+   top-left corner — not interactive, so pointer-events stays off and
+   it never competes with the button above it for clicks. */
+#version-tag {
+  position: fixed;
+  top: 2.3rem;
+  left: 0.5rem;
+  z-index: 12;
+  pointer-events: none;
+  font-size: 0.65rem;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.slot-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: var(--pct, 0%);
+  background: var(--accent);
+  transition: width 0.1s linear;
+}
+
+/* Recovery drains rather than fills — full bar at the start of the
+   cooldown beat, empty when idle's about to kick back in. Reverse of
+   every other status, which builds up toward completion. */
+.slot-btn.recovery .slot-progress {
+  background: var(--recovery);
+}
+
+#zone {
+  margin-bottom: 0.75rem;
+  text-align: left;
+}
+
+.zone-name {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+#enemy {
+  position: relative;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.enemy-header {
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+.enemy-hp-bar {
+  position: relative;
+  height: 0.3rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.enemy-hp-fill {
+  height: 100%;
+  width: var(--pct, 100%);
+  background: var(--enemy-hp);
+  transition: width 0.15s ease-out;
+}
+
+.enemy-hp-text {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
