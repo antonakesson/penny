@@ -1,9 +1,10 @@
-import { GATHER } from './config.js';
-import { getState, setSlotStatus, addItem, touch, setMonster, damageMonster } from './state.js';
-import { emit } from './events.js';
-import { resolveDropId } from './loot.js';
-import { ZONES } from './zones.js';
-import { MONSTERS } from './monstats.js';
+import { GATHER } from '../config.js';
+import { getState, setSlotStatus, addItem, touch, setMonster, damageMonster } from '../state/state.js';
+import { awardXp } from '../state/xp.js';
+import { emit } from '../events.js';
+import { resolveDropId } from '../data/loot.js';
+import { ZONES } from '../data/zones.js';
+import { MONSTERS } from '../data/monstats.js';
 
 // Spawns a monster into state.monster only if one isn't already
 // live — safe to call unconditionally at startup, whether this is a
@@ -61,8 +62,19 @@ function resolveMonsterKill(index) {
     addItem(itemId, 1);
     emit('itemDropped', { index, itemId });
   }
+
+  const xp = killXpAward();
+  awardXp(xp);
+  emit('xpGained', { index, amount: xp });
+
   emit('monsterKilled', { index, monsterId: monster.id });
   spawnMonster();
+}
+
+// PLACEHOLDER: flat 1 xp per kill regardless of monster/zone. Real
+// system (per-monster xp, level scaling, level-gap decay) later.
+function killXpAward() {
+  return 1;
 }
 
 // Gates whether an attack lands at all.

@@ -1,9 +1,9 @@
 import { actions } from './actions.js';
-import { initRender } from './render.js';
+import { initRender } from './ui/render.js';
 import { loadSavedState } from './storage.js';
-import { activateSlot, tick, ensureMonster } from './engine.js';
+import { activateSlot, tick, ensureMonster } from './core/engine.js';
 import { on } from './events.js';
-import { unlockAudio, playCoin, playWoop } from './audio.js';
+import { unlockAudio, playCoin, playWoop } from './ui/audio.js';
 
 loadSavedState();
 ensureMonster();

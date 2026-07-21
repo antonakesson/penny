@@ -17,7 +17,7 @@ const SHOT_DIR = join(__dirname, 'screenshots');
 const PORT = 8934;
 const BASE_URL = `http://localhost:${PORT}`;
 const SAVE_KEY = 'idle-game-save';
-const SAVE_VERSION = 0; // must track storage.js's SAVE_VERSION
+const SAVE_VERSION = 2; // must track storage.js's SAVE_VERSION
 
 mkdirSync(SHOT_DIR, { recursive: true });
 

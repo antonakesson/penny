@@ -1,4 +1,4 @@
-import { getState, loadState } from './state.js';
+import { getState, loadState } from './state/state.js';
 
 const SAVE_KEY = 'idle-game-save';
 
@@ -9,7 +9,7 @@ const SAVE_KEY = 'idle-game-save';
 // rather than carry the old count forward — the number has no meaning
 // beyond "does this match," so there's nothing to preserve by counting
 // up instead of resetting.
-const SAVE_VERSION = 1; // bumped: state gained zones/monster fields
+const SAVE_VERSION = 2; // bumped: state gained xp field
 
 export function saveState() {
   localStorage.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, state: getState() }));

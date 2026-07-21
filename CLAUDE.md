@@ -46,6 +46,39 @@ is worth designing in writing before building, that's a `FEATURE_<NAME>.md`
 doc at the repo root, deleted once it's either built or abandoned (not
 left around describing something no longer true).
 
+## File layout
+
+`src/` is split by role, not by feature — each folder is a privilege
+level, not a subsystem:
+
+- **`core/`** — orchestration and derived calculation, zero write
+  access to state. `engine.js` (the combat-loop sequencer) lives here;
+  future pure-calculation peers (e.g. a `stats.js`/`combat.js` that
+  derive hit chance/damage from level + equipment + talents) belong
+  here too. They aren't engine-private helpers — `ui/` reads the same
+  derived numbers directly for display (e.g. a future character
+  sheet), so don't shape their API around engine's needs only.
+- **`state/`** — the only files with write access to game state.
+  `state.js` is the store itself (`getState()`, `subscribe`/`notify`).
+  Each state-owning domain (inventory, xp/level, talents, equipment)
+  gets its own file here once it exists — one slice of the state
+  object, with its own mutator functions, owned by that file alone.
+  Write access is a convention, not enforced (nothing stops another
+  file from importing a setter directly) — don't do that.
+- **`data/`** — closed content registries, no logic. See below.
+- **`ui/`** — presentation only. Reads state, writes DOM, never
+  decides game logic.
+- `src/` root — cross-cutting infra used by everything above:
+  `main.js` (bootstrap), `config.js` (tuning constants), `storage.js`
+  (save/load), `actions.js` (click-action registry), `events.js` (the
+  one-shot pub/sub, see below).
+
+**Rule of thumb for a new file:** owns a slice of state and mutates it
+→ `state/`. Computes a value from state without mutating and without
+touching DOM → `core/`. Static content keyed by id → `data/`. Only
+reads state/emits to write DOM → `ui/`. Doesn't fit any of those
+(bootstrapping, persistence, tuning) → `src/` root.
+
 ## Closed ID registries, cross-referenced by string id
 
 Each independent game system is one flat, closed dict, keyed by string
@@ -56,10 +89,10 @@ internal shape beyond "given this id, give me the thing."
 
 | Registry | File | Keyed by | Its entries reference |
 |---|---|---|---|
-| `TREASURE_CLASSES` | `loot.js` | TC id | `entries`: other `TREASURE_CLASSES` ids (recursive) or `ITEMS` ids |
-| `ITEMS` | `loot.js` | item id | terminal — leaf data (name, optional description), references nothing further |
-| `ZONES` | `zones.js` | zone id | `monsters`: a list of `MONSTERS` ids |
-| `MONSTERS` | `monstats.js` | monster id | `drop`: a `TREASURE_CLASSES`/`ITEMS` id |
+| `TREASURE_CLASSES` | `data/loot.js` | TC id | `entries`: other `TREASURE_CLASSES` ids (recursive) or `ITEMS` ids |
+| `ITEMS` | `data/loot.js` | item id | terminal — leaf data (name, optional description), references nothing further |
+| `ZONES` | `data/zones.js` | zone id | `monsters`: a list of `MONSTERS` ids |
+| `MONSTERS` | `data/monstats.js` | monster id | `drop`: a `TREASURE_CLASSES`/`ITEMS` id |
 
 `TREASURE_CLASSES` and `ITEMS` both live in `loot.js` — an exception to
 "own file per registry" because they're inseparable from the
@@ -94,7 +127,7 @@ exists somewhere).
 
 ## How systems interact (runtime wiring)
 
-- **`state.js`** owns the single source of truth (`getState()`) and a
+- **`state/state.js`** owns the single source of truth (`getState()`) and a
   `subscribe`/`notify` channel used *only* to drive re-renders —
   anything that mutates state (`addItem`, `setSlotStatus`, etc.) calls
   `notify()`, and `render.js`'s `subscribe(render)` re-renders the
@@ -110,14 +143,14 @@ exists somewhere).
   conflate the two channels — state changes always go through
   `state.js`'s `notify`, one-shot side effects always go through
   `events.js`.
-- **`engine.js`** is where game logic lives: it reads `getState()`,
-  decides whether an action is legal, calls `state.js` setters to
+- **`core/engine.js`** is where game logic lives: it reads `getState()`,
+  decides whether an action is legal, calls `state/state.js` setters to
   mutate, and `emit()`s the corresponding event. `render.js` and
   `main.js` never mutate state directly — they call into `engine.js`
   (`activateSlot`, `tick`). It owns the combat loop — the hit roll,
   damage, death check, respawning the next monster via `spawnMonster`
   — but not *what* drops on a kill — that's `loot.js`.
-- **`loot.js`** owns *what* drops: `ITEMS`, `TREASURE_CLASSES`,
+- **`data/loot.js`** owns *what* drops: `ITEMS`, `TREASURE_CLASSES`,
   `resolveDrop` (weighted-list entries, e.g. a TC's own `entries`) and
   `resolveDropId` (a single id, the shape a monster's `drop` field
   points at). `engine.js` calls `resolveDropId(monsterDef.drop)` on a
@@ -130,7 +163,7 @@ exists somewhere).
   against the same `GATHER` durations `tick()` checks against; keep
   both reads using the same source values rather than let them drift
   apart.
-- **`render.js`** is presentation-only: it reads state and the
+- **`ui/render.js`** is presentation-only: it reads state and the
   flavor-text module (`flavor.js`) and writes DOM. It never decides
   game logic, only how to display the result of logic that already
   ran in `engine.js`.

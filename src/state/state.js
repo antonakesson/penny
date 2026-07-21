@@ -1,10 +1,11 @@
-import { GATHER } from './config.js';
+import { GATHER } from '../config.js';
 
 const state = {
   slots: [],
   inventory: {},
   zones: { current: 'zone1', highestUnlocked: 'zone1' },
   monster: null, // live encounter instance — { id, level, hp, maxHp }
+  xp: 0, // arbitrary accumulating number — no level curve consumes it yet
 };
 
 const listeners = new Set();
@@ -30,7 +31,9 @@ export function subscribe(listener) {
   return () => listeners.delete(listener);
 }
 
-function notify() {
+// Exported (rather than kept private) so domain-owner files elsewhere
+// in state/ can notify after mutating their own slice directly.
+export function notify() {
   for (const listener of listeners) listener(state);
 }
 

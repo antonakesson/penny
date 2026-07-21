@@ -1,11 +1,11 @@
-import { subscribe, getState } from './state.js';
+import { subscribe, getState } from '../state/state.js';
 import { setText, qs, qsa } from './dom.js';
-import { GATHER } from './config.js';
+import { GATHER } from '../config.js';
 import { SLOT_LABEL, STATUS_LABEL, MISS_MESSAGE } from './flavor.js';
-import { ITEMS, ITEM_RARITY } from './loot.js';
-import { MONSTERS } from './monstats.js';
-import { ZONES } from './zones.js';
-import { on } from './events.js';
+import { ITEMS, ITEM_RARITY } from '../data/loot.js';
+import { MONSTERS } from '../data/monstats.js';
+import { ZONES } from '../data/zones.js';
+import { on } from '../events.js';
 import { spawnFloatingText } from './floatingText.js';
 
 export function initRender() {
