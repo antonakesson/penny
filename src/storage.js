@@ -9,7 +9,7 @@ const SAVE_KEY = 'idle-game-save';
 // rather than carry the old count forward — the number has no meaning
 // beyond "does this match," so there's nothing to preserve by counting
 // up instead of resetting.
-const SAVE_VERSION = 2; // bumped: state gained xp field
+const SAVE_VERSION = 3; // bumped: dummy monster id replaced by boar/zombie
 
 export function saveState() {
   localStorage.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, state: getState() }));

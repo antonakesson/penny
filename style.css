@@ -214,6 +214,22 @@ button:active {
   opacity: 0.5;
 }
 
+/* Mirrors save-btn/#version-tag's corner treatment on the opposite
+   side — meta info outside the combat flow, not (yet) a stat with a
+   bar or curve to visualize, just a running tally. */
+#xp-tally {
+  position: fixed;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 12;
+  pointer-events: none;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
 .slot-progress {
   position: absolute;
   left: 0;

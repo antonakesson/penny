@@ -45,17 +45,6 @@ export function setSlotStatus(index, status, startedAt = Date.now()) {
   notify();
 }
 
-export function setMonster(monster) {
-  state.monster = monster;
-  notify();
-}
-
-export function damageMonster(amount) {
-  if (!state.monster) return;
-  state.monster.hp = Math.max(0, state.monster.hp - amount);
-  notify();
-}
-
 export function addItem(itemId, amount) {
   state.inventory[itemId] = (state.inventory[itemId] ?? 0) + amount;
   notify();

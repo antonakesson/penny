@@ -3,5 +3,5 @@
 // entries scale against whatever level the zone hands them, so the
 // same monster id is reusable across zones at different levels.
 export const ZONES = {
-  zone1: { name: 'Zone 1', monsterLevel: 1, monsters: ['dummy'] },
+  zone1: { name: 'Zone 1', monsterLevel: 1, monsters: ['boar', 'zombie'] },
 };

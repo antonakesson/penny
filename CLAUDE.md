@@ -23,14 +23,22 @@ That's the whole game today.
 ## Current target: Diablo 2-light
 
 Present one monster at a time; click to kill it, get loot. The core
-loop is working end to end now (dummy zone/monster data, real damage,
-real per-monster loot) — remaining work here is content (real zones
-and monsters instead of the one dummy each) rather than plumbing.
+loop is working end to end now (real damage, real per-monster loot,
+real per-monster/per-level xp) — remaining work here is content (more
+zones and monsters) rather than plumbing.
 
 - **Zones** — a zone has a monster level and a list of monsters it can
-  spawn (a basic `levels.txt`). `zones.js`, one dummy entry.
-- **Monsters** — type, HP, loot table (a basic `monstats.txt`).
-  `monstats.js`, one dummy entry.
+  spawn (a basic `levels.txt`). `zones.js`, one zone (`zone1`).
+- **Monsters** — type, HP, XP, loot table (a basic `monstats.txt`).
+  `monstats.js`, two entries (`boar`, `zombie`). HP/XP scale by level —
+  `state/monster.js`'s `spawnMonster` resolves both once at spawn time
+  and bakes the result into the live `state.monster` instance (along
+  with the `drop` id), so nothing downstream re-derives from
+  `monster.id` later; monster entries themselves only hold base values
+  and per-level deltas (plus, for a future boss-style mixin, optional
+  `hpMul`/`xpMul`). Flags like `type`/`vulnerability` (e.g. `zombie`'s
+  `undead` mixin) are spread in from shared const objects and read as
+  plain data, no resolver involved.
 - **Loot/treasure class** — `loot.js`, see the registry table below.
 
 Next: damage, level, skill tree, stats, item attributes — attack
@@ -60,11 +68,20 @@ level, not a subsystem:
   sheet), so don't shape their API around engine's needs only.
 - **`state/`** — the only files with write access to game state.
   `state.js` is the store itself (`getState()`, `subscribe`/`notify`).
-  Each state-owning domain (inventory, xp/level, talents, equipment)
-  gets its own file here once it exists — one slice of the state
-  object, with its own mutator functions, owned by that file alone.
-  Write access is a convention, not enforced (nothing stops another
-  file from importing a setter directly) — don't do that.
+  Each state-owning domain (xp: `xp.js`, the live encounter: `monster.js`;
+  inventory/talents/equipment get theirs once they exist) gets its own
+  file here — one slice of the state object, with its own mutator
+  functions, owned by that file alone. A mutator can also own the
+  *decision* of what to write, not just accept a value from the
+  caller, when everything it needs is already reachable via
+  `getState()`/`data/` — `monster.js`'s `spawnMonster` picks the
+  monster and computes its hp itself, since a caller has nothing to
+  add that `state.zones.current` + `ZONES` don't already provide.
+  Contrast `xp.js`'s `awardXp(amount)`, which stays a dumb setter
+  because the amount is genuinely the caller's context to supply, not
+  derivable from state alone. Write access is a convention, not
+  enforced (nothing stops another file from importing a setter
+  directly) — don't do that.
 - **`data/`** — closed content registries, no logic. See below.
 - **`ui/`** — presentation only. Reads state, writes DOM, never
   decides game logic.
@@ -144,18 +161,25 @@ exists somewhere).
   `state.js`'s `notify`, one-shot side effects always go through
   `events.js`.
 - **`core/engine.js`** is where game logic lives: it reads `getState()`,
-  decides whether an action is legal, calls `state/state.js` setters to
+  decides whether an action is legal, calls `state/`'s setters to
   mutate, and `emit()`s the corresponding event. `render.js` and
   `main.js` never mutate state directly — they call into `engine.js`
-  (`activateSlot`, `tick`). It owns the combat loop — the hit roll,
-  damage, death check, respawning the next monster via `spawnMonster`
-  — but not *what* drops on a kill — that's `loot.js`.
+  (`activateSlot`, `tick`, `ensureMonster` — the last just re-exported
+  from `state/monster.js` so `main.js` still only ever imports from
+  `engine.js`). It owns the combat loop — the hit roll, damage, death
+  check — and triggers `state/monster.js`'s `spawnMonster` after a
+  kill, but doesn't decide *which* monster spawns, nor recompute its
+  xp/drop (that's all `monster.js`, baked into the instance at spawn
+  time): `resolveMonsterKill` just reads `monster.xpReward`/
+  `monster.drop` off `getState().monster`.
 - **`data/loot.js`** owns *what* drops: `ITEMS`, `TREASURE_CLASSES`,
   `resolveDrop` (weighted-list entries, e.g. a TC's own `entries`) and
   `resolveDropId` (a single id, the shape a monster's `drop` field
-  points at). `engine.js` calls `resolveDropId(monsterDef.drop)` on a
-  kill and treats the result as an opaque item id or `null` — no
-  weighted-table logic outside this file.
+  points at). `engine.js` calls `resolveDropId(monster.drop)` on a
+  kill — `monster.drop` was already resolved from `MONSTERS[id].drop`
+  by `spawnMonster`, so `engine.js` treats it as an opaque id from
+  either source, no `MONSTERS` lookup or weighted-table logic in this
+  file.
 - **`tick()`** (`engine.js`, driven by `main.js`'s
   `setInterval(tick, 100)`) is the only place time-based state
   transitions happen — active → recovery → idle. Progress-bar `%` math

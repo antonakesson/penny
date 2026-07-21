@@ -108,6 +108,7 @@ function formatDuration(ms) {
 function render(state) {
   renderZone(state);
   renderEnemy(state);
+  setText('#xp-tally', `XP ${state.xp}`);
 
   for (const wrapper of qsa('.slot')) {
     const slot = state.slots[Number(wrapper.dataset.slot)];

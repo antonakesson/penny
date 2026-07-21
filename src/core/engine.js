@@ -1,26 +1,11 @@
 import { GATHER } from '../config.js';
-import { getState, setSlotStatus, addItem, touch, setMonster, damageMonster } from '../state/state.js';
+import { getState, setSlotStatus, addItem, touch } from '../state/state.js';
+import { ensureMonster, spawnMonster, damageMonster } from '../state/monster.js';
 import { awardXp } from '../state/xp.js';
 import { emit } from '../events.js';
 import { resolveDropId } from '../data/loot.js';
-import { ZONES } from '../data/zones.js';
-import { MONSTERS } from '../data/monstats.js';
 
-// Spawns a monster into state.monster only if one isn't already
-// live — safe to call unconditionally at startup, whether this is a
-// fresh game or a reload mid-encounter.
-export function ensureMonster() {
-  if (!getState().monster) spawnMonster();
-}
-
-function spawnMonster() {
-  const zone = ZONES[getState().zones.current];
-  const monsterId = zone.monsters[Math.floor(Math.random() * zone.monsters.length)];
-  const base = MONSTERS[monsterId];
-  const level = zone.monsterLevel;
-  const hp = base.hp + base.hpPerLevel * (level - 1);
-  setMonster({ id: monsterId, level, hp, maxHp: hp });
-}
+export { ensureMonster };
 
 export function activateSlot(index) {
   const slot = getState().slots[index];
@@ -46,7 +31,9 @@ function resolveSlot(index) {
     const damage = attackDamage();
     damageMonster(damage);
     emit('monsterHit', { index, damage });
-    if (getState().monster.hp <= 0) resolveMonsterKill(index);
+    if (getState().monster.hp <= 0) {
+      resolveMonsterKill(index);
+    }
   } else {
     emit('slotFailed', { index });
   }
@@ -57,24 +44,17 @@ function resolveSlot(index) {
 
 function resolveMonsterKill(index) {
   const monster = getState().monster;
-  const itemId = resolveDropId(MONSTERS[monster.id].drop);
+  const itemId = resolveDropId(monster.drop);
   if (itemId) {
     addItem(itemId, 1);
     emit('itemDropped', { index, itemId });
   }
 
-  const xp = killXpAward();
-  awardXp(xp);
-  emit('xpGained', { index, amount: xp });
+  awardXp(monster.xpReward);
+  emit('xpGained', { index, amount: monster.xpReward });
 
   emit('monsterKilled', { index, monsterId: monster.id });
   spawnMonster();
-}
-
-// PLACEHOLDER: flat 1 xp per kill regardless of monster/zone. Real
-// system (per-monster xp, level scaling, level-gap decay) later.
-function killXpAward() {
-  return 1;
 }
 
 // Gates whether an attack lands at all.
