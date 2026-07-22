@@ -2,4 +2,4 @@
   import { getXp } from '../game/game';
 </script>
 
-<span>XP: {getXp()}</span>
+<span class="stat-chip">XP {getXp()}</span>

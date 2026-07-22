@@ -11,6 +11,11 @@ export function setActionActive(startedAt: number) {
   action.startedAt = startedAt;
 }
 
+export function setActionCooldown(startedAt: number) {
+  action.status = 'cooldown';
+  action.startedAt = startedAt;
+}
+
 export function setActionIdle() {
   action.status = 'idle';
   action.startedAt = null;

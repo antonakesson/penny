@@ -1,4 +1,5 @@
 export interface Monster {
+  instanceId: number;
   id: string;
   name: string;
   level: number;
@@ -7,11 +8,20 @@ export interface Monster {
   maxHp: number;
   xpReward: number;
   dropTableId: string;
+  status: 'active' | 'dead';
+  diedAt: number | null;
 }
 
 export interface ActionState {
-  status: 'idle' | 'active';
+  status: 'idle' | 'active' | 'cooldown';
   startedAt: number | null;
 }
 
 export type Inventory = Record<string, number>;
+
+export interface FloatingTextEntry {
+  id: number;
+  text: string;
+  variant: 'damage' | 'loot';
+  offset: number;
+}

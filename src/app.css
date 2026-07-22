@@ -37,6 +37,16 @@
   --border: #b3a888;
   --accent: #96721f;
   --accent-text: #7a5a15;
+  --accent-on: #fbf6e8;
+  --wax: #7c2a2a;
+  --wax-on: #f6e9e4;
+  --shadow: rgba(23, 20, 15, 0.18);
+
+  --rarity-common: #6b6357;
+  --rarity-uncommon: #4c6b3f;
+  --rarity-rare: #395a7a;
+  --rarity-epic: #6a3f7a;
+  --rarity-legendary: #96721f;
 
   --font-ui: system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Crimson Pro', Georgia, 'Times New Roman', serif;
@@ -69,6 +79,16 @@
     --border: #3a3530;
     --accent: #d1a54a;
     --accent-text: #e0b968;
+    --accent-on: #17140f;
+    --wax: #c0564f;
+    --wax-on: #1c100e;
+    --shadow: rgba(0, 0, 0, 0.45);
+
+    --rarity-common: #948c7c;
+    --rarity-uncommon: #7fae66;
+    --rarity-rare: #6f9fcf;
+    --rarity-epic: #b285c9;
+    --rarity-legendary: #d1a54a;
   }
 }
 
@@ -113,6 +133,19 @@ p {
 
 button {
   font-family: var(--font-ui);
+}
+
+/* Bordered rect for stats/timers/counters — anywhere a number has to
+   read clearly at a glance rather than blend into surrounding prose. */
+.stat-chip {
+  display: inline-block;
+  font: 600 15px/1.4 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 12px;
+  background: var(--page);
 }
 
 code {

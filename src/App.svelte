@@ -6,6 +6,7 @@
   import Inventory from './lib/components/Inventory.svelte';
   import Nav from './lib/components/Nav.svelte';
   import Pane from './lib/components/Pane.svelte';
+  import Chip from './lib/components/Chip.svelte';
   import { tick, startAction } from './lib/game/game';
 
   $effect(() => {
@@ -39,6 +40,9 @@
   <Pane paneId="inventory" label="Inventory">
     <Inventory />
   </Pane>
+  <div class="version-badge">
+    <Chip text="Version 0.1-alpha" />
+  </div>
 </div>
 
 <style>
@@ -55,6 +59,14 @@
     padding: 20px 20px 84px;
   }
 
+  .version-badge {
+    position: fixed;
+    left: 50%;
+    bottom: 54px;
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+
   @media (min-width: 900px) {
     .app-shell {
       flex-direction: row;
@@ -64,6 +76,9 @@
     .combat {
       max-width: none;
       padding: 32px 40px;
+    }
+    .version-badge {
+      bottom: 16px;
     }
   }
 </style>

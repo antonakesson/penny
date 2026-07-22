@@ -5,26 +5,38 @@
   let now = $state(Date.now());
 
   $effect(() => {
-    const id = setInterval(() => {
+    let frame = requestAnimationFrame(function loop() {
       now = Date.now();
-    }, 100);
-    return () => clearInterval(id);
+      frame = requestAnimationFrame(loop);
+    });
+    return () => cancelAnimationFrame(frame);
   });
 
   let action = $derived(getAction());
-  let active = $derived(action.status === 'active');
-  let elapsed = $derived(active && action.startedAt !== null ? now - action.startedAt : 0);
-  let pct = $derived(active ? Math.min(100, (elapsed / GATHER.activeMs) * 100) : 0);
-  let remainingMs = $derived(active ? Math.max(0, GATHER.activeMs - elapsed) : 0);
+  let phase = $derived(action.status);
+  let elapsed = $derived(action.startedAt !== null ? Math.max(0, now - action.startedAt) : 0);
+
+  let pct = $derived.by(() => {
+    if (phase === 'active') return Math.min(100, (elapsed / GATHER.activeMs) * 100);
+    if (phase === 'cooldown') return Math.max(0, 100 - (elapsed / GATHER.cooldownMs) * 100);
+    return 0;
+  });
+
+  let phaseMs = $derived(phase === 'active' ? GATHER.activeMs : GATHER.cooldownMs);
+  let remainingMs = $derived(phase === 'idle' ? 0 : Math.max(0, phaseMs - elapsed));
+
+  let label = $derived(
+    phase === 'active' ? 'Attacking…' : phase === 'cooldown' ? 'Recovering…' : 'Ready'
+  );
 </script>
 
 <div class="attack-meter">
   <p class="label">
-    <span>{active ? 'Attacking…' : 'Ready'}</span>
-    {#if active}<span class="timer">{(remainingMs / 1000).toFixed(1)}s</span>{/if}
+    <span>{label}</span>
+    {#if phase !== 'idle'}<span class="timer">{(remainingMs / 1000).toFixed(1)}s</span>{/if}
   </p>
   <div class="bar">
-    <div class="fill" style="width: {pct}%"></div>
+    <div class="fill" class:cooldown={phase === 'cooldown'} style="width: {pct}%"></div>
   </div>
 </div>
 
@@ -35,12 +47,13 @@
   }
   .label {
     display: flex;
+    align-items: center;
     justify-content: space-between;
     font: 600 12px/1 var(--font-ui);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-faint);
-    margin: 0 0 6px;
+    margin: 0 0 8px;
   }
   .timer {
     font-variant-numeric: tabular-nums;
@@ -55,6 +68,10 @@
   .fill {
     height: 100%;
     background: var(--accent);
-    transition: width 0.15s ease-out;
+    transition: background-color 0.2s ease-in-out;
+  }
+  .fill.cooldown {
+    background: var(--accent-text);
+    opacity: 0.7;
   }
 </style>
