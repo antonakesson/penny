@@ -1,0 +1,127 @@
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/cinzel-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/crimson-pro-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/crimson-pro-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Metal Mania';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/metal-mania-400.woff2') format('woff2');
+}
+
+:root {
+  --page: #d7d3c2;
+  --page-raised: #e4e0d1;
+  --page-sunken: #c9c4b0;
+  --ink: #2b2620;
+  --ink-strong: #17140f;
+  --ink-faint: #5c5443;
+  --border: #b3a888;
+  --accent: #96721f;
+  --accent-text: #7a5a15;
+
+  --font-ui: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Crimson Pro', Georgia, 'Times New Roman', serif;
+  --font-structural: 'Cinzel', Georgia, serif;
+  --font-display: 'Metal Mania', system-ui, sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--font-ui);
+  color-scheme: light dark;
+  color: var(--ink);
+  background: var(--page);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #17151a;
+    --page-raised: #211f26;
+    --page-sunken: #100f13;
+    --ink: #c9c2ae;
+    --ink-strong: #f1e9d2;
+    --ink-faint: #948c78;
+    --border: #3a3530;
+    --accent: #d1a54a;
+    --accent-text: #e0b968;
+  }
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--font-structural);
+  color: var(--ink-strong);
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 56px;
+  letter-spacing: 0.02em;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  font-family: var(--font-body);
+  font-size: 19px;
+  line-height: 165%;
+  margin: 0;
+}
+
+button {
+  font-family: var(--font-ui);
+}
+
+code {
+  font-family: var(--font-mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--ink-strong);
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--page-raised);
+}
