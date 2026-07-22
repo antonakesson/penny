@@ -7,7 +7,7 @@ export interface Monster {
   hp: number;
   maxHp: number;
   xpReward: number;
-  dropTableId: string;
+  dropTableId: readonly string[];
   status: 'active' | 'dead';
   diedAt: number | null;
 }

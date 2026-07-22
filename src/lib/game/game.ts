@@ -3,6 +3,7 @@ import { getInventory as getInventoryState } from './state/inventory.svelte';
 import { getXp as getXpState } from './state/xp.svelte';
 import { getAction as getActionState } from './state/action.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
+import { getCurrentZoneId } from './state/zone.svelte';
 import { startAction as startActionInternal, tick as tickInternal } from './engine';
 import { ZONES } from './data/zones';
 
@@ -27,7 +28,7 @@ export function getFloatingTexts() {
 }
 
 export function getZone() {
-  return ZONES.zone1;
+  return ZONES[getCurrentZoneId()];
 }
 
 export function startAction() {

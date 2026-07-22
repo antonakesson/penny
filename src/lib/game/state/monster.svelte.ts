@@ -1,4 +1,6 @@
 import { MONSTERS, type MonsterId } from '../data/monstats';
+import { pickMonsterId } from '../data/zones';
+import { getCurrentZoneId } from './zone.svelte';
 import type { Monster } from '../types';
 
 let nextInstanceId = 1;
@@ -20,7 +22,11 @@ function createMonster(id: MonsterId): Monster {
   };
 }
 
-let current = $state<Monster>(createMonster('boar'));
+function createNextMonster(): Monster {
+  return createMonster(pickMonsterId(getCurrentZoneId()));
+}
+
+let current = $state<Monster>(createNextMonster());
 
 export function getMonster(): Monster {
   return current;
@@ -35,6 +41,6 @@ export function killMonster() {
   current.diedAt = Date.now();
 }
 
-export function spawnMonster(id: MonsterId = 'boar') {
-  current = createMonster(id);
+export function spawnMonster() {
+  current = createNextMonster();
 }

@@ -1,4 +1,4 @@
-export const GATHER = {
+export const ACTION = {
   activeMs: 1500,
   cooldownMs: 400,
 };

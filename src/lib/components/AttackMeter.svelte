@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getAction } from '../game/game';
-  import { GATHER } from '../game/config';
+  import { ACTION } from '../game/config';
 
   let now = $state(Date.now());
 
@@ -17,12 +17,12 @@
   let elapsed = $derived(action.startedAt !== null ? Math.max(0, now - action.startedAt) : 0);
 
   let pct = $derived.by(() => {
-    if (phase === 'active') return Math.min(100, (elapsed / GATHER.activeMs) * 100);
-    if (phase === 'cooldown') return Math.max(0, 100 - (elapsed / GATHER.cooldownMs) * 100);
+    if (phase === 'active') return Math.min(100, (elapsed / ACTION.activeMs) * 100);
+    if (phase === 'cooldown') return Math.max(0, 100 - (elapsed / ACTION.cooldownMs) * 100);
     return 0;
   });
 
-  let phaseMs = $derived(phase === 'active' ? GATHER.activeMs : GATHER.cooldownMs);
+  let phaseMs = $derived(phase === 'active' ? ACTION.activeMs : ACTION.cooldownMs);
   let remainingMs = $derived(phase === 'idle' ? 0 : Math.max(0, phaseMs - elapsed));
 
   let label = $derived(

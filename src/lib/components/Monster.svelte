@@ -76,7 +76,7 @@
   }
   .hp-fill {
     height: 100%;
-    background: var(--accent);
+    background: var(--wax);
     transition: width 0.15s ease-out;
   }
   .hp-text {

@@ -1,10 +1,10 @@
-import { GATHER, MONSTER_DEATH_MS } from './config';
+import { ACTION, MONSTER_DEATH_MS } from './config';
 import { getMonster, damageMonster, spawnMonster, killMonster } from './state/monster.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { awardXp } from './state/xp.svelte';
 import { addItem } from './state/inventory.svelte';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
-import { resolveDropId, ITEMS } from './data/loot';
+import { resolveDropIds, ITEMS } from './data/loot';
 
 export function startAction() {
   const action = getAction();
@@ -18,9 +18,9 @@ export function tick() {
   if (action.startedAt !== null) {
     const elapsed = Date.now() - action.startedAt;
     if (action.status === 'active') {
-      if (elapsed >= GATHER.activeMs) resolveAction();
+      if (elapsed >= ACTION.activeMs) resolveAction();
     } else if (action.status === 'cooldown') {
-      if (elapsed >= GATHER.cooldownMs) setActionIdle();
+      if (elapsed >= ACTION.cooldownMs) setActionIdle();
     }
   }
 
@@ -37,8 +37,7 @@ function resolveAction() {
 
   if (monster.hp <= 0) {
     awardXp(monster.xpReward);
-    const dropId = resolveDropId(monster.dropTableId);
-    if (dropId) {
+    for (const dropId of resolveDropIds(monster.dropTableId)) {
       addItem(dropId, 1);
       spawnLootText(`+1 ${ITEMS[dropId].name}`);
     }
