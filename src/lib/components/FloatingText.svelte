@@ -6,7 +6,10 @@
 
 <div class="floating-text-layer">
   {#each texts as t (t.id)}
-    <span class="floating-text floating-text-{t.variant}" style="left: calc(50% + {t.offset}px)">
+    <span
+      class="floating-text floating-text-{t.variant}"
+      style="left: calc(50% + {t.offset}px); {t.rarity ? `color: var(--rarity-${t.rarity})` : ''}"
+    >
       {t.text}
     </span>
   {/each}
@@ -32,9 +35,6 @@
     color: var(--wax);
   }
   .floating-text-loot {
-    /* Common-tier color for now — the only item in the game is tagged
-       Common in the style codex. Once items carry a real rarity field,
-       this should read that instead of a fixed tier. */
     color: var(--rarity-common);
   }
 

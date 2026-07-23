@@ -39,7 +39,7 @@ function resolveAction() {
     awardXp(monster.xpReward);
     for (const dropId of resolveDropIds(monster.dropTableId)) {
       addItem(dropId, 1);
-      spawnLootText(`+1 ${ITEMS[dropId].name}`);
+      spawnLootText(`+1 ${ITEMS[dropId].name}`, ITEMS[dropId].rarity);
     }
     killMonster();
   }

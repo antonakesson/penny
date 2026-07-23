@@ -1,3 +1,5 @@
+import type { Rarity } from './data/loot';
+
 export interface Monster {
   instanceId: number;
   id: string;
@@ -24,4 +26,5 @@ export interface FloatingTextEntry {
   text: string;
   variant: 'damage' | 'loot';
   offset: number;
+  rarity?: Rarity;
 }

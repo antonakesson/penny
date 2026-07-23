@@ -70,11 +70,10 @@
   @media (min-width: 900px) {
     .app-shell {
       flex-direction: row;
-      max-width: 1100px;
-      margin: 0 auto;
     }
     .combat {
-      max-width: none;
+      max-width: 560px;
+      margin: 0 auto;
       padding: 32px 40px;
     }
     .version-badge {

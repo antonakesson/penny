@@ -51,7 +51,8 @@
     .pane {
       position: static;
       transform: none !important;
-      width: 240px;
+      flex: 1;
+      min-width: 240px;
       max-height: none;
       overflow: visible;
       border-top: none;

@@ -1,4 +1,5 @@
 import type { FloatingTextEntry } from '../types';
+import type { Rarity } from '../data/loot';
 
 const LIFETIME_MS = 2300;
 
@@ -23,15 +24,15 @@ export function getFloatingTexts(): FloatingTextEntry[] {
   return entries;
 }
 
-export function spawnFloatingText(text: string, variant: FloatingTextEntry['variant']) {
+export function spawnFloatingText(text: string, variant: FloatingTextEntry['variant'], rarity?: Rarity) {
   const id = nextId++;
   const offset = LANE_CENTER[variant] + (Math.random() - 0.5) * 20;
-  entries.push({ id, text, variant, offset });
+  entries.push({ id, text, variant, offset, rarity });
   setTimeout(() => {
     entries = entries.filter((entry) => entry.id !== id);
   }, LIFETIME_MS);
 }
 
-export function spawnLootText(text: string) {
-  setTimeout(() => spawnFloatingText(text, 'loot'), LOOT_DELAY_MS);
+export function spawnLootText(text: string, rarity: Rarity) {
+  setTimeout(() => spawnFloatingText(text, 'loot', rarity), LOOT_DELAY_MS);
 }

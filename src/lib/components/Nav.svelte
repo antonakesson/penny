@@ -47,21 +47,27 @@
 
   @media (min-width: 900px) {
     nav {
-      position: static;
+      position: sticky;
+      top: 0;
+      align-self: flex-start;
+      height: 100vh;
       flex-direction: column;
-      width: 108px;
+      width: 220px;
       gap: 4px;
-      padding: 20px 0;
+      padding: 32px 0;
       border-top: none;
       border-right: 1px solid var(--border);
     }
     .nav-item {
       flex: none;
-      padding: 12px 8px;
+      text-align: left;
+      padding: 16px 28px;
+      font-size: 13px;
+      letter-spacing: 0.12em;
     }
     .nav-item.active {
       background: var(--page-raised);
-      border-left: 2px solid var(--accent);
+      border-left: 3px solid var(--accent);
     }
   }
 </style>
