@@ -1,16 +1,13 @@
-import { getMonster as getMonsterState } from './state/monster.svelte';
 import { getInventory as getInventoryState } from './state/inventory.svelte';
 import { getXp as getXpState } from './state/xp.svelte';
 import { getAction as getActionState } from './state/action.svelte';
+import { getEncounter as getEncounterState } from './state/encounter.svelte';
+import { getMercenaries as getMercenariesState } from './state/mercenary.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { startAction as startActionInternal, tick as tickInternal } from './engine';
 import { loadSave, saveNow as saveNowInternal, exportSave as exportSaveInternal, importSave as importSaveInternal } from './save';
 import { ZONES } from './data/zones';
-
-export function getMonster() {
-  return getMonsterState();
-}
 
 export function getInventory() {
   return getInventoryState();
@@ -22,6 +19,14 @@ export function getXp() {
 
 export function getAction() {
   return getActionState();
+}
+
+export function getEncounter() {
+  return getEncounterState();
+}
+
+export function getMercenaries() {
+  return getMercenariesState();
 }
 
 export function getFloatingTexts() {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Zone from './lib/components/Zone.svelte';
-  import Monster from './lib/components/Monster.svelte';
+  import Encounter from './lib/components/Encounter.svelte';
   import AttackMeter from './lib/components/AttackMeter.svelte';
   import XpDisplay from './lib/components/XpDisplay.svelte';
   import Inventory from './lib/components/Inventory.svelte';
@@ -66,7 +66,7 @@
   <Nav />
   <main class="combat">
     <Zone />
-    <Monster />
+    <Encounter />
     <AttackMeter />
     <XpDisplay />
   </main>

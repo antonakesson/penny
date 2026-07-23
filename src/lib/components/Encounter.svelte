@@ -1,37 +1,49 @@
 <script lang="ts">
-  import { getMonster } from '../game/game';
+  import { getEncounter } from '../game/game';
   import FloatingText from './FloatingText.svelte';
 
-  let monster = $derived(getMonster());
-  let hpPct = $derived(Math.round((monster.hp / monster.maxHp) * 100));
-  let entryLabel = $derived(`Entry No. ${String(monster.entryNo).padStart(3, '0')}`);
+  let encounter = $derived(getEncounter());
+  let entryNo = $derived(encounter.type === 'monster' ? encounter.monster.entryNo : encounter.event.entryNo);
+  let entryLabel = $derived(`Entry No. ${String(entryNo).padStart(3, '0')}`);
+  let name = $derived(encounter.type === 'monster' ? encounter.monster.name : encounter.event.name);
+  let instanceId = $derived(encounter.type === 'monster' ? encounter.monster.instanceId : encounter.event.instanceId);
+  let done = $derived(encounter.type === 'monster' ? encounter.monster.status === 'dead' : encounter.event.status === 'resolved');
+  let pct = $derived(
+    encounter.type === 'monster'
+      ? Math.round((encounter.monster.hp / encounter.monster.maxHp) * 100)
+      : Math.round(((encounter.event.tapsRequired - encounter.event.tapsRemaining) / encounter.event.tapsRequired) * 100)
+  );
 </script>
 
-<section class="monster" class:dead={monster.status === 'dead'}>
+<section class="encounter" class:done>
   <p class="entry-no">{entryLabel}</p>
   <div class="header">
-    <h3 class="name">{monster.name}</h3>
-    <span class="level">Lv. {monster.level}</span>
+    <h3 class="name">{name}</h3>
+    {#if encounter.type === 'monster'}<span class="level">Lv. {encounter.monster.level}</span>{/if}
   </div>
   <div class="hp-row">
     <div class="hp-bar">
-      {#key monster.instanceId}
-        <div class="hp-fill" style="width: {hpPct}%"></div>
+      {#key instanceId}
+        <div class="hp-fill" style="width: {pct}%"></div>
       {/key}
     </div>
     <FloatingText />
   </div>
-  <p class="hp-text"><span class="stat-chip">{monster.hp} / {monster.maxHp} HP</span></p>
+  <p class="hp-text">
+    <span class="stat-chip">
+      {#if encounter.type === 'monster'}{encounter.monster.hp} / {encounter.monster.maxHp} HP{:else}{encounter.event.tapsRemaining} taps left{/if}
+    </span>
+  </p>
 </section>
 
 <style>
-  .monster {
+  .encounter {
     margin-bottom: 20px;
     max-width: 340px;
     opacity: 1;
     transition: opacity 0.3s ease-out;
   }
-  .monster.dead {
+  .encounter.done {
     opacity: 0.4;
   }
   .entry-no {

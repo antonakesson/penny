@@ -1,19 +1,21 @@
 import { getXp, hydrateXp } from './state/xp.svelte';
 import { getInventory, hydrateInventory } from './state/inventory.svelte';
 import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
-import { serializeMonster, hydrateMonster, type MonsterSnapshot } from './state/monster.svelte';
+import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './state/encounter.svelte';
+import { serializeMercenaries, hydrateMercenaries } from './state/mercenary.svelte';
 import { ZONES, type ZoneId } from './data/zones';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
 
 interface SaveData {
   xp: number;
   inventory: Inventory;
   zone: ZoneId;
-  monster: MonsterSnapshot;
+  encounter: EncounterSnapshot;
+  mercenaries: string[];
 }
 
 interface SaveEnvelope {
@@ -30,15 +32,24 @@ function buildSnapshot(): SaveEnvelope {
       xp: getXp(),
       inventory: { ...getInventory() },
       zone: getCurrentZoneId(),
-      monster: serializeMonster(),
+      encounter: serializeEncounter(),
+      mercenaries: serializeMercenaries(),
     },
   };
 }
 
 // Migrations run in order, each bumping raw `data` from its version to the
-// next. Empty for now — the seam exists so a future shape change doesn't
-// strand saves already on players' machines.
-const migrations: Record<number, (data: any) => any> = {};
+// next. v1 had a single `monster` field instead of the `monster | event`
+// union `encounter` field, and no `mercenaries` roster at all.
+const migrations: Record<number, (data: any) => any> = {
+  1: (data) => ({
+    xp: data.xp,
+    inventory: data.inventory,
+    zone: data.zone,
+    encounter: { type: 'monster', id: data.monster.id, hp: data.monster.hp, status: data.monster.status, diedAt: data.monster.diedAt },
+    mercenaries: [],
+  }),
+};
 
 function migrate(version: number, data: any): SaveData {
   while (version < SAVE_VERSION) {
@@ -50,6 +61,8 @@ function migrate(version: number, data: any): SaveData {
   return data as SaveData;
 }
 
+// Validated per-version since migrate() runs *after* this check — a v1 save
+// on disk still has the old `monster` shape, not `encounter`.
 function isValidEnvelope(raw: unknown): raw is { version: number; savedAt: number; data: unknown } {
   if (!raw || typeof raw !== 'object') return false;
   const env = raw as Record<string, unknown>;
@@ -61,8 +74,14 @@ function isValidEnvelope(raw: unknown): raw is { version: number; savedAt: numbe
   if (!data.inventory || typeof data.inventory !== 'object') return false;
   if (typeof data.zone !== 'string' || !(data.zone in ZONES)) return false;
 
-  const monster = data.monster as Record<string, unknown> | undefined;
-  if (!monster || typeof monster.id !== 'string' || typeof monster.hp !== 'number') return false;
+  if (env.version >= SAVE_VERSION) {
+    const encounter = data.encounter as Record<string, unknown> | undefined;
+    if (!encounter || (encounter.type !== 'monster' && encounter.type !== 'event')) return false;
+    if (!Array.isArray(data.mercenaries)) return false;
+  } else {
+    const monster = data.monster as Record<string, unknown> | undefined;
+    if (!monster || typeof monster.id !== 'string' || typeof monster.hp !== 'number') return false;
+  }
 
   return true;
 }
@@ -71,7 +90,8 @@ function applySnapshot(data: SaveData) {
   hydrateXp(data.xp);
   hydrateInventory(data.inventory);
   hydrateZone(data.zone);
-  hydrateMonster(data.monster);
+  hydrateEncounter(data.encounter);
+  hydrateMercenaries(data.mercenaries);
 }
 
 export function saveNow() {
