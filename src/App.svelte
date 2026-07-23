@@ -7,12 +7,46 @@
   import Nav from './lib/components/Nav.svelte';
   import Pane from './lib/components/Pane.svelte';
   import Chip from './lib/components/Chip.svelte';
-  import { tick, startAction } from './lib/game/game';
+  import WelcomeBack from './lib/components/WelcomeBack.svelte';
+  import { tick, startAction, initGame, saveNow, exportSave, importSave } from './lib/game/game';
+  import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
+
+  // Runs synchronously during component init, before first render — any
+  // saved state is hydrated before the player sees a frame of fresh state.
+  initGame();
 
   $effect(() => {
     const id = setInterval(tick, 100);
     return () => clearInterval(id);
   });
+
+  // Autosave: a steady interval plus the two events that actually precede
+  // data loss — the tab going to background and the page unloading.
+  $effect(() => {
+    const id = setInterval(saveNow, AUTOSAVE_INTERVAL_MS);
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') saveNow();
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', saveNow);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', saveNow);
+    };
+  });
+
+  function handleExport() {
+    const encoded = exportSave();
+    navigator.clipboard?.writeText(encoded).catch(() => {});
+    prompt('Save copied to clipboard. You can also copy it manually below:', encoded);
+  }
+
+  function handleImport() {
+    const encoded = prompt('Paste your exported save:');
+    if (!encoded) return;
+    if (!importSave(encoded)) alert('That save could not be read.');
+  }
 
   // The whole page is the attack button — anywhere that isn't a real
   // control (a button, or the inventory pane) starts a swing. Forcing a
@@ -30,6 +64,7 @@
 </script>
 
 <div class="app-shell">
+  <WelcomeBack />
   <Nav />
   <main class="combat">
     <Zone />
@@ -42,6 +77,10 @@
   </Pane>
   <div class="version-badge">
     <Chip text="Version 0.1-alpha" />
+  </div>
+  <div class="save-controls">
+    <button onclick={handleExport}>Export save</button>
+    <button onclick={handleImport}>Import save</button>
   </div>
 </div>
 
@@ -67,6 +106,25 @@
     z-index: 1;
   }
 
+  .save-controls {
+    position: fixed;
+    right: 12px;
+    bottom: 54px;
+    z-index: 1;
+    display: flex;
+    gap: 6px;
+  }
+  .save-controls button {
+    font: 500 10px/1 var(--font-ui);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--page-raised);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 10px;
+  }
+
   @media (min-width: 900px) {
     .app-shell {
       flex-direction: row;
@@ -77,6 +135,9 @@
       padding: 32px 40px;
     }
     .version-badge {
+      bottom: 16px;
+    }
+    .save-controls {
       bottom: 16px;
     }
   }

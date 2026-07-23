@@ -18,3 +18,7 @@ export function removeItem(id: string, qty: number) {
     inventory[id] = next;
   }
 }
+
+export function hydrateInventory(value: Inventory) {
+  inventory = value;
+}

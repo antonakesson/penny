@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { ITEMS, type ItemId } from '../game/data/loot';
+  import { ITEMS, type ItemId, type ItemDef } from '../game/data/loot';
 
   let { id, qty }: { id: ItemId; qty: number } = $props();
-  let item = $derived(ITEMS[id]);
+  let item = $derived(ITEMS[id] as ItemDef);
 </script>
 
 <div

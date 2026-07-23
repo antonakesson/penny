@@ -44,3 +44,18 @@ export function killMonster() {
 export function spawnMonster() {
   current = createNextMonster();
 }
+
+export interface MonsterSnapshot {
+  id: MonsterId;
+  hp: number;
+  status: Monster['status'];
+  diedAt: number | null;
+}
+
+export function serializeMonster(): MonsterSnapshot {
+  return { id: current.id as MonsterId, hp: current.hp, status: current.status, diedAt: current.diedAt };
+}
+
+export function hydrateMonster(snapshot: MonsterSnapshot) {
+  current = { ...createMonster(snapshot.id), hp: snapshot.hp, status: snapshot.status, diedAt: snapshot.diedAt };
+}
