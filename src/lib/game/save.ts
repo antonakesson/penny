@@ -2,8 +2,6 @@ import { getXp, hydrateXp } from './state/xp.svelte';
 import { getInventory, hydrateInventory } from './state/inventory.svelte';
 import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
 import { serializeMonster, hydrateMonster, type MonsterSnapshot } from './state/monster.svelte';
-import { setWelcomeBack } from './state/notice.svelte';
-import { simulateOffline } from './engine';
 import { ZONES, type ZoneId } from './data/zones';
 import type { Inventory } from './types';
 
@@ -99,18 +97,15 @@ function readEnvelope(key: string): SaveEnvelope | null {
   }
 }
 
-// Loads the save (falling back to the rolling backup if the primary slot is
-// missing or corrupt), then fast-forwards combat for time spent away.
+// Loads the save, falling back to the rolling backup if the primary slot is
+// missing or corrupt. No offline catch-up — there's no idle mechanic yet to
+// justify progress while away; see the mercenary/companion system planned
+// for that.
 export function loadSave(): boolean {
   const envelope = readEnvelope(SAVE_KEY) ?? readEnvelope(BACKUP_KEY);
   if (!envelope) return false;
 
   applySnapshot(envelope.data);
-
-  const elapsedMs = Math.max(0, Date.now() - envelope.savedAt);
-  const summary = simulateOffline(elapsedMs);
-  if (summary.kills > 0) setWelcomeBack(summary);
-
   return true;
 }
 

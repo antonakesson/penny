@@ -7,7 +7,6 @@
   import Nav from './lib/components/Nav.svelte';
   import Pane from './lib/components/Pane.svelte';
   import Chip from './lib/components/Chip.svelte';
-  import WelcomeBack from './lib/components/WelcomeBack.svelte';
   import { tick, startAction, initGame, saveNow, exportSave, importSave } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
 
@@ -64,7 +63,6 @@
 </script>
 
 <div class="app-shell">
-  <WelcomeBack />
   <Nav />
   <main class="combat">
     <Zone />

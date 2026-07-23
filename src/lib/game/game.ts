@@ -4,7 +4,6 @@ import { getXp as getXpState } from './state/xp.svelte';
 import { getAction as getActionState } from './state/action.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getCurrentZoneId } from './state/zone.svelte';
-import { getWelcomeBack as getWelcomeBackState, clearWelcomeBack as clearWelcomeBackInternal } from './state/notice.svelte';
 import { startAction as startActionInternal, tick as tickInternal } from './engine';
 import { loadSave, saveNow as saveNowInternal, exportSave as exportSaveInternal, importSave as importSaveInternal } from './save';
 import { ZONES } from './data/zones';
@@ -41,16 +40,8 @@ export function tick() {
   tickInternal();
 }
 
-export function getWelcomeBack() {
-  return getWelcomeBackState();
-}
-
-export function clearWelcomeBack() {
-  clearWelcomeBackInternal();
-}
-
-// Loads any existing save and fast-forwards offline progress. Called once
-// at startup, before the tick loop starts.
+// Loads any existing save. Called once at startup, before the tick loop
+// starts.
 export function initGame() {
   loadSave();
 }
