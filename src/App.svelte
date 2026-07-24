@@ -4,13 +4,17 @@
   import AttackMeter from './lib/components/AttackMeter.svelte';
   import XpDisplay from './lib/components/XpDisplay.svelte';
   import Inventory from './lib/components/Inventory.svelte';
+  import Settings from './lib/components/Settings.svelte';
   import Nav from './lib/components/Nav.svelte';
   import Pane from './lib/components/Pane.svelte';
   import Chip from './lib/components/Chip.svelte';
-  import { tick, click, initGame, saveNow, exportSave, importSave, getEncounter } from './lib/game/game';
+  import ConfirmDialog from './lib/components/ConfirmDialog.svelte';
+  import { tick, click, initGame, saveNow, getEncounter } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
+  import { getConfirmRequest, resolveConfirm } from './lib/ui/confirmDialog.svelte';
 
   let encounter = $derived(getEncounter());
+  let confirmRequest = $derived(getConfirmRequest());
 
   // Runs synchronously during component init, before first render — any
   // saved state is hydrated before the player sees a frame of fresh state.
@@ -36,18 +40,6 @@
       window.removeEventListener('pagehide', saveNow);
     };
   });
-
-  function handleExport() {
-    const encoded = exportSave();
-    navigator.clipboard?.writeText(encoded).catch(() => {});
-    prompt('Save copied to clipboard. You can also copy it manually below:', encoded);
-  }
-
-  function handleImport() {
-    const encoded = prompt('Paste your exported save:');
-    if (!encoded) return;
-    if (!importSave(encoded)) alert('That save could not be read.');
-  }
 
   // The whole page is the attack button — anywhere that isn't a real
   // control (a button, or the inventory pane) starts a swing. Forcing a
@@ -75,14 +67,23 @@
   <Pane paneId="inventory" label="Inventory">
     <Inventory />
   </Pane>
+  <Pane paneId="settings" label="Settings">
+    <Settings />
+  </Pane>
   <div class="version-badge">
     <Chip text="Version 0.1-alpha" />
   </div>
-  <div class="save-controls">
-    <button onclick={handleExport}>Export save</button>
-    <button onclick={handleImport}>Import save</button>
-  </div>
 </div>
+
+{#if confirmRequest}
+  <ConfirmDialog
+    title={confirmRequest.title}
+    message={confirmRequest.message}
+    confirmLabel={confirmRequest.confirmLabel}
+    onConfirm={() => resolveConfirm(true)}
+    onCancel={() => resolveConfirm(false)}
+  />
+{/if}
 
 <style>
   .app-shell {
@@ -106,25 +107,6 @@
     z-index: 1;
   }
 
-  .save-controls {
-    position: fixed;
-    right: 12px;
-    bottom: 54px;
-    z-index: 1;
-    display: flex;
-    gap: 6px;
-  }
-  .save-controls button {
-    font: 500 10px/1 var(--font-ui);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    background: var(--page-raised);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 6px 10px;
-  }
-
   @media (min-width: 900px) {
     .app-shell {
       flex-direction: row;
@@ -135,9 +117,6 @@
       padding: 32px 40px;
     }
     .version-badge {
-      bottom: 16px;
-    }
-    .save-controls {
       bottom: 16px;
     }
   }

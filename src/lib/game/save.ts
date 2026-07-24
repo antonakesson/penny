@@ -141,7 +141,12 @@ function applySnapshot(data: SaveData) {
   hydratePets(data.pets);
 }
 
+// Set by resetSave() so the pagehide/visibilitychange autosave that fires
+// during its reload can't immediately re-persist the state we just cleared.
+let suppressAutosave = false;
+
 export function saveNow() {
+  if (suppressAutosave) return;
   try {
     const existing = localStorage.getItem(SAVE_KEY);
     if (existing) localStorage.setItem(BACKUP_KEY, existing);
@@ -178,6 +183,21 @@ export function loadSave(): boolean {
 
 export function exportSave(): string {
   return btoa(JSON.stringify(buildSnapshot()));
+}
+
+// Clears both save slots and reloads to a fresh game. Sets suppressAutosave
+// first — otherwise the reload's own pagehide-triggered saveNow() would
+// serialize the still-live (unreset) in-memory state right back over the
+// clear, same race that makes clearing localStorage by hand "not take."
+export function resetSave() {
+  suppressAutosave = true;
+  try {
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(BACKUP_KEY);
+  } catch {
+    // Storage unavailable — nothing to clear either way.
+  }
+  location.reload();
 }
 
 export function importSave(encoded: string): boolean {

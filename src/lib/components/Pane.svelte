@@ -49,16 +49,20 @@
 
   @media (min-width: 900px) {
     .pane {
-      position: static;
-      transform: none !important;
-      flex: 1;
-      min-width: 240px;
+      left: auto;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 320px;
       max-height: none;
-      overflow: visible;
       border-top: none;
       border-left: 1px solid var(--border);
       border-radius: 0;
-      box-shadow: none;
+      box-shadow: -8px 0 20px var(--shadow);
+      transform: translateX(110%);
+    }
+    .pane.open {
+      transform: translateX(0);
     }
   }
 </style>

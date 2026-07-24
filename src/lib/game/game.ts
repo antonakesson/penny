@@ -8,7 +8,13 @@ import { getRecruitRuntime as getRecruitRuntimeState, setHolding as setHoldingIn
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { click as clickInternal, tick as tickInternal } from './engine';
-import { loadSave, saveNow as saveNowInternal, exportSave as exportSaveInternal, importSave as importSaveInternal } from './save';
+import {
+  loadSave,
+  saveNow as saveNowInternal,
+  exportSave as exportSaveInternal,
+  importSave as importSaveInternal,
+  resetSave as resetSaveInternal,
+} from './save';
 import { ZONES } from './data/zones';
 
 export function getInventory() {
@@ -75,4 +81,8 @@ export function exportSave() {
 
 export function importSave(encoded: string) {
   return importSaveInternal(encoded);
+}
+
+export function resetSave() {
+  resetSaveInternal();
 }

@@ -1,5 +1,6 @@
 export const PANES = {
   inventory: { label: 'Inventory' },
+  settings: { label: 'Settings' },
 } as const;
 
 export type PaneId = keyof typeof PANES;
