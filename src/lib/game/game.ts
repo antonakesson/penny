@@ -3,6 +3,12 @@ import { getXp as getXpState } from './state/xp.svelte';
 import { getAction as getActionState } from './state/action.svelte';
 import { getEncounter as getEncounterState } from './state/encounter.svelte';
 import { getMercenaries as getMercenariesState } from './state/mercenary.svelte';
+import { getTreasureRuntime as getTreasureRuntimeState, startInvestigating as startInvestigatingInternal } from './state/treasure.svelte';
+import {
+  getRecruitRuntime as getRecruitRuntimeState,
+  startStage as startStageInternal,
+  setHolding as setHoldingInternal,
+} from './state/recruitEvent.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { startAction as startActionInternal, tick as tickInternal } from './engine';
@@ -27,6 +33,26 @@ export function getEncounter() {
 
 export function getMercenaries() {
   return getMercenariesState();
+}
+
+export function getTreasureRuntime() {
+  return getTreasureRuntimeState();
+}
+
+export function startInvestigating() {
+  startInvestigatingInternal();
+}
+
+export function getRecruitRuntime() {
+  return getRecruitRuntimeState();
+}
+
+export function startStage() {
+  startStageInternal();
+}
+
+export function setHolding(holding: boolean) {
+  setHoldingInternal(holding);
 }
 
 export function getFloatingTexts() {

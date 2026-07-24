@@ -4,11 +4,12 @@ import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
 import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './state/encounter.svelte';
 import { serializeMercenaries, hydrateMercenaries } from './state/mercenary.svelte';
 import { ZONES, type ZoneId } from './data/zones';
+import { EVENTS, type EventId } from './data/events';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 4;
 
 interface SaveData {
   xp: number;
@@ -40,7 +41,12 @@ function buildSnapshot(): SaveEnvelope {
 
 // Migrations run in order, each bumping raw `data` from its version to the
 // next. v1 had a single `monster` field instead of the `monster | event`
-// union `encounter` field, and no `mercenaries` roster at all.
+// union `encounter` field, and no `mercenaries` roster at all. v2's
+// `encounter.type` ('monster' | 'event') became `encounter.kind`
+// ('monster' | 'treasure' | 'recruit') once events split into per-shape
+// runtimes instead of a single generic tap counter. v3's recruit runtime
+// gained hold-to-progress fields (heldMs/isHolding/lastTickAt) for stages
+// with `interaction: 'hold'`.
 const migrations: Record<number, (data: any) => any> = {
   1: (data) => ({
     xp: data.xp,
@@ -49,6 +55,33 @@ const migrations: Record<number, (data: any) => any> = {
     encounter: { type: 'monster', id: data.monster.id, hp: data.monster.hp, status: data.monster.status, diedAt: data.monster.diedAt },
     mercenaries: [],
   }),
+  2: (data) => {
+    const enc = data.encounter;
+    let encounter;
+    if (enc.type === 'monster') {
+      encounter = { kind: 'monster', id: enc.id, hp: enc.hp, status: enc.status, diedAt: enc.diedAt };
+    } else {
+      // v2's generic tap counter (`tapsRemaining`) has no faithful mapping to
+      // the new stage/timer runtime shape — treat an in-flight event as
+      // abandoned and let it restart clean, same pragmatic spirit as the
+      // "no offline catch-up" decision below.
+      const def = EVENTS[enc.id as EventId];
+      encounter =
+        def.kind === 'treasure'
+          ? { kind: 'treasure', id: enc.id, runtime: { startedAt: null, status: 'active', resolvedAt: null } }
+          : { kind: 'recruit', id: enc.id, runtime: { stageIndex: 0, stageStartedAt: null, status: 'active', resolvedAt: null } };
+    }
+    return { xp: data.xp, inventory: data.inventory, zone: data.zone, encounter, mercenaries: data.mercenaries };
+  },
+  3: (data) => {
+    const enc = data.encounter;
+    if (enc.kind === 'recruit') {
+      // Hold-progress didn't exist in v3 saves — resume from empty rather
+      // than guessing, same pragmatic spirit as the v2 migration above.
+      enc.runtime = { ...enc.runtime, heldMs: 0, isHolding: false, lastTickAt: null };
+    }
+    return data;
+  },
 };
 
 function migrate(version: number, data: any): SaveData {
@@ -61,8 +94,8 @@ function migrate(version: number, data: any): SaveData {
   return data as SaveData;
 }
 
-// Validated per-version since migrate() runs *after* this check — a v1 save
-// on disk still has the old `monster` shape, not `encounter`.
+// Validated per-version since migrate() runs *after* this check — an older
+// save on disk still has its own version's shape, not the current one.
 function isValidEnvelope(raw: unknown): raw is { version: number; savedAt: number; data: unknown } {
   if (!raw || typeof raw !== 'object') return false;
   const env = raw as Record<string, unknown>;
@@ -74,16 +107,18 @@ function isValidEnvelope(raw: unknown): raw is { version: number; savedAt: numbe
   if (!data.inventory || typeof data.inventory !== 'object') return false;
   if (typeof data.zone !== 'string' || !(data.zone in ZONES)) return false;
 
-  if (env.version >= SAVE_VERSION) {
-    const encounter = data.encounter as Record<string, unknown> | undefined;
-    if (!encounter || (encounter.type !== 'monster' && encounter.type !== 'event')) return false;
-    if (!Array.isArray(data.mercenaries)) return false;
-  } else {
+  if (env.version === 1) {
     const monster = data.monster as Record<string, unknown> | undefined;
-    if (!monster || typeof monster.id !== 'string' || typeof monster.hp !== 'number') return false;
+    return !!monster && typeof monster.id === 'string' && typeof monster.hp === 'number';
   }
 
-  return true;
+  // v2+ all share the `encounter` + `mercenaries` shape; only the encounter
+  // tag's allowed values changed at v3 (`type` -> `kind`, `event` split into
+  // `treasure`/`recruit`).
+  const encounter = data.encounter as Record<string, unknown> | undefined;
+  if (!encounter || !Array.isArray(data.mercenaries)) return false;
+  if (env.version >= 3) return encounter.kind === 'monster' || encounter.kind === 'treasure' || encounter.kind === 'recruit';
+  return encounter.type === 'monster' || encounter.type === 'event';
 }
 
 function applySnapshot(data: SaveData) {

@@ -11,7 +11,10 @@ export const ZONES = {
       { id: 'honeybee', weight: 1 },
       { id: 'badger', weight: 15 },
     ] as { id: MonsterId; weight: number }[],
-    events: [{ id: 'rabidSquirrel', weight: 2 }] as { id: EventId; weight: number }[],
+    events: [
+      { id: 'rabidSquirrel', weight: 2 },
+      { id: 'mysteriousRubble', weight: 3 },
+    ] as { id: EventId; weight: number }[],
   },
 } as const;
 

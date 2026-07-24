@@ -7,8 +7,10 @@
   import Nav from './lib/components/Nav.svelte';
   import Pane from './lib/components/Pane.svelte';
   import Chip from './lib/components/Chip.svelte';
-  import { tick, startAction, initGame, saveNow, exportSave, importSave } from './lib/game/game';
+  import { tick, startAction, initGame, saveNow, exportSave, importSave, getEncounter } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
+
+  let encounter = $derived(getEncounter());
 
   // Runs synchronously during component init, before first render — any
   // saved state is hydrated before the player sees a frame of fresh state.
@@ -67,7 +69,7 @@
   <main class="combat">
     <Zone />
     <Encounter />
-    <AttackMeter />
+    {#if encounter.kind === 'monster'}<AttackMeter />{/if}
     <XpDisplay />
   </main>
   <Pane paneId="inventory" label="Inventory">

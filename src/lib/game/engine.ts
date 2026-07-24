@@ -1,25 +1,20 @@
 import { ACTION, ENCOUNTER_END_MS } from './config';
-import {
-  getEncounter,
-  damageMonster,
-  killMonster,
-  tapEvent,
-  resolveEvent,
-  spawnNextEncounter,
-} from './state/encounter.svelte';
+import { getEncounter, damageMonster, killMonster, spawnNextEncounter } from './state/encounter.svelte';
+import { getTreasureRuntime, resolveTreasure } from './state/treasure.svelte';
+import { getRecruitRuntime, advanceStage, resolveRecruitEvent, setHeldMs, setLastTickAt } from './state/recruitEvent.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { awardXp } from './state/xp.svelte';
 import { addItem } from './state/inventory.svelte';
 import { addMercenary } from './state/mercenary.svelte';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
-import { resolveDropIds, ITEMS, type ItemId } from './data/loot';
+import { resolveDropIds, ITEMS } from './data/loot';
+import { EVENTS, type EventId, type RecruitEventDef } from './data/events';
 
 export function startAction() {
   const action = getAction();
   if (action.status !== 'idle') return;
   const encounter = getEncounter();
-  const isActive = encounter.type === 'monster' ? encounter.monster.status === 'active' : encounter.event.status === 'active';
-  if (!isActive) return;
+  if (encounter.kind !== 'monster' || encounter.monster.status !== 'active') return;
   setActionActive(Date.now());
 }
 
@@ -35,20 +30,20 @@ export function tick() {
   }
 
   const encounter = getEncounter();
-  if (encounter.type === 'monster') {
+  const now = Date.now();
+  if (encounter.kind === 'monster') {
     const { monster } = encounter;
-    if (monster.status === 'dead' && monster.diedAt !== null && Date.now() - monster.diedAt >= ENCOUNTER_END_MS) {
+    if (monster.status === 'dead' && monster.diedAt !== null && now - monster.diedAt >= ENCOUNTER_END_MS) {
       spawnNextEncounter();
     }
+  } else if (encounter.kind === 'treasure') {
+    tickTreasure(encounter.id, now);
   } else {
-    const { event } = encounter;
-    if (event.status === 'resolved' && event.resolvedAt !== null && Date.now() - event.resolvedAt >= ENCOUNTER_END_MS) {
-      spawnNextEncounter();
-    }
+    tickRecruitEvent(encounter.id, now);
   }
 }
 
-// Shared by monster kills and 'loot' event outcomes — xp/inventory/floating
+// Shared by monster kills and treasure resolutions — xp/inventory/floating
 // text don't care which kind of encounter produced the drops.
 function awardLoot(dropTableId: readonly string[], xpReward: number) {
   const drops = resolveDropIds(dropTableId);
@@ -59,27 +54,65 @@ function awardLoot(dropTableId: readonly string[], xpReward: number) {
 
 function resolveHit() {
   const encounter = getEncounter();
+  if (encounter.kind !== 'monster') {
+    setActionCooldown(Date.now());
+    return;
+  }
   spawnFloatingText('-1', 'damage');
+  damageMonster(1);
+  if (encounter.monster.hp <= 0) {
+    awardLoot(encounter.monster.dropTableId, encounter.monster.xpReward);
+    killMonster();
+  }
+  setActionCooldown(Date.now());
+}
 
-  if (encounter.type === 'monster') {
-    damageMonster(1);
-    if (encounter.monster.hp <= 0) {
-      awardLoot(encounter.monster.dropTableId, encounter.monster.xpReward);
-      killMonster();
+function tickTreasure(id: EventId, now: number) {
+  const def = EVENTS[id];
+  if (def.kind !== 'treasure') return;
+  const runtime = getTreasureRuntime();
+  if (runtime.status === 'active' && runtime.startedAt !== null) {
+    if (now - runtime.startedAt >= def.durationMs) {
+      awardLoot(def.dropTableId, def.xpReward);
+      resolveTreasure();
     }
+  } else if (runtime.status === 'resolved' && runtime.resolvedAt !== null && now - runtime.resolvedAt >= ENCOUNTER_END_MS) {
+    spawnNextEncounter();
+  }
+}
+
+function completeStage(def: RecruitEventDef, stageIndex: number) {
+  if (stageIndex + 1 >= def.stages.length) {
+    addMercenary(def.mercenaryId);
+    spawnLootText(`Recruited ${def.name}!`, 'rare');
+    resolveRecruitEvent();
   } else {
-    tapEvent();
-    if (encounter.event.tapsRemaining <= 0) {
-      const { outcome, name } = encounter.event;
-      if (outcome.type === 'loot') {
-        awardLoot(outcome.dropTableId, outcome.xpReward);
-      } else {
-        addMercenary(outcome.mercenaryId);
-        spawnLootText(`Recruited ${name}!`, 'rare');
-      }
-      resolveEvent();
-    }
+    advanceStage();
+  }
+}
+
+function tickRecruitEvent(id: EventId, now: number) {
+  const def = EVENTS[id];
+  if (def.kind !== 'recruit') return;
+  const runtime = getRecruitRuntime();
+
+  if (runtime.status === 'resolved') {
+    if (runtime.resolvedAt !== null && now - runtime.resolvedAt >= ENCOUNTER_END_MS) spawnNextEncounter();
+    return;
   }
 
-  setActionCooldown(Date.now());
+  const stage = def.stages[runtime.stageIndex];
+  if (stage.interaction === 'hold') {
+    if (runtime.lastTickAt === null) {
+      setLastTickAt(now);
+      return;
+    }
+    const delta = now - runtime.lastTickAt;
+    setLastTickAt(now);
+    const nextHeld = runtime.isHolding ? Math.min(stage.durationMs, runtime.heldMs + delta) : Math.max(0, runtime.heldMs - delta);
+    setHeldMs(nextHeld);
+    if (nextHeld >= stage.durationMs) completeStage(def, runtime.stageIndex);
+  } else if (runtime.stageStartedAt !== null) {
+    if (now - runtime.stageStartedAt >= stage.durationMs) completeStage(def, runtime.stageIndex);
+  }
 }
