@@ -1,4 +1,4 @@
-import { hasMercenary } from '../state/mercenary.svelte';
+import { hasPet } from '../state/pet.svelte';
 
 export interface TreasureEventDef {
   kind: 'treasure';
@@ -21,16 +21,16 @@ export interface RecruitStage {
   interaction?: 'timer' | 'hold';
 }
 
-export interface RecruitEventDef {
-  kind: 'recruit';
+export interface PetEventDef {
+  kind: 'pet';
   name: string;
   entryNo: number;
   image?: string;
-  mercenaryId: string;
+  petId: string;
   stages: RecruitStage[];
 }
 
-export type EventDef = TreasureEventDef | RecruitEventDef;
+export type EventDef = TreasureEventDef | PetEventDef;
 
 export const EVENTS = {
   mysteriousRubble: {
@@ -44,10 +44,10 @@ export const EVENTS = {
     dropTableId: ['noobTreasure'],
   },
   rabidSquirrel: {
-    kind: 'recruit',
+    kind: 'pet',
     name: 'Rabid Squirrel',
     entryNo: 1,
-    mercenaryId: 'rabidSquirrel',
+    petId: 'rabidSquirrel',
     stages: [
       { label: 'Investigate', durationMs: 60_000, interaction: undefined },
       { label: 'Argue emphatically', durationMs: 30_000, interaction: 'hold' },
@@ -61,7 +61,7 @@ export type EventId = keyof typeof EVENTS;
 // Each event owns its own eligibility check — the picker just asks
 // "can this spawn right now," never how that's determined.
 const ELIGIBILITY: Partial<Record<EventId, () => boolean>> = {
-  rabidSquirrel: () => !hasMercenary('rabidSquirrel'),
+  rabidSquirrel: () => !hasPet('rabidSquirrel'),
 };
 
 export function isEventEligible(id: EventId): boolean {

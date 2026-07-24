@@ -1,14 +1,22 @@
 import { ACTION, ENCOUNTER_END_MS } from './config';
-import { getEncounter, damageMonster, killMonster, spawnNextEncounter } from './state/encounter.svelte';
-import { getTreasureRuntime, resolveTreasure } from './state/treasure.svelte';
-import { getRecruitRuntime, advanceStage, resolveRecruitEvent, setHeldMs, setLastTickAt } from './state/recruitEvent.svelte';
+import { getEncounter, damageMonster, killMonster, spawn } from './state/encounter.svelte';
+import { getTreasureRuntime, resolveTreasure, startInvestigating } from './state/treasure.svelte';
+import {
+  getRecruitRuntime,
+  advanceStage,
+  resolveRecruitEvent,
+  setHeldMs,
+  setLastTickAt,
+  startStage,
+} from './state/recruitEvent.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { awardXp } from './state/xp.svelte';
 import { addItem } from './state/inventory.svelte';
-import { addMercenary } from './state/mercenary.svelte';
+import { addPet } from './state/pet.svelte';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
 import { resolveDropIds, ITEMS } from './data/loot';
-import { EVENTS, type EventId, type RecruitEventDef } from './data/events';
+import { EVENTS, type EventId, type PetEventDef } from './data/events';
+import { assertNever } from './util/assertNever';
 
 export function startAction() {
   const action = getAction();
@@ -16,6 +24,23 @@ export function startAction() {
   const encounter = getEncounter();
   if (encounter.kind !== 'monster' || encounter.monster.status !== 'active') return;
   setActionActive(Date.now());
+}
+
+// Single event/action-agnostic entrypoint for "the player tapped to act" —
+// cross-slice composition (it knows about monster/treasure/pet slices), so
+// it lives here rather than in encounter.svelte.ts.
+export function click() {
+  const encounter = getEncounter();
+  switch (encounter.kind) {
+    case 'monster':
+      return startAction();
+    case 'treasure':
+      return startInvestigating();
+    case 'pet':
+      return startStage();
+    default:
+      return assertNever(encounter);
+  }
 }
 
 export function tick() {
@@ -31,15 +56,20 @@ export function tick() {
 
   const encounter = getEncounter();
   const now = Date.now();
-  if (encounter.kind === 'monster') {
-    const { monster } = encounter;
-    if (monster.status === 'dead' && monster.diedAt !== null && now - monster.diedAt >= ENCOUNTER_END_MS) {
-      spawnNextEncounter();
+  switch (encounter.kind) {
+    case 'monster': {
+      const { monster } = encounter;
+      if (monster.status === 'dead' && monster.diedAt !== null && now - monster.diedAt >= ENCOUNTER_END_MS) {
+        spawn();
+      }
+      return;
     }
-  } else if (encounter.kind === 'treasure') {
-    tickTreasure(encounter.id, now);
-  } else {
-    tickRecruitEvent(encounter.id, now);
+    case 'treasure':
+      return tickTreasure(encounter.id, now);
+    case 'pet':
+      return tickRecruitEvent(encounter.id, now);
+    default:
+      return assertNever(encounter);
   }
 }
 
@@ -77,13 +107,13 @@ function tickTreasure(id: EventId, now: number) {
       resolveTreasure();
     }
   } else if (runtime.status === 'resolved' && runtime.resolvedAt !== null && now - runtime.resolvedAt >= ENCOUNTER_END_MS) {
-    spawnNextEncounter();
+    spawn();
   }
 }
 
-function completeStage(def: RecruitEventDef, stageIndex: number) {
+function completeStage(def: PetEventDef, stageIndex: number) {
   if (stageIndex + 1 >= def.stages.length) {
-    addMercenary(def.mercenaryId);
+    addPet(def.petId);
     spawnLootText(`Recruited ${def.name}!`, 'rare');
     resolveRecruitEvent();
   } else {
@@ -93,11 +123,11 @@ function completeStage(def: RecruitEventDef, stageIndex: number) {
 
 function tickRecruitEvent(id: EventId, now: number) {
   const def = EVENTS[id];
-  if (def.kind !== 'recruit') return;
+  if (def.kind !== 'pet') return;
   const runtime = getRecruitRuntime();
 
   if (runtime.status === 'resolved') {
-    if (runtime.resolvedAt !== null && now - runtime.resolvedAt >= ENCOUNTER_END_MS) spawnNextEncounter();
+    if (runtime.resolvedAt !== null && now - runtime.resolvedAt >= ENCOUNTER_END_MS) spawn();
     return;
   }
 

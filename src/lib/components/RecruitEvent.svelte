@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { getEncounter, getRecruitRuntime, startStage, setHolding } from '../game/game';
-  import { EVENTS, type RecruitEventDef } from '../game/data/events';
+  import { getEncounter, getRecruitRuntime, click, setHolding } from '../game/game';
+  import { EVENTS, type PetEventDef } from '../game/data/events';
 
   let encounter = $derived(getEncounter());
-  let def = $derived(encounter.kind === 'recruit' ? (EVENTS[encounter.id] as RecruitEventDef) : null);
+  let def = $derived(encounter.kind === 'pet' ? (EVENTS[encounter.id] as PetEventDef) : null);
   let runtime = $derived(getRecruitRuntime());
   let stage = $derived(def ? def.stages[runtime.stageIndex] : null);
   let isHoldStage = $derived(stage?.interaction === 'hold');
@@ -53,7 +53,7 @@
       </div>
       <p class="timer">{(remainingMs / 1000).toFixed(0)}s of resolve left</p>
     {:else if runtime.stageStartedAt === null}
-      <button onclick={startStage}>{stage.label}</button>
+      <button onclick={click}>{stage.label}</button>
     {:else}
       <div class="progress-bar">
         <div class="progress-fill" style="width: {pct}%"></div>

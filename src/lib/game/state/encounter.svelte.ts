@@ -5,6 +5,7 @@ import { getCurrentZoneId } from './zone.svelte';
 import { resetTreasure, serializeTreasure, hydrateTreasure, type TreasureRuntime } from './treasure.svelte';
 import { resetRecruitEvent, serializeRecruitEvent, hydrateRecruitEvent, type RecruitRuntime } from './recruitEvent.svelte';
 import type { Monster, Encounter } from '../types';
+import { assertNever } from '../util/assertNever';
 
 let nextInstanceId = 1;
 
@@ -30,12 +31,16 @@ function createNextEncounter(): Encounter {
   if (picked.type === 'monster') return { kind: 'monster', monster: createMonster(picked.id) };
 
   const def = EVENTS[picked.id];
-  if (def.kind === 'treasure') {
-    resetTreasure();
-    return { kind: 'treasure', id: picked.id };
+  switch (def.kind) {
+    case 'treasure':
+      resetTreasure();
+      return { kind: 'treasure', id: picked.id };
+    case 'pet':
+      resetRecruitEvent();
+      return { kind: 'pet', id: picked.id };
+    default:
+      return assertNever(def);
   }
-  resetRecruitEvent();
-  return { kind: 'recruit', id: picked.id };
 }
 
 let current = $state<Encounter>(createNextEncounter());
@@ -55,44 +60,51 @@ export function killMonster() {
   current.monster.diedAt = Date.now();
 }
 
-export function spawnNextEncounter() {
+export function spawn() {
   current = createNextEncounter();
 }
 
 export type EncounterSnapshot =
   | { kind: 'monster'; id: string; hp: number; status: Monster['status']; diedAt: number | null }
   | { kind: 'treasure'; id: string; runtime: TreasureRuntime }
-  | { kind: 'recruit'; id: string; runtime: RecruitRuntime };
+  | { kind: 'pet'; id: string; runtime: RecruitRuntime };
 
 export function serializeEncounter(): EncounterSnapshot {
-  if (current.kind === 'monster') {
-    return {
-      kind: 'monster',
-      id: current.monster.id,
-      hp: current.monster.hp,
-      status: current.monster.status,
-      diedAt: current.monster.diedAt,
-    };
+  switch (current.kind) {
+    case 'monster':
+      return {
+        kind: 'monster',
+        id: current.monster.id,
+        hp: current.monster.hp,
+        status: current.monster.status,
+        diedAt: current.monster.diedAt,
+      };
+    case 'treasure':
+      return { kind: 'treasure', id: current.id, runtime: serializeTreasure() };
+    case 'pet':
+      return { kind: 'pet', id: current.id, runtime: serializeRecruitEvent() };
+    default:
+      return assertNever(current);
   }
-  if (current.kind === 'treasure') {
-    return { kind: 'treasure', id: current.id, runtime: serializeTreasure() };
-  }
-  return { kind: 'recruit', id: current.id, runtime: serializeRecruitEvent() };
 }
 
 export function hydrateEncounter(snapshot: EncounterSnapshot) {
-  if (snapshot.kind === 'monster') {
-    current = {
-      kind: 'monster',
-      monster: { ...createMonster(snapshot.id as MonsterId), hp: snapshot.hp, status: snapshot.status, diedAt: snapshot.diedAt },
-    };
-    return;
+  switch (snapshot.kind) {
+    case 'monster':
+      current = {
+        kind: 'monster',
+        monster: { ...createMonster(snapshot.id as MonsterId), hp: snapshot.hp, status: snapshot.status, diedAt: snapshot.diedAt },
+      };
+      return;
+    case 'treasure':
+      hydrateTreasure(snapshot.runtime);
+      current = { kind: 'treasure', id: snapshot.id as EventId };
+      return;
+    case 'pet':
+      hydrateRecruitEvent(snapshot.runtime);
+      current = { kind: 'pet', id: snapshot.id as EventId };
+      return;
+    default:
+      return assertNever(snapshot);
   }
-  if (snapshot.kind === 'treasure') {
-    hydrateTreasure(snapshot.runtime);
-    current = { kind: 'treasure', id: snapshot.id as EventId };
-    return;
-  }
-  hydrateRecruitEvent(snapshot.runtime);
-  current = { kind: 'recruit', id: snapshot.id as EventId };
 }

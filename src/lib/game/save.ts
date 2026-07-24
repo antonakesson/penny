@@ -2,21 +2,21 @@ import { getXp, hydrateXp } from './state/xp.svelte';
 import { getInventory, hydrateInventory } from './state/inventory.svelte';
 import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
 import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './state/encounter.svelte';
-import { serializeMercenaries, hydrateMercenaries } from './state/mercenary.svelte';
+import { serializePets, hydratePets } from './state/pet.svelte';
 import { ZONES, type ZoneId } from './data/zones';
 import { EVENTS, type EventId } from './data/events';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 4;
+const SAVE_VERSION = 5;
 
 interface SaveData {
   xp: number;
   inventory: Inventory;
   zone: ZoneId;
   encounter: EncounterSnapshot;
-  mercenaries: string[];
+  pets: string[];
 }
 
 interface SaveEnvelope {
@@ -34,7 +34,7 @@ function buildSnapshot(): SaveEnvelope {
       inventory: { ...getInventory() },
       zone: getCurrentZoneId(),
       encounter: serializeEncounter(),
-      mercenaries: serializeMercenaries(),
+      pets: serializePets(),
     },
   };
 }
@@ -46,7 +46,8 @@ function buildSnapshot(): SaveEnvelope {
 // ('monster' | 'treasure' | 'recruit') once events split into per-shape
 // runtimes instead of a single generic tap counter. v3's recruit runtime
 // gained hold-to-progress fields (heldMs/isHolding/lastTickAt) for stages
-// with `interaction: 'hold'`.
+// with `interaction: 'hold'`. v4 renamed the `recruit` encounter kind to
+// `pet` and the `mercenaries` roster field to `pets`.
 const migrations: Record<number, (data: any) => any> = {
   1: (data) => ({
     xp: data.xp,
@@ -82,6 +83,11 @@ const migrations: Record<number, (data: any) => any> = {
     }
     return data;
   },
+  4: (data) => {
+    const enc = data.encounter;
+    if (enc.kind === 'recruit') enc.kind = 'pet';
+    return { xp: data.xp, inventory: data.inventory, zone: data.zone, encounter: enc, pets: data.mercenaries };
+  },
 };
 
 function migrate(version: number, data: any): SaveData {
@@ -112,11 +118,17 @@ function isValidEnvelope(raw: unknown): raw is { version: number; savedAt: numbe
     return !!monster && typeof monster.id === 'string' && typeof monster.hp === 'number';
   }
 
-  // v2+ all share the `encounter` + `mercenaries` shape; only the encounter
+  // v2..v4 all share the `encounter` + `mercenaries` shape; the encounter
   // tag's allowed values changed at v3 (`type` -> `kind`, `event` split into
-  // `treasure`/`recruit`).
+  // `treasure`/`recruit`) and again at v5 (`recruit` -> `pet`, alongside the
+  // `mercenaries` -> `pets` rename).
   const encounter = data.encounter as Record<string, unknown> | undefined;
-  if (!encounter || !Array.isArray(data.mercenaries)) return false;
+  if (!encounter) return false;
+  if (env.version >= 5) {
+    if (!Array.isArray(data.pets)) return false;
+    return encounter.kind === 'monster' || encounter.kind === 'treasure' || encounter.kind === 'pet';
+  }
+  if (!Array.isArray(data.mercenaries)) return false;
   if (env.version >= 3) return encounter.kind === 'monster' || encounter.kind === 'treasure' || encounter.kind === 'recruit';
   return encounter.type === 'monster' || encounter.type === 'event';
 }
@@ -126,7 +138,7 @@ function applySnapshot(data: SaveData) {
   hydrateInventory(data.inventory);
   hydrateZone(data.zone);
   hydrateEncounter(data.encounter);
-  hydrateMercenaries(data.mercenaries);
+  hydratePets(data.pets);
 }
 
 export function saveNow() {
@@ -154,7 +166,7 @@ function readEnvelope(key: string): SaveEnvelope | null {
 
 // Loads the save, falling back to the rolling backup if the primary slot is
 // missing or corrupt. No offline catch-up — there's no idle mechanic yet to
-// justify progress while away; see the mercenary/companion system planned
+// justify progress while away; see the pet/companion system planned
 // for that.
 export function loadSave(): boolean {
   const envelope = readEnvelope(SAVE_KEY) ?? readEnvelope(BACKUP_KEY);

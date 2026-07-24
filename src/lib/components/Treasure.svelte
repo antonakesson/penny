@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getEncounter, getTreasureRuntime, startInvestigating } from '../game/game';
+  import { getEncounter, getTreasureRuntime, click } from '../game/game';
   import { EVENTS, type TreasureEventDef } from '../game/data/events';
 
   let encounter = $derived(getEncounter());
@@ -25,7 +25,7 @@
     <h1 class="name">{def.name}</h1>
     <p class="lore">{def.lore}</p>
     {#if runtime.startedAt === null}
-      <button onclick={startInvestigating}>{def.investigateLabel}</button>
+      <button onclick={click}>{def.investigateLabel}</button>
     {:else}
       <div class="progress-bar">
         <div class="progress-fill" style="width: {pct}%"></div>

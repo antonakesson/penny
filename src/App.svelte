@@ -7,7 +7,7 @@
   import Nav from './lib/components/Nav.svelte';
   import Pane from './lib/components/Pane.svelte';
   import Chip from './lib/components/Chip.svelte';
-  import { tick, startAction, initGame, saveNow, exportSave, importSave, getEncounter } from './lib/game/game';
+  import { tick, click, initGame, saveNow, exportSave, importSave, getEncounter } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
 
   let encounter = $derived(getEncounter());
@@ -57,7 +57,7 @@
     function handleClick(event: MouseEvent) {
       const target = event.target;
       if (target instanceof Element && target.closest('button, .pane')) return;
-      startAction();
+      click();
     }
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);

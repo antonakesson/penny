@@ -23,7 +23,7 @@ export interface ActionState {
 export type Encounter =
   | { kind: 'monster'; monster: Monster }
   | { kind: 'treasure'; id: EventId }
-  | { kind: 'recruit'; id: EventId };
+  | { kind: 'pet'; id: EventId };
 
 export type Inventory = Record<string, number>;
 

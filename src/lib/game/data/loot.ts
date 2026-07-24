@@ -1,3 +1,5 @@
+import { weightedPick } from '../util/weighted';
+
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export type ItemDef = { name: string; rarity: Rarity; flavor: string };
@@ -50,17 +52,6 @@ function isItemId(key: string): key is ItemId {
   return key in ITEMS;
 }
 
-function weightedPick(pool: DropPool): string {
-  const entries = Object.entries(pool);
-  const totalWeight = entries.reduce((sum, [, weight]) => sum + weight, 0);
-  let roll = Math.random() * totalWeight;
-  for (const [key, weight] of entries) {
-    if (roll < weight) return key;
-    roll -= weight;
-  }
-  return entries[entries.length - 1][0];
-}
-
 function resolvePool(poolId: string, depth: number): ItemId[] {
   if (depth >= MAX_TREASURE_DEPTH) return [];
   const pool = TREASURE[poolId];
@@ -68,7 +59,7 @@ function resolvePool(poolId: string, depth: number): ItemId[] {
   const picks = PICKS[poolId] ?? 1;
   const drops: ItemId[] = [];
   for (let i = 0; i < picks; i++) {
-    const key = weightedPick(pool);
+    const key = weightedPick(Object.entries(pool));
     if (key === 'nothing') continue;
     if (isItemId(key)) drops.push(key);
     else drops.push(...resolvePool(key, depth + 1));

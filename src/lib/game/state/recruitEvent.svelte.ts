@@ -49,7 +49,7 @@ export function advanceStage() {
   current.lastTickAt = null;
 }
 
-// Granting the mercenary is cross-slice composition and stays in engine.ts —
+// Granting the pet is cross-slice composition and stays in engine.ts —
 // this only flips this slice's own status.
 export function resolveRecruitEvent() {
   current.status = 'resolved';
