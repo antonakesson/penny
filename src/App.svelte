@@ -4,11 +4,12 @@
   import AttackMeter from './lib/components/AttackMeter.svelte';
   import XpDisplay from './lib/components/XpDisplay.svelte';
   import Inventory from './lib/components/Inventory.svelte';
+  import Bestiary from './lib/components/Bestiary.svelte';
   import Settings from './lib/components/Settings.svelte';
   import Nav from './lib/components/Nav.svelte';
   import Pane from './lib/components/Pane.svelte';
-  import Chip from './lib/components/Chip.svelte';
   import ConfirmDialog from './lib/components/ConfirmDialog.svelte';
+  import ItemTooltip from './lib/components/ItemTooltip.svelte';
   import { tick, click, initGame, saveNow, getEncounter } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
   import { getConfirmRequest, resolveConfirm } from './lib/ui/confirmDialog.svelte';
@@ -67,12 +68,12 @@
   <Pane paneId="inventory" label="Inventory">
     <Inventory />
   </Pane>
+  <Pane paneId="bestiary" label="Bestiary">
+    <Bestiary />
+  </Pane>
   <Pane paneId="settings" label="Settings">
     <Settings />
   </Pane>
-  <div class="version-badge">
-    <Chip text="Version 0.1-alpha" />
-  </div>
 </div>
 
 {#if confirmRequest}
@@ -84,6 +85,8 @@
     onCancel={() => resolveConfirm(false)}
   />
 {/if}
+
+<ItemTooltip />
 
 <style>
   .app-shell {
@@ -99,14 +102,6 @@
     padding: 20px 20px 84px;
   }
 
-  .version-badge {
-    position: fixed;
-    left: 50%;
-    bottom: 54px;
-    transform: translateX(-50%);
-    z-index: 1;
-  }
-
   @media (min-width: 900px) {
     .app-shell {
       flex-direction: row;
@@ -115,9 +110,6 @@
       max-width: 560px;
       margin: 0;
       padding: 32px 40px;
-    }
-    .version-badge {
-      bottom: 16px;
     }
   }
 </style>

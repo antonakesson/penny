@@ -13,6 +13,7 @@ import { getAction, setActionActive, setActionCooldown, setActionIdle } from './
 import { awardXp } from './state/xp.svelte';
 import { addItem } from './state/inventory.svelte';
 import { addPet } from './state/pet.svelte';
+import { discoverMonster } from './state/bestiary.svelte';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
 import { resolveDropIds, ITEMS } from './data/loot';
 import { EVENTS, type EventId, type PetEventDef } from './data/events';
@@ -59,6 +60,10 @@ export function tick() {
   switch (encounter.kind) {
     case 'monster': {
       const { monster } = encounter;
+      // Discovery is logged as soon as the monster is on screen, not on
+      // kill — a no-op past the first tick it's seen, since discoverMonster
+      // just sets a bit.
+      discoverMonster(monster.entryNo);
       if (monster.status === 'dead' && monster.diedAt !== null && now - monster.diedAt >= ENCOUNTER_END_MS) {
         spawn();
       }

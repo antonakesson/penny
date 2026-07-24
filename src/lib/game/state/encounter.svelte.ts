@@ -4,6 +4,7 @@ import { pickEncounter } from '../data/zones';
 import { getCurrentZoneId } from './zone.svelte';
 import { resetTreasure, serializeTreasure, hydrateTreasure, type TreasureRuntime } from './treasure.svelte';
 import { resetRecruitEvent, serializeRecruitEvent, hydrateRecruitEvent, type RecruitRuntime } from './recruitEvent.svelte';
+import { isDiscovered } from './bestiary.svelte';
 import type { Monster, Encounter } from '../types';
 import { assertNever } from '../util/assertNever';
 
@@ -23,6 +24,7 @@ function createMonster(id: MonsterId): Monster {
     dropTableId: base.dropTableId,
     status: 'active',
     diedAt: null,
+    isNewDiscovery: !isDiscovered(base.entryNo),
   };
 }
 

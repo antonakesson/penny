@@ -3,13 +3,14 @@ import { getInventory, hydrateInventory } from './state/inventory.svelte';
 import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
 import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './state/encounter.svelte';
 import { serializePets, hydratePets } from './state/pet.svelte';
+import { serializeDiscoveredMonsters, hydrateDiscoveredMonsters } from './state/bestiary.svelte';
 import { ZONES, type ZoneId } from './data/zones';
 import { EVENTS, type EventId } from './data/events';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 5;
+const SAVE_VERSION = 6;
 
 interface SaveData {
   xp: number;
@@ -17,6 +18,7 @@ interface SaveData {
   zone: ZoneId;
   encounter: EncounterSnapshot;
   pets: string[];
+  discoveredMonstersMask: string;
 }
 
 interface SaveEnvelope {
@@ -35,6 +37,7 @@ function buildSnapshot(): SaveEnvelope {
       zone: getCurrentZoneId(),
       encounter: serializeEncounter(),
       pets: serializePets(),
+      discoveredMonstersMask: serializeDiscoveredMonsters(),
     },
   };
 }
@@ -47,7 +50,8 @@ function buildSnapshot(): SaveEnvelope {
 // runtimes instead of a single generic tap counter. v3's recruit runtime
 // gained hold-to-progress fields (heldMs/isHolding/lastTickAt) for stages
 // with `interaction: 'hold'`. v4 renamed the `recruit` encounter kind to
-// `pet` and the `mercenaries` roster field to `pets`.
+// `pet` and the `mercenaries` roster field to `pets`. v5 had no
+// `discoveredMonstersMask` — the Bestiary didn't exist yet.
 const migrations: Record<number, (data: any) => any> = {
   1: (data) => ({
     xp: data.xp,
@@ -88,6 +92,7 @@ const migrations: Record<number, (data: any) => any> = {
     if (enc.kind === 'recruit') enc.kind = 'pet';
     return { xp: data.xp, inventory: data.inventory, zone: data.zone, encounter: enc, pets: data.mercenaries };
   },
+  5: (data) => ({ ...data, discoveredMonstersMask: '0' }),
 };
 
 function migrate(version: number, data: any): SaveData {
@@ -121,9 +126,13 @@ function isValidEnvelope(raw: unknown): raw is { version: number; savedAt: numbe
   // v2..v4 all share the `encounter` + `mercenaries` shape; the encounter
   // tag's allowed values changed at v3 (`type` -> `kind`, `event` split into
   // `treasure`/`recruit`) and again at v5 (`recruit` -> `pet`, alongside the
-  // `mercenaries` -> `pets` rename).
+  // `mercenaries` -> `pets` rename). v6 added `discoveredMonstersMask`.
   const encounter = data.encounter as Record<string, unknown> | undefined;
   if (!encounter) return false;
+  if (env.version >= 6) {
+    if (!Array.isArray(data.pets) || typeof data.discoveredMonstersMask !== 'string') return false;
+    return encounter.kind === 'monster' || encounter.kind === 'treasure' || encounter.kind === 'pet';
+  }
   if (env.version >= 5) {
     if (!Array.isArray(data.pets)) return false;
     return encounter.kind === 'monster' || encounter.kind === 'treasure' || encounter.kind === 'pet';
@@ -137,8 +146,13 @@ function applySnapshot(data: SaveData) {
   hydrateXp(data.xp);
   hydrateInventory(data.inventory);
   hydrateZone(data.zone);
-  hydrateEncounter(data.encounter);
   hydratePets(data.pets);
+  // Must run before hydrateEncounter() — reconstructing the current monster
+  // reads bestiary discovery state to stamp its isNewDiscovery flag, so the
+  // mask needs to already be in place or an already-discovered monster
+  // would look new again on every reload.
+  hydrateDiscoveredMonsters(data.discoveredMonstersMask);
+  hydrateEncounter(data.encounter);
 }
 
 // Set by resetSave() so the pagehide/visibilitychange autosave that fires

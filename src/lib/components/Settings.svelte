@@ -1,6 +1,7 @@
 <script lang="ts">
   import { exportSave, importSave, resetSave } from '../game/game';
   import { requestConfirm } from '../ui/confirmDialog.svelte';
+  import Chip from './Chip.svelte';
 
   function handleExport() {
     const encoded = exportSave();
@@ -36,6 +37,9 @@
     <p class="section-label">Danger zone</p>
     <button class="danger" onclick={handleReset}>Reset progress</button>
   </section>
+  <div class="version">
+    <Chip text="Version 0.1-alpha" />
+  </div>
 </div>
 
 <style>
@@ -68,5 +72,8 @@
     color: var(--wax-on);
     background: var(--wax);
     border-color: var(--wax);
+  }
+  .version {
+    margin-top: 12px;
   }
 </style>

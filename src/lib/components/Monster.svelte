@@ -9,7 +9,9 @@
 
 {#if monster}
   <section class="encounter" class:done={monster.status === 'dead'}>
-    <p class="entry-no">{entryLabel}</p>
+    {#if monster.isNewDiscovery}
+      <p class="entry-no">{entryLabel}</p>
+    {/if}
     <div class="header">
       <h3 class="name">{monster.name}</h3>
       <span class="level">Lv. {monster.level}</span>

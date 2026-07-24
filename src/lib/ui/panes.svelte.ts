@@ -1,5 +1,6 @@
 export const PANES = {
   inventory: { label: 'Inventory' },
+  bestiary: { label: 'Bestiary' },
   settings: { label: 'Settings' },
 } as const;
 

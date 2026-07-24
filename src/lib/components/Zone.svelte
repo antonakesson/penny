@@ -9,7 +9,7 @@
 
 <style>
   .zone {
-    margin-bottom: 12px;
+    margin-bottom: 28px;
   }
   h2 {
     margin: 0 0 4px;

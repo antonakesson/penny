@@ -6,7 +6,7 @@ export const ZONES = {
   zone1: {
     name: 'Whispering Woods',
     description:
-      'The trees speak in low, continuous tones about the weather, mostly. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose, and then hunger.',
+      'The trees speak in low, continuous tones about the weather, mostly. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',
     monsters: [
       { id: 'boar', weight: 10 },
       { id: 'honeybee', weight: 1 },
