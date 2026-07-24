@@ -113,7 +113,7 @@
     }
     .combat {
       max-width: 560px;
-      margin: 0 auto;
+      margin: 0;
       padding: 32px 40px;
     }
     .version-badge {

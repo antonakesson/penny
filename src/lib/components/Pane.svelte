@@ -1,13 +1,28 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { getActivePane, type PaneId } from '../ui/panes.svelte';
+  import { getActivePane, isPinned, getPinOrder, togglePin, type PaneId } from '../ui/panes.svelte';
 
   let { paneId, label, children }: { paneId: PaneId; label: string; children: Snippet } = $props();
   let open = $derived(getActivePane() === paneId);
+  let pinned = $derived(isPinned(paneId));
+  // Offset by 1 so a pinned pane's flex order never ties with combat's
+  // (unset, defaults to 0) — ties resolve by source order anyway, but this
+  // keeps it unambiguous as more panes are added.
+  let dockOrder = $derived(getPinOrder(paneId) + 1);
 </script>
 
-<aside class="pane" class:open>
-  <p class="pane-header">{label}</p>
+<aside class="pane" class:open class:pinned style="order: {dockOrder}">
+  <div class="pane-header">
+    <p class="pane-title">{label}</p>
+    <button
+      class="pin-toggle"
+      class:active={pinned}
+      aria-label={pinned ? `Unpin ${label}` : `Pin ${label}`}
+      onclick={() => togglePin(paneId)}
+    >
+      📌
+    </button>
+  </div>
   {@render children()}
 </aside>
 
@@ -32,13 +47,23 @@
     transform: translateY(0);
   }
   .pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin: 0 0 10px;
+  }
+  .pane-title {
     font: 700 12px/1 var(--font-ui);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--ink-faint);
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-    margin: 0 0 10px;
+    margin: 0;
+  }
+  .pin-toggle {
+    display: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -63,6 +88,36 @@
     }
     .pane.open {
       transform: translateX(0);
+    }
+    /* Pinned overrides open/closed entirely — it docks as a static flex
+       column and steals space, regardless of the transient overlay state. */
+    .pane.pinned {
+      position: static;
+      transform: none !important;
+      flex: 0 0 320px;
+      box-shadow: none;
+    }
+    .pin-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      font-size: 13px;
+      line-height: 1;
+      color: var(--ink-faint);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0;
+      opacity: 0.6;
+      transform: rotate(45deg);
+    }
+    .pin-toggle.active {
+      color: var(--accent-text);
+      border-color: var(--accent);
+      opacity: 1;
+      transform: none;
     }
   }
 </style>
