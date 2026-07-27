@@ -2,10 +2,7 @@ import { getInventory as getInventoryState } from './state/inventory.svelte';
 import { getXp as getXpState } from './state/xp.svelte';
 import { getAction as getActionState } from './state/action.svelte';
 import { getEncounter as getEncounterState } from './state/encounter.svelte';
-import { getPets as getPetsState } from './state/pet.svelte';
 import { isDiscovered as isDiscoveredState, getMaxDiscoveredEntryNo as getMaxDiscoveredEntryNoState } from './state/bestiary.svelte';
-import { getTreasureRuntime as getTreasureRuntimeState } from './state/treasure.svelte';
-import { getRecruitRuntime as getRecruitRuntimeState, setHolding as setHoldingInternal } from './state/recruitEvent.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { click as clickInternal, tick as tickInternal } from './engine';
@@ -34,28 +31,12 @@ export function getEncounter() {
   return getEncounterState();
 }
 
-export function getPets() {
-  return getPetsState();
-}
-
 export function isMonsterDiscovered(entryNo: number) {
   return isDiscoveredState(entryNo);
 }
 
 export function getMaxDiscoveredEntryNo() {
   return getMaxDiscoveredEntryNoState();
-}
-
-export function getTreasureRuntime() {
-  return getTreasureRuntimeState();
-}
-
-export function getRecruitRuntime() {
-  return getRecruitRuntimeState();
-}
-
-export function setHolding(holding: boolean) {
-  setHoldingInternal(holding);
 }
 
 export function getFloatingTexts() {

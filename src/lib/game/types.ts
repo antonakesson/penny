@@ -1,5 +1,4 @@
 import type { Rarity } from './data/loot';
-import type { EventId } from './data/events';
 
 export interface Monster {
   instanceId: number;
@@ -25,11 +24,6 @@ export interface ActionState {
   status: 'idle' | 'active' | 'cooldown';
   startedAt: number | null;
 }
-
-export type Encounter =
-  | { kind: 'monster'; monster: Monster }
-  | { kind: 'treasure'; id: EventId }
-  | { kind: 'pet'; id: EventId };
 
 export type Inventory = Record<string, number>;
 

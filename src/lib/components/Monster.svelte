@@ -1,31 +1,28 @@
 <script lang="ts">
   import { getEncounter } from '../game/game';
 
-  let encounter = $derived(getEncounter());
-  let monster = $derived(encounter.kind === 'monster' ? encounter.monster : null);
-  let entryLabel = $derived(monster ? `Entry No. ${String(monster.entryNo).padStart(3, '0')}` : '');
-  let pct = $derived(monster ? Math.round((monster.hp / monster.maxHp) * 100) : 0);
+  let monster = $derived(getEncounter());
+  let entryLabel = $derived(`Entry No. ${String(monster.entryNo).padStart(3, '0')}`);
+  let pct = $derived(Math.round((monster.hp / monster.maxHp) * 100));
 </script>
 
-{#if monster}
-  <section class="encounter" class:done={monster.status === 'dead'}>
-    {#if monster.isNewDiscovery}
-      <p class="entry-no">{entryLabel}</p>
-    {/if}
-    <div class="header">
-      <h3 class="name">{monster.name}</h3>
-      <span class="level">Lv. {monster.level}</span>
+<section class="encounter" class:done={monster.status === 'dead'}>
+  {#if monster.isNewDiscovery}
+    <p class="entry-no">{entryLabel}</p>
+  {/if}
+  <div class="header">
+    <h3 class="name">{monster.name}</h3>
+    <span class="level">Lv. {monster.level}</span>
+  </div>
+  <div class="hp-row">
+    <div class="hp-bar">
+      {#key monster.instanceId}
+        <div class="hp-fill" style="width: {pct}%"></div>
+      {/key}
     </div>
-    <div class="hp-row">
-      <div class="hp-bar">
-        {#key monster.instanceId}
-          <div class="hp-fill" style="width: {pct}%"></div>
-        {/key}
-      </div>
-    </div>
-    <p class="hp-text"><span class="stat-chip">{monster.hp} / {monster.maxHp} HP</span></p>
-  </section>
-{/if}
+  </div>
+  <p class="hp-text"><span class="stat-chip">{monster.hp} / {monster.maxHp} HP</span></p>
+</section>
 
 <style>
   .encounter {

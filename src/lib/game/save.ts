@@ -2,22 +2,19 @@ import { getXp, hydrateXp } from './state/xp.svelte';
 import { getInventory, hydrateInventory } from './state/inventory.svelte';
 import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
 import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './state/encounter.svelte';
-import { serializePets, hydratePets } from './state/pet.svelte';
 import { serializeDiscoveredMonsters, hydrateDiscoveredMonsters } from './state/bestiary.svelte';
 import { ZONES, type ZoneId } from './data/zones';
-import { EVENTS, type EventId } from './data/events';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 6;
+const SAVE_VERSION = 7;
 
 interface SaveData {
   xp: number;
   inventory: Inventory;
   zone: ZoneId;
-  encounter: EncounterSnapshot;
-  pets: string[];
+  encounter?: EncounterSnapshot;
   discoveredMonstersMask: string;
 }
 
@@ -36,7 +33,6 @@ function buildSnapshot(): SaveEnvelope {
       inventory: { ...getInventory() },
       zone: getCurrentZoneId(),
       encounter: serializeEncounter(),
-      pets: serializePets(),
       discoveredMonstersMask: serializeDiscoveredMonsters(),
     },
   };
@@ -51,7 +47,11 @@ function buildSnapshot(): SaveEnvelope {
 // gained hold-to-progress fields (heldMs/isHolding/lastTickAt) for stages
 // with `interaction: 'hold'`. v4 renamed the `recruit` encounter kind to
 // `pet` and the `mercenaries` roster field to `pets`. v5 had no
-// `discoveredMonstersMask` — the Bestiary didn't exist yet.
+// `discoveredMonstersMask` — the Bestiary didn't exist yet. v6's event
+// system (treasure/pet encounters, the pets roster) was ripped out entirely
+// — an in-flight event has no faithful mapping to the monster-only shape,
+// same pragmatic "treat it as abandoned" call as v2's migration below, so
+// non-monster encounters are just dropped and left for a fresh spawn.
 const migrations: Record<number, (data: any) => any> = {
   1: (data) => ({
     xp: data.xp,
@@ -70,11 +70,7 @@ const migrations: Record<number, (data: any) => any> = {
       // the new stage/timer runtime shape — treat an in-flight event as
       // abandoned and let it restart clean, same pragmatic spirit as the
       // "no offline catch-up" decision below.
-      const def = EVENTS[enc.id as EventId];
-      encounter =
-        def.kind === 'treasure'
-          ? { kind: 'treasure', id: enc.id, runtime: { startedAt: null, status: 'active', resolvedAt: null } }
-          : { kind: 'recruit', id: enc.id, runtime: { stageIndex: 0, stageStartedAt: null, status: 'active', resolvedAt: null } };
+      encounter = { kind: 'treasure', id: enc.id, runtime: { startedAt: null, status: 'active', resolvedAt: null } };
     }
     return { xp: data.xp, inventory: data.inventory, zone: data.zone, encounter, mercenaries: data.mercenaries };
   },
@@ -93,6 +89,11 @@ const migrations: Record<number, (data: any) => any> = {
     return { xp: data.xp, inventory: data.inventory, zone: data.zone, encounter: enc, pets: data.mercenaries };
   },
   5: (data) => ({ ...data, discoveredMonstersMask: '0' }),
+  6: (data) => {
+    const enc = data.encounter;
+    const { pets, ...rest } = data;
+    return { ...rest, encounter: enc.kind === 'monster' ? { id: enc.id, hp: enc.hp, status: enc.status, diedAt: enc.diedAt } : undefined };
+  },
 };
 
 function migrate(version: number, data: any): SaveData {
@@ -126,7 +127,14 @@ function isValidEnvelope(raw: unknown): raw is { version: number; savedAt: numbe
   // v2..v4 all share the `encounter` + `mercenaries` shape; the encounter
   // tag's allowed values changed at v3 (`type` -> `kind`, `event` split into
   // `treasure`/`recruit`) and again at v5 (`recruit` -> `pet`, alongside the
-  // `mercenaries` -> `pets` rename). v6 added `discoveredMonstersMask`.
+  // `mercenaries` -> `pets` rename). v6 added `discoveredMonstersMask`. v7
+  // dropped the event system — `encounter` is monster-only and optional,
+  // `pets` is gone.
+  if (env.version >= 7) {
+    if (typeof data.discoveredMonstersMask !== 'string') return false;
+    const encounter = data.encounter as Record<string, unknown> | undefined;
+    return encounter === undefined || typeof encounter.id === 'string';
+  }
   const encounter = data.encounter as Record<string, unknown> | undefined;
   if (!encounter) return false;
   if (env.version >= 6) {
@@ -146,13 +154,12 @@ function applySnapshot(data: SaveData) {
   hydrateXp(data.xp);
   hydrateInventory(data.inventory);
   hydrateZone(data.zone);
-  hydratePets(data.pets);
   // Must run before hydrateEncounter() — reconstructing the current monster
   // reads bestiary discovery state to stamp its isNewDiscovery flag, so the
   // mask needs to already be in place or an already-discovered monster
   // would look new again on every reload.
   hydrateDiscoveredMonsters(data.discoveredMonstersMask);
-  hydrateEncounter(data.encounter);
+  if (data.encounter) hydrateEncounter(data.encounter);
 }
 
 // Set by resetSave() so the pagehide/visibilitychange autosave that fires

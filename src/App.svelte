@@ -10,11 +10,10 @@
   import Pane from './lib/components/Pane.svelte';
   import ConfirmDialog from './lib/components/ConfirmDialog.svelte';
   import ItemTooltip from './lib/components/ItemTooltip.svelte';
-  import { tick, click, initGame, saveNow, getEncounter } from './lib/game/game';
+  import { tick, click, initGame, saveNow } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
   import { getConfirmRequest, resolveConfirm } from './lib/ui/confirmDialog.svelte';
 
-  let encounter = $derived(getEncounter());
   let confirmRequest = $derived(getConfirmRequest());
 
   // Runs synchronously during component init, before first render — any
@@ -62,7 +61,7 @@
   <main class="combat">
     <Zone />
     <Encounter />
-    {#if encounter.kind === 'monster'}<AttackMeter />{/if}
+    <AttackMeter />
     <XpDisplay />
   </main>
   <Pane paneId="inventory" label="Inventory">
