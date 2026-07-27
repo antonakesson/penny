@@ -20,6 +20,8 @@ export const ITEMS = {
     rarity: 'common',
     flavor: 'Not chicken. Every vendor\'s ledger only has one column for "meat."',
   },
+  thorn: { name: 'Thorn', rarity: 'common', flavor: 'A thorn. It got you first.' },
+  twig: { name: 'Twig', rarity: 'common', flavor: 'A twig. You really could have just walked around it.' },
 } as const satisfies Record<string, ItemDef>;
 
 export type ItemId = keyof typeof ITEMS;
@@ -36,6 +38,7 @@ const TREASURE: Record<string, DropPool> = {
   boarDrops: { tusk: 6, chicken: 6, misc: 2, noobTreasure: 1 },
   honeybeeDrops: { honeycomb: 6, misc: 2, noobTreasure: 1 },
   badgerDrops: { badgerClaw: 6, chicken: 6, misc: 2, noobTreasure: 1 },
+  shrubberyDrops: { thorn: 6, twig: 6, misc: 2, noobTreasure: 1 },
 
   // Utils
   misc: { eye: 1, unidentifiedHair: 1 },

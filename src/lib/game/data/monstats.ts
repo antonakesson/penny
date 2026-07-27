@@ -23,6 +23,14 @@ export const MONSTERS = {
     xpReward: 1,
     dropTableId: ['badgerDrops'],
   },
+  thornyShrubbery: {
+    name: 'Thorny Shrubbery',
+    level: 1,
+    entryNo: 4,
+    maxHp: 8,
+    xpReward: 3,
+    dropTableId: ['shrubberyDrops'],
+  },
 } as const;
 
 export type MonsterId = keyof typeof MONSTERS;
