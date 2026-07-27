@@ -5,6 +5,7 @@ import { getEncounter as getEncounterState } from './state/encounter.svelte';
 import { isDiscovered as isDiscoveredState, getMaxDiscoveredEntryNo as getMaxDiscoveredEntryNoState } from './state/bestiary.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getCurrentZoneId } from './state/zone.svelte';
+import { recordActivity, getIdleMs as getIdleMsState } from './state/activity.svelte';
 import { click as clickInternal, tick as tickInternal } from './engine';
 import {
   loadSave,
@@ -48,7 +49,12 @@ export function getZone() {
 }
 
 export function click() {
+  recordActivity(Date.now());
   clickInternal();
+}
+
+export function getIdleMs() {
+  return getIdleMsState(Date.now());
 }
 
 export function tick() {
