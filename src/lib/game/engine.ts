@@ -1,5 +1,6 @@
 import { ACTION, ENCOUNTER_END_MS } from './config';
 import { getEncounter, damageMonster, killMonster, spawn } from './state/encounter.svelte';
+import { advance } from './state/map.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { awardXp } from './state/xp.svelte';
 import { addItem } from './state/inventory.svelte';
@@ -55,6 +56,7 @@ function resolveHit() {
   if (monster.hp <= 0) {
     awardLoot(monster.dropTableId, monster.xpReward);
     killMonster();
+    advance();
   }
   setActionCooldown(Date.now());
 }

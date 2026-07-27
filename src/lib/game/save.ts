@@ -3,12 +3,13 @@ import { getInventory, hydrateInventory } from './state/inventory.svelte';
 import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
 import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './state/encounter.svelte';
 import { serializeDiscoveredMonsters, hydrateDiscoveredMonsters } from './state/bestiary.svelte';
+import { serializeMap, hydrateMap, type MapSnapshot } from './state/map.svelte';
 import { ZONES, type ZoneId } from './data/zones';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 7;
+const SAVE_VERSION = 8;
 
 interface SaveData {
   xp: number;
@@ -16,6 +17,7 @@ interface SaveData {
   zone: ZoneId;
   encounter?: EncounterSnapshot;
   discoveredMonstersMask: string;
+  map: MapSnapshot;
 }
 
 interface SaveEnvelope {
@@ -34,6 +36,7 @@ function buildSnapshot(): SaveEnvelope {
       zone: getCurrentZoneId(),
       encounter: serializeEncounter(),
       discoveredMonstersMask: serializeDiscoveredMonsters(),
+      map: serializeMap(),
     },
   };
 }
@@ -51,7 +54,9 @@ function buildSnapshot(): SaveEnvelope {
 // system (treasure/pet encounters, the pets roster) was ripped out entirely
 // — an in-flight event has no faithful mapping to the monster-only shape,
 // same pragmatic "treat it as abandoned" call as v2's migration below, so
-// non-monster encounters are just dropped and left for a fresh spawn.
+// non-monster encounters are just dropped and left for a fresh spawn. v7 had
+// no `map` field — the elevation-noise encounter bias didn't exist yet, so a
+// fresh seed/distance is generated rather than guessed.
 const migrations: Record<number, (data: any) => any> = {
   1: (data) => ({
     xp: data.xp,
@@ -94,6 +99,7 @@ const migrations: Record<number, (data: any) => any> = {
     const { pets, ...rest } = data;
     return { ...rest, encounter: enc.kind === 'monster' ? { id: enc.id, hp: enc.hp, status: enc.status, diedAt: enc.diedAt } : undefined };
   },
+  7: (data) => ({ ...data, map: { seed: crypto.randomUUID(), distance: 0 } }),
 };
 
 function migrate(version: number, data: any): SaveData {
@@ -129,8 +135,16 @@ function isValidEnvelope(raw: unknown): raw is { version: number; savedAt: numbe
   // `treasure`/`recruit`) and again at v5 (`recruit` -> `pet`, alongside the
   // `mercenaries` -> `pets` rename). v6 added `discoveredMonstersMask`. v7
   // dropped the event system — `encounter` is monster-only and optional,
-  // `pets` is gone.
-  if (env.version >= 7) {
+  // `pets` is gone. v8 added `map` (seed + distance driving the elevation
+  // encounter bias).
+  if (env.version >= 8) {
+    if (typeof data.discoveredMonstersMask !== 'string') return false;
+    const map = data.map as Record<string, unknown> | undefined;
+    if (!map || typeof map.seed !== 'string' || typeof map.distance !== 'number') return false;
+    const encounter = data.encounter as Record<string, unknown> | undefined;
+    return encounter === undefined || typeof encounter.id === 'string';
+  }
+  if (env.version === 7) {
     if (typeof data.discoveredMonstersMask !== 'string') return false;
     const encounter = data.encounter as Record<string, unknown> | undefined;
     return encounter === undefined || typeof encounter.id === 'string';
@@ -160,6 +174,7 @@ function applySnapshot(data: SaveData) {
   // would look new again on every reload.
   hydrateDiscoveredMonsters(data.discoveredMonstersMask);
   if (data.encounter) hydrateEncounter(data.encounter);
+  hydrateMap(data.map);
 }
 
 // Set by resetSave() so the pagehide/visibilitychange autosave that fires

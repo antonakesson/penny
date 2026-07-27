@@ -1,5 +1,6 @@
 <script lang="ts">
   import Zone from './lib/components/Zone.svelte';
+  import ElevationTrace from './lib/components/ElevationTrace.svelte';
   import Encounter from './lib/components/Encounter.svelte';
   import AttackMeter from './lib/components/AttackMeter.svelte';
   import XpDisplay from './lib/components/XpDisplay.svelte';
@@ -60,6 +61,7 @@
   <Nav />
   <main class="combat">
     <Zone />
+    <ElevationTrace />
     <Encounter />
     <AttackMeter />
     <XpDisplay />
