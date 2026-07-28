@@ -29,6 +29,12 @@ export const ITEMS = {
     flavor: 'Waterlogged pages, but the sketches are still legible. Someone was keeping notes on everything out here.',
     action: 'unlockBestiary',
   },
+  tuskOfTheUnvanquishedSwineLord: {
+    name: 'Tusk of the Unvanquished Swine-Lord, Who Only Ever Stood Here, In This Field, Doing Nothing',
+    rarity: 'legendary',
+    flavor:
+      'Wrenched, with some difficulty and a great deal of swearing, from a boar that had — up until this point — never left a three-metre radius of grass. Scholars remain divided on whether this constitutes a quest.',
+  },
 } as const satisfies Record<string, ItemDef>;
 
 export type ItemId = keyof typeof ITEMS;
@@ -42,7 +48,7 @@ type DropPool = Record<string, number>;
 const TREASURE: Record<string, DropPool> = {
 
   // Entries
-  boarDrops: { nothing: 15, tusk: 6, chicken: 6, misc: 2, noobTreasure: 1 },
+  boarDrops: { nothing: 15, tuskDrops: 6, chicken: 6, misc: 2, noobTreasure: 1 },
   honeybeeDrops: { nothing: 9, honeycomb: 6, misc: 2, noobTreasure: 1 },
   badgerDrops: { nothing: 15, badgerClaw: 6, chicken: 6, misc: 2, noobTreasure: 1 },
   shrubberyDrops: { nothing: 15, thorn: 6, twig: 6, misc: 2, noobTreasure: 1 },
@@ -55,6 +61,9 @@ const TREASURE: Record<string, DropPool> = {
   // Utils
   misc: { eye: 1, unidentifiedHair: 1 },
   noobTreasure: { tarnishedRing: 1 },
+  // 1-in-100 of the tusk roll, not a separate chance — the legendary tusk is
+  // the same drop, just an absurdly rare cut of it, not a new category.
+  tuskDrops: { tusk: 99, tuskOfTheUnvanquishedSwineLord: 1 },
 };
 
 // How many independent rolls a pool makes when entered, keyed by pool id.

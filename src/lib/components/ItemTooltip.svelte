@@ -86,15 +86,16 @@
     margin: 8px 0 0;
   }
 
-  /* Legendary: same glow as the Style Codex item-card mockup, plus the
-     "runs off the tooltip" gag — the name goes nowrap/overflow-visible so
-     it spills past the box instead of wrapping or truncating. */
+  /* Legendary: same glow as the Style Codex item-card mockup. The Codex's
+     own "runs off the tooltip" gag (name set nowrap/overflow-visible) reads
+     fine in an isolated mockup but breaks for real in this fixed-position
+     tooltip next to other panes — a long legendary name just runs straight
+     through neighboring UI instead of spilling harmlessly. Wraps instead. */
   .tooltip.legendary {
     border-color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent), 0 2px 12px var(--shadow);
   }
   .tooltip.legendary .tooltip-name {
-    white-space: nowrap;
-    overflow: visible;
+    color: var(--accent-text);
   }
 </style>

@@ -6,7 +6,11 @@ export const ZONES = {
   zone1: {
     name: 'Whispering Woods',
     description:
-      'The trees speak in low, continuous tones about the weather, mostly. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',
+      'The trees are evenly distributed. And strangely, equally tall, as if guided by some cost-benefit analysis of structural integrity versus sunlight yield. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',
+    quote: {
+      text: "If you don't count the people who don't come back, the survival rate is actually 100%.",
+      attribution: 'Cobb Thistlewood, Ranger / Coroner',
+    },
     // Ordered low-to-high signal: cumulative weight position is what maps
     // a roll to a habitat band (see pickEncounter below), so array order is
     // load-bearing, not incidental. Thorny Shrubbery holds the wet valley

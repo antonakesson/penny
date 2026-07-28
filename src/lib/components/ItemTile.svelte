@@ -68,6 +68,9 @@
     cursor: pointer;
     border-color: var(--accent);
   }
+  .item-tile.legendary .tile-name {
+    color: var(--accent-text);
+  }
   .qty-badge {
     position: absolute;
     top: -6px;
