@@ -54,7 +54,7 @@
     padding: 10px 12px;
     text-align: left;
     background: var(--page-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--tier, var(--border));
     border-radius: 6px;
     box-shadow: 0 4px 16px var(--shadow);
     pointer-events: none;

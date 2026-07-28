@@ -53,6 +53,7 @@ export interface EncounterSnapshot {
   hp: number;
   status: Monster['status'];
   diedAt: number | null;
+  isNewDiscovery: boolean;
 }
 
 export function serializeEncounter(): EncounterSnapshot {
@@ -61,9 +62,23 @@ export function serializeEncounter(): EncounterSnapshot {
     hp: current.hp,
     status: current.status,
     diedAt: current.diedAt,
+    isNewDiscovery: current.isNewDiscovery,
   };
 }
 
+// createMonster() would recompute isNewDiscovery from the current bestiary
+// mask - which, by reload time, already says "discovered" (the Bestiary
+// marks a monster discovered almost immediately on spawn, well before
+// it's persisted). That's the exact "vanishes within a tick" bug this
+// field's own snapshot-at-creation was meant to prevent, just reached via
+// reload instead of live play. Override with the persisted value instead
+// of trusting the freshly recomputed one.
 export function hydrateEncounter(snapshot: EncounterSnapshot) {
-  current = { ...createMonster(snapshot.id as MonsterId), hp: snapshot.hp, status: snapshot.status, diedAt: snapshot.diedAt };
+  current = {
+    ...createMonster(snapshot.id as MonsterId),
+    hp: snapshot.hp,
+    status: snapshot.status,
+    diedAt: snapshot.diedAt,
+    isNewDiscovery: snapshot.isNewDiscovery,
+  };
 }

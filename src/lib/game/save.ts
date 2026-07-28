@@ -12,7 +12,7 @@ import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;
 
 interface SaveData {
   xp: number;
@@ -68,17 +68,16 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
   if (!map || typeof map.seed !== 'string' || typeof map.distance !== 'number') return false;
 
   const encounter = data.encounter as Record<string, unknown> | undefined;
-  return encounter === undefined || typeof encounter.id === 'string';
+  return (
+    encounter === undefined ||
+    (typeof encounter.id === 'string' && typeof encounter.isNewDiscovery === 'boolean')
+  );
 }
 
 function applySnapshot(data: SaveData) {
   hydrateXp(data.xp);
   hydrateInventory(data.inventory);
   hydrateZone(data.zone);
-  // Must run before hydrateEncounter() — reconstructing the current monster
-  // reads bestiary discovery state to stamp its isNewDiscovery flag, so the
-  // mask needs to already be in place or an already-discovered monster
-  // would look new again on every reload.
   hydrateDiscoveredMonsters(data.discoveredMonstersMask);
   if (data.encounter) hydrateEncounter(data.encounter);
   hydrateMap(data.map);
