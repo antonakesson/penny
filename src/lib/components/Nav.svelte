@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PANES, PLANNED_PANES, getActivePane, togglePane, isPaneVisible, type PaneId } from '../ui/panes.svelte';
+  import { PANES, getActivePane, togglePane, isPaneVisible, type PaneId } from '../ui/panes.svelte';
 
   let paneIds = $derived((Object.keys(PANES) as PaneId[]).filter(isPaneVisible));
 </script>
@@ -8,11 +8,6 @@
   {#each paneIds as id (id)}
     <button class="nav-item" class:active={getActivePane() === id} onclick={() => togglePane(id)}>
       {PANES[id].label}
-    </button>
-  {/each}
-  {#each PLANNED_PANES as label (label)}
-    <button class="nav-item" disabled title="Not yet implemented">
-      {label}
     </button>
   {/each}
 </nav>
@@ -40,9 +35,6 @@
   }
   .nav-item.active {
     color: var(--accent-text);
-  }
-  .nav-item:disabled {
-    opacity: 0.4;
   }
 
   @media (min-width: 900px) {

@@ -9,14 +9,8 @@ export const PANES = {
 
 export type PaneId = keyof typeof PANES;
 
-// Nav placeholders for systems that don't exist yet — disabled, no pane
-// content behind them. Promote an entry to PANES once its system lands.
-export const PLANNED_PANES = ['Stash', 'Quests'] as const;
-
-// Panes gated behind a feature unlock — unlike PLANNED_PANES (a teaser
-// button for a system that doesn't exist yet), a gated pane's system is
-// fully built; it's just absent from the nav entirely until earned, so
-// launch stays uncluttered (inventory + settings only).
+// Panes gated behind a feature unlock — absent from the nav entirely until
+// earned, so launch stays uncluttered (inventory + settings only).
 const PANE_GATE: Partial<Record<PaneId, FeatureId>> = {
   bestiary: 'bestiary',
 };
