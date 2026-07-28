@@ -5,13 +5,14 @@ import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './
 import { serializeDiscoveredMonsters, hydrateDiscoveredMonsters } from './state/bestiary.svelte';
 import { serializeMap, hydrateMap, type MapSnapshot } from './state/map.svelte';
 import { serializeUnlockedFeatures, hydrateUnlockedFeatures } from './state/features.svelte';
+import { serializeFiredEvents, hydrateFiredEvents } from './state/events.svelte';
 import { ZONES, type ZoneId } from './data/zones';
 import type { FeatureId } from './data/features';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
 
 interface SaveData {
   xp: number;
@@ -21,6 +22,7 @@ interface SaveData {
   discoveredMonstersMask: string;
   map: MapSnapshot;
   unlockedFeatures: FeatureId[];
+  firedEventsMask: string;
 }
 
 interface SaveEnvelope {
@@ -41,6 +43,7 @@ function buildSnapshot(): SaveEnvelope {
       discoveredMonstersMask: serializeDiscoveredMonsters(),
       map: serializeMap(),
       unlockedFeatures: serializeUnlockedFeatures(),
+      firedEventsMask: serializeFiredEvents(),
     },
   };
 }
@@ -59,6 +62,7 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
   if (typeof data.zone !== 'string' || !(data.zone in ZONES)) return false;
   if (typeof data.discoveredMonstersMask !== 'string') return false;
   if (!Array.isArray(data.unlockedFeatures)) return false;
+  if (typeof data.firedEventsMask !== 'string') return false;
 
   const map = data.map as Record<string, unknown> | undefined;
   if (!map || typeof map.seed !== 'string' || typeof map.distance !== 'number') return false;
@@ -79,6 +83,7 @@ function applySnapshot(data: SaveData) {
   if (data.encounter) hydrateEncounter(data.encounter);
   hydrateMap(data.map);
   hydrateUnlockedFeatures(data.unlockedFeatures);
+  hydrateFiredEvents(data.firedEventsMask);
 }
 
 // Set by resetSave() so the pagehide/visibilitychange autosave that fires

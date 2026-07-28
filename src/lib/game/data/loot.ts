@@ -11,6 +11,11 @@ export const ITEMS = {
   badgerClaw: { name: 'Badger Claw', rarity: 'common', flavor: 'A claw. From a badger.' },
   eye: { name: 'Eye', rarity: 'common', flavor: 'An eye. From something.' },
   unidentifiedHair: { name: 'Unidentified Hair', rarity: 'common', flavor: 'Hair. Unidentified.' },
+  knottedTwineRing: {
+    name: 'Knotted Twine Ring',
+    rarity: 'uncommon',
+    flavor: 'Why would anyone ever make a ring out of string?',
+  },
   tarnishedRing: {
     name: 'Tarnished Ring',
     rarity: 'uncommon',
@@ -28,6 +33,12 @@ export const ITEMS = {
     rarity: 'rare',
     flavor: 'Waterlogged pages, but the sketches are still legible. Someone was keeping notes on everything out here.',
     action: 'unlockBestiary',
+  },
+  bottledDejaVu: {
+    name: 'Bottled Déjà Vu',
+    rarity: 'rare',
+    flavor: "You've been here before. You're about to be here again.",
+    action: 'freezeSpawn',
   },
   tuskOfTheUnvanquishedSwineLord: {
     name: 'Tusk of the Unvanquished Swine-Lord, Who Only Ever Stood Here, In This Field, Doing Nothing',
@@ -59,8 +70,8 @@ const TREASURE: Record<string, DropPool> = {
   hastilyAbandonedCampDrops: { wormEatenJournal: 1 },
 
   // Utils
-  misc: { eye: 1, unidentifiedHair: 1 },
-  noobTreasure: { tarnishedRing: 1 },
+  misc: { eye: 1, unidentifiedHair: 1, knottedTwineRing: 1 },
+  noobTreasure: { tarnishedRing: 4, bottledDejaVu: 1 },
   // 1-in-100 of the tusk roll, not a separate chance — the legendary tusk is
   // the same drop, just an absurdly rare cut of it, not a new category.
   tuskDrops: { tusk: 99, tuskOfTheUnvanquishedSwineLord: 1 },

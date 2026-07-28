@@ -8,6 +8,7 @@ export interface ItemActionDef {
 
 export const ITEM_ACTIONS = {
   unlockBestiary: { description: 'Unlocks the Bestiary.', consumes: true },
+  freezeSpawn: { description: 'Holds the current stretch still for a few kills.', consumes: true },
 } as const satisfies Record<string, ItemActionDef>;
 
 export type ItemActionId = keyof typeof ITEM_ACTIONS;

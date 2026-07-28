@@ -1,4 +1,4 @@
-import { ACTION, ENCOUNTER_END_MS } from './config';
+import { ACTION, ENCOUNTER_END_MS, SPAWN_FREEZE_KILLS } from './config';
 import { getEncounter, damageMonster, killMonster, spawn } from './state/encounter.svelte';
 import { advance } from './state/map.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
@@ -10,6 +10,7 @@ import { spawnXpFloatingText } from './state/xpFloatingText.svelte';
 import { resolveDropIds, ITEMS, type ItemId, type ItemDef } from './data/loot';
 import { ITEM_ACTIONS, type ItemActionId } from './data/itemActions';
 import { unlockFeature } from './state/features.svelte';
+import { startSpawnFreeze, consumeSpawnFreeze } from './state/spawnFreeze.svelte';
 import { assertNever } from './util/assertNever';
 
 export function startAction() {
@@ -68,6 +69,9 @@ function applyItemAction(actionId: ItemActionId) {
     case 'unlockBestiary':
       unlockFeature('bestiary');
       return;
+    case 'freezeSpawn':
+      startSpawnFreeze(SPAWN_FREEZE_KILLS);
+      return;
     default:
       assertNever(actionId);
   }
@@ -87,7 +91,7 @@ function resolveHit() {
   if (monster.hp <= 0) {
     awardLoot(monster.dropTableId, monster.xpReward);
     killMonster();
-    advance();
+    if (!consumeSpawnFreeze()) advance();
   }
   setActionCooldown(Date.now());
 }

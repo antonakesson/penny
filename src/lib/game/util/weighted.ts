@@ -13,3 +13,11 @@ export function weightedPick<T>(entries: readonly (readonly [T, number])[], roll
   }
   return entries[entries.length - 1][0];
 }
+
+// Chance ramps 0% at min to 100% at max, clamped outside that range —
+// below min always false, at/above max always true (Math.random() never
+// returns exactly 1, so the inequality can't fail there). Reusable for
+// any "guaranteed by X, but can happen earlier" one-shot trigger.
+export function rollDistanceChance(min: number, max: number, distance: number): boolean {
+  return Math.random() * (max - min) < distance - min;
+}

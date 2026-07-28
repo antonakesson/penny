@@ -2,11 +2,12 @@ import { MONSTERS, type MonsterId } from '../data/monstats';
 import { pickEncounter } from '../data/zones';
 import { getCurrentZoneId } from './zone.svelte';
 import { isDiscovered } from './bestiary.svelte';
+import { getEventEncounter } from './events.svelte';
 import type { Monster } from '../types';
 
 let nextInstanceId = 1;
 
-function createMonster(id: MonsterId): Monster {
+export function createMonster(id: MonsterId): Monster {
   const base = MONSTERS[id];
   return {
     instanceId: nextInstanceId++,
@@ -25,7 +26,7 @@ function createMonster(id: MonsterId): Monster {
 }
 
 function createNextEncounter(): Monster {
-  return createMonster(pickEncounter(getCurrentZoneId()));
+  return getEventEncounter() ?? createMonster(pickEncounter(getCurrentZoneId()));
 }
 
 let current = $state<Monster>(createNextEncounter());
