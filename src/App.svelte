@@ -3,7 +3,7 @@
   import SignalTrace from './lib/components/SignalTrace.svelte';
   import Encounter from './lib/components/Encounter.svelte';
   import AttackMeter from './lib/components/AttackMeter.svelte';
-  import XpDisplay from './lib/components/XpDisplay.svelte';
+  import Character from './lib/components/Character.svelte';
   import Inventory from './lib/components/Inventory.svelte';
   import Bestiary from './lib/components/Bestiary.svelte';
   import Settings from './lib/components/Settings.svelte';
@@ -67,8 +67,10 @@
     <SignalTrace />
     <Encounter />
     <AttackMeter />
-    <XpDisplay />
   </main>
+  <Pane paneId="character" label="Character">
+    <Character />
+  </Pane>
   <Pane paneId="inventory" label="Inventory">
     <Inventory />
   </Pane>

@@ -2,10 +2,11 @@ import { ACTION, ENCOUNTER_END_MS } from './config';
 import { getEncounter, damageMonster, killMonster, spawn } from './state/encounter.svelte';
 import { advance } from './state/map.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
-import { awardXp } from './state/xp.svelte';
+import { awardXp, getLevel } from './state/xp.svelte';
 import { addItem, removeItem } from './state/inventory.svelte';
 import { discoverMonster } from './state/bestiary.svelte';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
+import { spawnXpFloatingText } from './state/xpFloatingText.svelte';
 import { resolveDropIds, ITEMS, type ItemId, type ItemDef } from './data/loot';
 import { ITEM_ACTIONS, type ItemActionId } from './data/itemActions';
 import { unlockFeature } from './state/features.svelte';
@@ -48,8 +49,11 @@ export function tick() {
 function awardLoot(dropTableId: readonly string[], xpReward: number) {
   const drops = resolveDropIds(dropTableId);
   awardXp(xpReward);
-  for (const dropId of drops) addItem(dropId, 1);
-  for (const dropId of drops) spawnLootText(`+1 ${ITEMS[dropId].name}`, ITEMS[dropId].rarity);
+  spawnXpFloatingText(xpReward);
+  for (const dropId of drops) {
+    addItem(dropId, 1);
+    spawnLootText(`+1 ${ITEMS[dropId].name}`, ITEMS[dropId].rarity);
+  }
 }
 
 export function useItem(itemId: ItemId) {
@@ -69,10 +73,17 @@ function applyItemAction(actionId: ItemActionId) {
   }
 }
 
+// Base damage is just the character's level for now - no equipment or
+// talent modifiers exist yet to layer on top.
+export function calculateDamage(): number {
+  return getLevel();
+}
+
 function resolveHit() {
   const monster = getEncounter();
-  spawnFloatingText('-1', 'damage');
-  damageMonster(1);
+  const damage = calculateDamage();
+  spawnFloatingText(`-${damage}`, 'damage');
+  damageMonster(damage);
   if (monster.hp <= 0) {
     awardLoot(monster.dropTableId, monster.xpReward);
     killMonster();

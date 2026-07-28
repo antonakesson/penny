@@ -2,6 +2,7 @@ import { isFeatureUnlocked } from '../game/game';
 import type { FeatureId } from '../game/data/features';
 
 export const PANES = {
+  character: { label: 'Character' },
   inventory: { label: 'Inventory' },
   bestiary: { label: 'Bestiary' },
   settings: { label: 'Settings' },
