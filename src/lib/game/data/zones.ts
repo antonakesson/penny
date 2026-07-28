@@ -1,13 +1,13 @@
 import type { MonsterId } from './monstats';
 import { weightedPick } from '../util/weighted';
-import { getElevation } from '../state/map.svelte';
+import { getSignal } from '../state/map.svelte';
 
 export const ZONES = {
   zone1: {
     name: 'Whispering Woods',
     description:
       'The trees speak in low, continuous tones about the weather, mostly. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',
-    // Ordered low-to-high elevation: cumulative weight position is what maps
+    // Ordered low-to-high signal: cumulative weight position is what maps
     // a roll to a habitat band (see pickEncounter below), so array order is
     // load-bearing, not incidental. Thorny Shrubbery holds the wet valley
     // floor below Boar's foraging ground; Honeybee stays the narrow
@@ -23,10 +23,10 @@ export const ZONES = {
 
 export type ZoneId = keyof typeof ZONES;
 
-// No jitter — the roll is elevation itself, straight. Deterministic on
-// purpose: the same seed and distance always produce the same encounter, so
-// the full run is reproducible from a seed, not just its rough curve.
+// The roll is the signal itself, straight. Deterministic on purpose: the
+// same seed and distance always produce the same encounter, so the full
+// run is reproducible from a seed, not just its rough curve.
 export function pickEncounter(zoneId: ZoneId): MonsterId {
   const zone = ZONES[zoneId];
-  return weightedPick(zone.monsters.map((m) => [m.id, m.weight] as const), getElevation());
+  return weightedPick(zone.monsters.map((m) => [m.id, m.weight] as const), getSignal());
 }

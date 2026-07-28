@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { exportSave, importSave, resetSave } from '../game/game';
+  import { exportSave, importSave, resetSave, getSeed, getDistance } from '../game/game';
   import { requestConfirm } from '../ui/confirmDialog.svelte';
   import Chip from './Chip.svelte';
 
@@ -33,12 +33,23 @@
       <button onclick={handleImport}>Import save</button>
     </div>
   </section>
+  <dl class="status">
+    <div class="stat-row">
+      <dt>Seed</dt>
+      <dd>{getSeed()}</dd>
+    </div>
+    <div class="stat-row">
+      <dt>Distance</dt>
+      <dd>{getDistance()}</dd>
+    </div>
+  </dl>
+  <div class="fill"></div>
   <section>
     <p class="section-label">Danger zone</p>
     <button class="danger" onclick={handleReset}>Reset progress</button>
   </section>
   <div class="version">
-    <Chip text="Version 0.1-alpha" />
+    <Chip text="Version 0.2-alpha" />
   </div>
 </div>
 
@@ -46,7 +57,14 @@
   .settings {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
     gap: 20px;
+  }
+  /* Compose Modifier.weight(1f) equivalent: an empty flex child that
+     absorbs all leftover column space, pinning .version below it. */
+  .fill {
+    flex: 1 1 auto;
   }
   .section-label {
     font: 600 11px/1 var(--font-ui);
@@ -73,7 +91,28 @@
     background: var(--wax);
     border-color: var(--wax);
   }
-  .version {
-    margin-top: 12px;
+  .status {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+  }
+  .stat-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font: 500 12px/1.4 var(--font-ui);
+  }
+  dt {
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  dd {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    word-break: break-all;
   }
 </style>

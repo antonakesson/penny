@@ -32,7 +32,9 @@
     left: 0;
     right: 0;
     bottom: 56px;
-    max-height: 60vh;
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     background: var(--page-raised);
     border-top: 1px solid var(--border);
@@ -79,7 +81,7 @@
       top: 0;
       bottom: 0;
       width: 320px;
-      max-height: none;
+      height: auto;
       border-top: none;
       border-left: 1px solid var(--border);
       border-radius: 0;

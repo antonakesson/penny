@@ -9,23 +9,29 @@ export function getDistance(): number {
   return distance;
 }
 
+export function getSeed(): string {
+  return seed;
+}
+
 export function advance(amount = 1) {
   distance += amount;
 }
 
-// 0..1 — elevation at an arbitrary distance. Noise is a pure function of
-// (distance, seed), so past/future points are recomputed on demand rather
-// than stored — a debug trace can sample a window of them without map.ts
-// needing to keep any history buffer of its own.
-export function getElevationAt(atDistance: number): number {
+// 0..1 — an agnostic seed-derived signal at an arbitrary distance. Noise is
+// a pure function of (distance, seed), so past/future points are recomputed
+// on demand rather than stored — a debug trace can sample a window of them
+// without map.ts needing to keep any history buffer of its own. map.ts has
+// no opinion on what this value means — that's entirely up to the caller
+// (see zones.ts).
+export function getSignalAt(atDistance: number): number {
   return (elevationNoise(atDistance * DISTANCE_STEP, numericSeed) + 1) / 2;
 }
 
-// 0..1 — the zone's "recommended" spot on its weight table at the player's
-// current distance. Callers are free to ignore it entirely (see zones.ts);
-// the map doesn't know or care whether anything honors it.
-export function getElevation(): number {
-  return getElevationAt(distance);
+// 0..1 — the signal at the player's current distance. Callers are free to
+// ignore it entirely (see zones.ts); the map doesn't know or care whether
+// anything honors it.
+export function getSignal(): number {
+  return getSignalAt(distance);
 }
 
 export interface MapSnapshot {

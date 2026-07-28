@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getDistance, getElevationAt } from '../game/state/map.svelte';
+  import { getDistance, getSignalAt } from '../game/state/map.svelte';
 
   const WINDOW = 30;
   const VIEW_W = 300;
@@ -8,12 +8,12 @@
 
   let distance = $derived(getDistance());
 
-  // Elevation is a pure function of distance — recomputed per point on
+  // The signal is a pure function of distance — recomputed per point on
   // every render rather than read from any stored history.
   let points = $derived.by(() => {
     const start = Math.max(0, distance - (WINDOW - 1));
     const values: number[] = [];
-    for (let d = start; d <= distance; d++) values.push(getElevationAt(d));
+    for (let d = start; d <= distance; d++) values.push(getSignalAt(d));
     return values;
   });
 
@@ -33,11 +33,7 @@
   let currentY = $derived(PAD_Y + (1 - current) * (VIEW_H - PAD_Y * 2));
 </script>
 
-<div class="elevation-trace">
-  <p class="label">
-    <span>Elevation</span>
-    <span class="value">{(current * 100).toFixed(0)}%</span>
-  </p>
+<div class="signal-trace">
   <svg viewBox="0 0 {VIEW_W} {VIEW_H}" preserveAspectRatio="none" class="chart">
     <line x1="0" y1={VIEW_H / 2} x2={VIEW_W} y2={VIEW_H / 2} class="baseline" />
     <polyline points={linePoints} class="line" />
@@ -46,27 +42,15 @@
 </div>
 
 <style>
-  .elevation-trace {
+  .signal-trace {
     max-width: 340px;
     margin-bottom: 20px;
-  }
-  .label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font: 600 12px/1 var(--font-ui);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin: 0 0 8px;
-  }
-  .value {
-    font-variant-numeric: tabular-nums;
   }
   .chart {
     display: block;
     width: 100%;
     height: 60px;
+    overflow: visible;
   }
   .baseline {
     stroke: var(--border);
