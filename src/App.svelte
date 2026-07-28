@@ -10,12 +10,15 @@
   import Nav from './lib/components/Nav.svelte';
   import Pane from './lib/components/Pane.svelte';
   import ConfirmDialog from './lib/components/ConfirmDialog.svelte';
+  import FeatureUnlockDialog from './lib/components/FeatureUnlockDialog.svelte';
   import ItemTooltip from './lib/components/ItemTooltip.svelte';
-  import { tick, click, initGame, saveNow } from './lib/game/game';
+  import { tick, click, initGame, saveNow, getPendingFeatureAnnouncement, dismissFeatureAnnouncement } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
   import { getConfirmRequest, resolveConfirm } from './lib/ui/confirmDialog.svelte';
+  import { isPaneVisible } from './lib/ui/panes.svelte';
 
   let confirmRequest = $derived(getConfirmRequest());
+  let featureAnnouncement = $derived(getPendingFeatureAnnouncement());
 
   // Runs synchronously during component init, before first render — any
   // saved state is hydrated before the player sees a frame of fresh state.
@@ -69,9 +72,11 @@
   <Pane paneId="inventory" label="Inventory">
     <Inventory />
   </Pane>
-  <Pane paneId="bestiary" label="Bestiary">
-    <Bestiary />
-  </Pane>
+  {#if isPaneVisible('bestiary')}
+    <Pane paneId="bestiary" label="Bestiary">
+      <Bestiary />
+    </Pane>
+  {/if}
   <Pane paneId="settings" label="Settings">
     <Settings />
   </Pane>
@@ -84,6 +89,14 @@
     confirmLabel={confirmRequest.confirmLabel}
     onConfirm={() => resolveConfirm(true)}
     onCancel={() => resolveConfirm(false)}
+  />
+{/if}
+
+{#if featureAnnouncement}
+  <FeatureUnlockDialog
+    title={featureAnnouncement.title}
+    message={featureAnnouncement.message}
+    onDismiss={dismissFeatureAnnouncement}
   />
 {/if}
 

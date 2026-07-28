@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { PANES, PLANNED_PANES, getActivePane, togglePane, type PaneId } from '../ui/panes.svelte';
+  import { PANES, PLANNED_PANES, getActivePane, togglePane, isPaneVisible, type PaneId } from '../ui/panes.svelte';
 
-  const paneIds = Object.keys(PANES) as PaneId[];
+  let paneIds = $derived((Object.keys(PANES) as PaneId[]).filter(isPaneVisible));
 </script>
 
 <nav>

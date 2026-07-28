@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ITEMS, type ItemDef } from '../game/data/loot';
+  import { ITEM_ACTIONS } from '../game/data/itemActions';
   import { getTooltip, hideTooltip } from '../ui/tooltip.svelte';
 
   const HALF_WIDTH = 110;
@@ -38,6 +39,9 @@
     <p class="rarity-tag">{item.rarity}</p>
     <p class="tooltip-name">{item.name}</p>
     <p class="tooltip-flavor">{item.flavor}</p>
+    {#if item.action}
+      <p class="tooltip-action">{ITEM_ACTIONS[item.action].description}</p>
+    {/if}
   </div>
 {/if}
 
@@ -75,6 +79,11 @@
     font: 400 13px/1.4 var(--font-body);
     color: var(--ink-faint);
     margin: 0;
+  }
+  .tooltip-action {
+    font: 600 12px/1.4 var(--font-ui);
+    color: var(--accent-text);
+    margin: 8px 0 0;
   }
 
   /* Legendary: same glow as the Style Codex item-card mockup, plus the

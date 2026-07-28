@@ -3,10 +3,13 @@ import { getEncounter, damageMonster, killMonster, spawn } from './state/encount
 import { advance } from './state/map.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { awardXp } from './state/xp.svelte';
-import { addItem } from './state/inventory.svelte';
+import { addItem, removeItem } from './state/inventory.svelte';
 import { discoverMonster } from './state/bestiary.svelte';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
-import { resolveDropIds, ITEMS } from './data/loot';
+import { resolveDropIds, ITEMS, type ItemId, type ItemDef } from './data/loot';
+import { ITEM_ACTIONS, type ItemActionId } from './data/itemActions';
+import { unlockFeature } from './state/features.svelte';
+import { assertNever } from './util/assertNever';
 
 export function startAction() {
   const action = getAction();
@@ -47,6 +50,23 @@ function awardLoot(dropTableId: readonly string[], xpReward: number) {
   awardXp(xpReward);
   for (const dropId of drops) addItem(dropId, 1);
   for (const dropId of drops) spawnLootText(`+1 ${ITEMS[dropId].name}`, ITEMS[dropId].rarity);
+}
+
+export function useItem(itemId: ItemId) {
+  const actionId = (ITEMS[itemId] as ItemDef).action;
+  if (!actionId) return;
+  applyItemAction(actionId);
+  if (ITEM_ACTIONS[actionId].consumes) removeItem(itemId, 1);
+}
+
+function applyItemAction(actionId: ItemActionId) {
+  switch (actionId) {
+    case 'unlockBestiary':
+      unlockFeature('bestiary');
+      return;
+    default:
+      assertNever(actionId);
+  }
 }
 
 function resolveHit() {

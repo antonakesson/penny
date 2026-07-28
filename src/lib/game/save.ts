@@ -4,12 +4,14 @@ import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
 import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './state/encounter.svelte';
 import { serializeDiscoveredMonsters, hydrateDiscoveredMonsters } from './state/bestiary.svelte';
 import { serializeMap, hydrateMap, type MapSnapshot } from './state/map.svelte';
+import { serializeUnlockedFeatures, hydrateUnlockedFeatures } from './state/features.svelte';
 import { ZONES, type ZoneId } from './data/zones';
+import type { FeatureId } from './data/features';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 0;
+const SAVE_VERSION = 1;
 
 interface SaveData {
   xp: number;
@@ -18,6 +20,7 @@ interface SaveData {
   encounter?: EncounterSnapshot;
   discoveredMonstersMask: string;
   map: MapSnapshot;
+  unlockedFeatures: FeatureId[];
 }
 
 interface SaveEnvelope {
@@ -37,6 +40,7 @@ function buildSnapshot(): SaveEnvelope {
       encounter: serializeEncounter(),
       discoveredMonstersMask: serializeDiscoveredMonsters(),
       map: serializeMap(),
+      unlockedFeatures: serializeUnlockedFeatures(),
     },
   };
 }
@@ -54,6 +58,7 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
   if (!data.inventory || typeof data.inventory !== 'object') return false;
   if (typeof data.zone !== 'string' || !(data.zone in ZONES)) return false;
   if (typeof data.discoveredMonstersMask !== 'string') return false;
+  if (!Array.isArray(data.unlockedFeatures)) return false;
 
   const map = data.map as Record<string, unknown> | undefined;
   if (!map || typeof map.seed !== 'string' || typeof map.distance !== 'number') return false;
@@ -73,6 +78,7 @@ function applySnapshot(data: SaveData) {
   hydrateDiscoveredMonsters(data.discoveredMonstersMask);
   if (data.encounter) hydrateEncounter(data.encounter);
   hydrateMap(data.map);
+  hydrateUnlockedFeatures(data.unlockedFeatures);
 }
 
 // Set by resetSave() so the pagehide/visibilitychange autosave that fires

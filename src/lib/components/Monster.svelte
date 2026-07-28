@@ -1,9 +1,11 @@
 <script lang="ts">
   import { getEncounter } from '../game/game';
+  import { MONSTERS, type MonsterId, type MonsterDef } from '../game/data/monstats';
 
   let monster = $derived(getEncounter());
   let entryLabel = $derived(`Entry No. ${String(monster.entryNo).padStart(3, '0')}`);
   let pct = $derived(Math.round((monster.hp / monster.maxHp) * 100));
+  let description = $derived((MONSTERS[monster.id as MonsterId] as MonsterDef).description);
 </script>
 
 <section class="encounter" class:done={monster.status === 'dead'}>
@@ -14,6 +16,9 @@
     <h3 class="name">{monster.name}</h3>
     <span class="level">Lv. {monster.level}</span>
   </div>
+  {#if monster.isNewDiscovery && description}
+    <p class="description">{description}</p>
+  {/if}
   <div class="hp-row">
     <div class="hp-bar">
       {#key monster.instanceId}
@@ -63,6 +68,12 @@
     text-transform: uppercase;
     color: var(--ink-faint);
     white-space: nowrap;
+  }
+  .description {
+    font-family: var(--font-body);
+    font-style: italic;
+    color: var(--ink-faint);
+    margin: 0 0 12px;
   }
   .hp-row {
     position: relative;

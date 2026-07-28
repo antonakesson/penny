@@ -12,11 +12,17 @@ export const ZONES = {
     // load-bearing, not incidental. Thorny Shrubbery holds the wet valley
     // floor below Boar's foraging ground; Honeybee stays the narrow
     // boar/badger transition marker; Badger holds the high ground.
+    // hastilyAbandonedCamp sits last on purpose: the edge slots of this
+    // array are structurally the coldest band regardless of weight (signal
+    // is bell-shaped, not uniform), which is exactly the rarity a one-off
+    // discovery like this wants. Re-tune position, not just weight, if it
+    // doesn't feel rare enough after playtesting.
     monsters: [
       { id: 'thornyShrubbery', weight: 8 },
       { id: 'boar', weight: 10 },
       { id: 'honeybee', weight: 1 },
       { id: 'badger', weight: 15 },
+      { id: 'hastilyAbandonedCamp', weight: 1 },
     ] as { id: MonsterId; weight: number }[],
   },
 } as const;

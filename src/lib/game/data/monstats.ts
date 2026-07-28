@@ -1,3 +1,13 @@
+export interface MonsterDef {
+  name: string;
+  level: number;
+  entryNo: number;
+  maxHp: number;
+  xpReward: number;
+  dropTableId: readonly string[];
+  description?: string;
+}
+
 export const MONSTERS = {
   boar: {
     name: 'Boar',
@@ -64,6 +74,17 @@ export const MONSTERS = {
     dropTableId: [],
   },
   theAuditor: { name: 'The Auditor', level: 2, entryNo: 15, maxHp: 9, xpReward: 9, dropTableId: [] },
-} as const;
+
+  hastilyAbandonedCamp: {
+    name: 'Hastily Abandoned Camp',
+    level: 1,
+    entryNo: 16,
+    maxHp: 3,
+    xpReward: 12,
+    dropTableId: ['hastilyAbandonedCampDrops'],
+    description:
+      "The embers are still warm. A pot of stew sits half-eaten over the coals. Whoever left didn't mean to — not with a small, very cherished notebook still tucked under the bedroll.",
+  },
+} as const satisfies Record<string, MonsterDef>;
 
 export type MonsterId = keyof typeof MONSTERS;

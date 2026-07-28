@@ -6,7 +6,14 @@ import { isDiscovered as isDiscoveredState, getMaxDiscoveredEntryNo as getMaxDis
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { getSeed as getSeedState, getDistance as getDistanceState } from './state/map.svelte';
-import { click as clickInternal, tick as tickInternal } from './engine';
+import {
+  isFeatureUnlocked as isFeatureUnlockedState,
+  getPendingAnnouncement as getPendingAnnouncementState,
+  dismissAnnouncement as dismissAnnouncementState,
+} from './state/features.svelte';
+import { FEATURES, type FeatureId } from './data/features';
+import type { ItemId } from './data/loot';
+import { click as clickInternal, tick as tickInternal, useItem as useItemInternal } from './engine';
 import {
   loadSave,
   saveNow as saveNowInternal,
@@ -56,8 +63,25 @@ export function getDistance() {
   return getDistanceState();
 }
 
+export function isFeatureUnlocked(id: FeatureId) {
+  return isFeatureUnlockedState(id);
+}
+
+export function getPendingFeatureAnnouncement() {
+  const id = getPendingAnnouncementState();
+  return id ? { id, ...FEATURES[id] } : null;
+}
+
+export function dismissFeatureAnnouncement() {
+  dismissAnnouncementState();
+}
+
 export function click() {
   clickInternal();
+}
+
+export function useItem(itemId: ItemId) {
+  useItemInternal(itemId);
 }
 
 export function tick() {
