@@ -8,6 +8,7 @@
   import Inventory from './lib/components/Inventory.svelte';
   import Bestiary from './lib/components/Bestiary.svelte';
   import Settings from './lib/components/Settings.svelte';
+  import DevTools from './lib/components/DevTools.svelte';
   import Nav from './lib/components/Nav.svelte';
   import Pane from './lib/components/Pane.svelte';
   import ConfirmDialog from './lib/components/ConfirmDialog.svelte';
@@ -110,6 +111,11 @@
   <Pane paneId="settings" label="Settings">
     <Settings />
   </Pane>
+  {#if isPaneVisible('devtools')}
+    <Pane paneId="devtools" label="Dev Tools">
+      <DevTools />
+    </Pane>
+  {/if}
 </div>
 
 {#if confirmRequest}

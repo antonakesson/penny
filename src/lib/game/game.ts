@@ -30,6 +30,15 @@ import {
   resetSave as resetSaveInternal,
 } from './save';
 import { ZONES } from './data/zones';
+import type { MonsterId } from './data/monstats';
+import {
+  devSpawn,
+  devAddItem,
+  devAwardXp,
+  devSetDistance,
+  devStartSpawnFreeze,
+  devDumpState,
+} from './devtools';
 
 export function getInventory() {
   return getInventoryState();
@@ -140,4 +149,30 @@ export function isSoundEnabled() {
 
 export function setSoundEnabled(value: boolean) {
   setSoundEnabledState(value);
+}
+
+// Dev-only passthroughs - DevTools.svelte is the only caller, and it's
+// itself gated by import.meta.env.DEV at its usage site.
+export function devToolsSpawn(id: MonsterId) {
+  devSpawn(id);
+}
+
+export function devToolsAddItem(id: ItemId, qty: number) {
+  devAddItem(id, qty);
+}
+
+export function devToolsAwardXp(amount: number) {
+  devAwardXp(amount);
+}
+
+export function devToolsSetDistance(distance: number) {
+  devSetDistance(distance);
+}
+
+export function devToolsStartSpawnFreeze(kills: number) {
+  devStartSpawnFreeze(kills);
+}
+
+export function devToolsDumpState() {
+  return devDumpState();
 }

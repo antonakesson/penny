@@ -6,6 +6,7 @@ export const PANES = {
   inventory: { label: 'Inventory' },
   bestiary: { label: 'Bestiary' },
   settings: { label: 'Settings' },
+  devtools: { label: 'Dev Tools' },
 } as const;
 
 export type PaneId = keyof typeof PANES;
@@ -17,6 +18,10 @@ const PANE_GATE: Partial<Record<PaneId, FeatureId>> = {
 };
 
 export function isPaneVisible(paneId: PaneId): boolean {
+  // Special-cased rather than folded into PANE_GATE's feature-unlock
+  // mechanism - this is an environment gate (stripped from prod builds
+  // entirely via import.meta.env.DEV), not a progression unlock.
+  if (paneId === 'devtools') return import.meta.env.DEV;
   const gate = PANE_GATE[paneId];
   return gate === undefined || isFeatureUnlocked(gate);
 }
