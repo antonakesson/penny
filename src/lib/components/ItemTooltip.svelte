@@ -38,7 +38,9 @@
   >
     <p class="rarity-tag">{item.rarity}</p>
     <p class="tooltip-name">{item.name}</p>
-    <p class="tooltip-flavor">{item.flavor}</p>
+    {#if item.flavor}
+      <p class="tooltip-flavor">{item.flavor}</p>
+    {/if}
     {#if item.action}
       <p class="tooltip-action">{ITEM_ACTIONS[item.action].description}</p>
     {/if}

@@ -3,18 +3,18 @@ import type { ItemActionId } from './itemActions';
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
-export type ItemDef = { name: string; rarity: Rarity; flavor: string; action?: ItemActionId };
+export type ItemDef = { name: string; rarity: Rarity; flavor?: string; action?: ItemActionId };
 
 export const ITEMS = {
-  tusk: { name: 'Boar Tusk', rarity: 'common', flavor: 'A tusk. From a boar.' },
-  honeycomb: { name: 'Honeycomb', rarity: 'common', flavor: 'Honeycomb. From bees.' },
-  badgerClaw: { name: 'Badger Claw', rarity: 'common', flavor: 'A claw. From a badger.' },
-  eye: { name: 'Eye', rarity: 'common', flavor: 'An eye. From something.' },
-  unidentifiedHair: { name: 'Unidentified Hair', rarity: 'common', flavor: 'Hair. Unidentified.' },
+  tusk: { name: 'Boar Tusk', rarity: 'common' },
+  honeycomb: { name: 'Honeycomb', rarity: 'common' },
+  badgerClaw: { name: 'Badger Claw', rarity: 'common' },
+  eye: { name: 'Eye', rarity: 'common' },
+  unidentifiedHair: { name: 'Unidentified Hair', rarity: 'common' },
   knottedTwineRing: {
     name: 'Knotted Twine Ring',
     rarity: 'uncommon',
-    flavor: 'Why would anyone ever make a ring out of string?',
+    flavor: 'Too small for a wrist. Too big for a finger.',
   },
   tarnishedRing: {
     name: 'Tarnished Ring',
@@ -24,10 +24,10 @@ export const ITEMS = {
   chicken: {
     name: '"Chicken"',
     rarity: 'common',
-    flavor: 'Not chicken. Every vendor\'s ledger only has one column for "meat."',
+    flavor: 'Best not to ask.',
   },
-  thorn: { name: 'Thorn', rarity: 'common', flavor: 'A thorn. It got you first.' },
-  twig: { name: 'Twig', rarity: 'common', flavor: 'A twig. You really could have just walked around it.' },
+  thorn: { name: 'Thorn', rarity: 'common', flavor: 'Not worth the epidermal inconvenience.' },
+  twig: { name: 'Twig', rarity: 'common', flavor: 'You really could have just walked around it.' },
   wormEatenJournal: {
     name: 'Worm-Eaten Journal',
     rarity: 'rare',
@@ -72,9 +72,13 @@ const TREASURE: Record<string, DropPool> = {
   // Utils
   misc: { eye: 1, unidentifiedHair: 1, knottedTwineRing: 1 },
   noobTreasure: { tarnishedRing: 4, bottledDejaVu: 1 },
-  // 1-in-100 of the tusk roll, not a separate chance — the legendary tusk is
-  // the same drop, just an absurdly rare cut of it, not a new category.
-  tuskDrops: { tusk: 99, tuskOfTheUnvanquishedSwineLord: 1 },
+  // 1-in-1000 of the tusk roll, not a separate chance — the legendary tusk
+  // is the same drop, just an absurdly rare cut of it, not a new category.
+  // Was 1-in-100 (~1-in-500 per boar kill, median ~350 boars) - measured
+  // that against real play and it dropped inside "a few hundred boars,"
+  // under an hour, which reads as common, not legendary. 10x'd to land
+  // ~1-in-5000 per boar kill (median ~3,500 boars) - a real grind.
+  tuskDrops: { tusk: 999, tuskOfTheUnvanquishedSwineLord: 1 },
 };
 
 // How many independent rolls a pool makes when entered, keyed by pool id.
