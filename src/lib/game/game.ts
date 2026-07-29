@@ -16,7 +16,8 @@ import { FEATURES, type FeatureId } from './data/features';
 import { isSoundEnabled as isSoundEnabledState, setSoundEnabled as setSoundEnabledState } from './state/settings.svelte';
 import type { ItemId } from './data/loot';
 import {
-  click as clickInternal,
+  press as pressInternal,
+  release as releaseInternal,
   tick as tickInternal,
   useItem as useItemInternal,
   calculateDamage as calculateDamageInternal,
@@ -91,8 +92,12 @@ export function dismissFeatureAnnouncement() {
   dismissAnnouncementState();
 }
 
-export function click() {
-  clickInternal();
+export function press() {
+  pressInternal();
+}
+
+export function release() {
+  releaseInternal();
 }
 
 export function getDamage() {

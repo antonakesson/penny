@@ -22,6 +22,7 @@ export function createMonster(id: MonsterId): Monster {
     status: 'active',
     diedAt: null,
     isNewDiscovery: !isDiscovered(base.entryNo),
+    action: base.action ?? 'attack',
   };
 }
 

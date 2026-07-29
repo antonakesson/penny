@@ -22,7 +22,7 @@
   <div class="hp-row">
     <div class="hp-bar">
       {#key monster.instanceId}
-        <div class="hp-fill" style="width: {pct}%"></div>
+        <div class="hp-fill" class:investigate={monster.action === 'investigate'} style="width: {pct}%"></div>
       {/key}
     </div>
   </div>
@@ -89,6 +89,9 @@
     height: 100%;
     background: var(--wax);
     transition: width 0.15s ease-out;
+  }
+  .hp-fill.investigate {
+    background: var(--rarity-uncommon);
   }
   .hp-text {
     margin: 8px 0 0;

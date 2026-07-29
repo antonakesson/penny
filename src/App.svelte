@@ -3,6 +3,7 @@
   import SignalTrace from './lib/components/SignalTrace.svelte';
   import Encounter from './lib/components/Encounter.svelte';
   import AttackMeter from './lib/components/AttackMeter.svelte';
+  import InvestigationMeter from './lib/components/InvestigationMeter.svelte';
   import Character from './lib/components/Character.svelte';
   import Inventory from './lib/components/Inventory.svelte';
   import Bestiary from './lib/components/Bestiary.svelte';
@@ -12,13 +13,23 @@
   import ConfirmDialog from './lib/components/ConfirmDialog.svelte';
   import FeatureUnlockDialog from './lib/components/FeatureUnlockDialog.svelte';
   import ItemTooltip from './lib/components/ItemTooltip.svelte';
-  import { tick, click, initGame, saveNow, getPendingFeatureAnnouncement, dismissFeatureAnnouncement } from './lib/game/game';
+  import {
+    tick,
+    press,
+    release,
+    initGame,
+    saveNow,
+    getEncounter,
+    getPendingFeatureAnnouncement,
+    dismissFeatureAnnouncement,
+  } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
   import { getConfirmRequest, resolveConfirm } from './lib/ui/confirmDialog.svelte';
   import { isPaneVisible } from './lib/ui/panes.svelte';
 
   let confirmRequest = $derived(getConfirmRequest());
   let featureAnnouncement = $derived(getPendingFeatureAnnouncement());
+  let encounter = $derived(getEncounter());
 
   // Runs synchronously during component init, before first render — any
   // saved state is hydrated before the player sees a frame of fresh state.
@@ -45,18 +56,31 @@
     };
   });
 
-  // The whole page is the attack button — anywhere that isn't a real
-  // control (a button, or the inventory pane) starts a swing. Forcing a
-  // small target for the core loop's only input is the thing we're
-  // deliberately avoiding.
+  // The whole page is the action surface — anywhere that isn't a real
+  // control (a button, or the inventory pane) presses/releases the current
+  // encounter's action. Forcing a small target for the core loop's only
+  // input is the thing we're deliberately avoiding. Which activity actually
+  // happens (swing vs. hold-drain) is decided inside engine.ts by the
+  // current encounter's kind, not here.
   $effect(() => {
-    function handleClick(event: MouseEvent) {
+    function handlePointerDown(event: PointerEvent) {
       const target = event.target;
       if (target instanceof Element && target.closest('button, .pane')) return;
-      click();
+      press();
     }
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    function handlePointerUp() {
+      release();
+    }
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('pointerup', handlePointerUp);
+    document.addEventListener('pointercancel', handlePointerUp);
+    window.addEventListener('blur', handlePointerUp);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener('pointercancel', handlePointerUp);
+      window.removeEventListener('blur', handlePointerUp);
+    };
   });
 </script>
 
@@ -66,7 +90,11 @@
     <Zone />
     <SignalTrace />
     <Encounter />
-    <AttackMeter />
+    {#if encounter.action === 'investigate'}
+      <InvestigationMeter />
+    {:else}
+      <AttackMeter />
+    {/if}
   </main>
   <Pane paneId="character" label="Character">
     <Character />

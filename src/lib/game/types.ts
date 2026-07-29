@@ -1,4 +1,5 @@
 import type { Rarity } from './data/loot';
+import type { EncounterAction } from './data/monstats';
 
 export interface Monster {
   instanceId: number;
@@ -18,9 +19,14 @@ export interface Monster {
   // you meet it" label would vanish out from under the player within a
   // tick of appearing.
   isNewDiscovery: boolean;
+  action: EncounterAction;
 }
 
 export interface ActionState {
+  // Meaningless while status is 'idle' - whichever kind's onDown() fires
+  // next stamps it fresh. Both attack and investigate share this one
+  // mutex since only one is ever in progress at a time.
+  kind: EncounterAction;
   status: 'idle' | 'active' | 'cooldown';
   startedAt: number | null;
 }

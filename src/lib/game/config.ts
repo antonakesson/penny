@@ -19,3 +19,13 @@ export const DISTANCE_STEP = 0.15;
 // separate "pinned monster id" needed, this just rides the existing
 // determinism.
 export const SPAWN_FREEZE_KILLS = 5;
+
+export const INVESTIGATE = {
+  // Only source of drain - no ambient decay, since draining HP the player
+  // never touched read as unearned. A real damage-per-second rate while
+  // the pointer is held down, not a flat per-tick amount - see
+  // calculateInvestigationDamage() in engine.ts for why that distinction
+  // matters (tick cadence is an implementation detail, not a balance
+  // number).
+  dps: 4,
+};

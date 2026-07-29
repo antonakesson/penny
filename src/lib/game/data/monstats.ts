@@ -1,3 +1,9 @@
+// Only 'investigate' varies behavior today (passive HP drain instead of
+// swing-to-hit) - a hardcoded branch per action, not a pluggable-behavior
+// registry. Add a third kind only once a second concrete case shows what
+// actually needs to vary.
+export type EncounterAction = 'attack' | 'investigate';
+
 export interface MonsterDef {
   name: string;
   level: number;
@@ -6,6 +12,7 @@ export interface MonsterDef {
   xpReward: number;
   dropTableId: readonly string[];
   description?: string;
+  action?: EncounterAction;
 }
 
 export const MONSTERS = {
@@ -40,6 +47,7 @@ export const MONSTERS = {
     maxHp: 8,
     xpReward: 3,
     dropTableId: ['shrubberyDrops'],
+    action: 'investigate',
   },
 
   watersnake: { name: 'Watersnake', level: 2, entryNo: 5, maxHp: 4, xpReward: 2, dropTableId: [] },
@@ -79,9 +87,10 @@ export const MONSTERS = {
     name: 'Hastily Abandoned Camp',
     level: 1,
     entryNo: 16,
-    maxHp: 3,
-    xpReward: 12,
+    maxHp: 300,
+    xpReward: 100,
     dropTableId: ['hastilyAbandonedCampDrops'],
+    action: 'investigate',
     description:
       "The embers are still warm. A pot of stew sits half-eaten over the coals. Whoever left didn't mean to — not with a small, very cherished notebook still tucked under the bedroll.",
   },
