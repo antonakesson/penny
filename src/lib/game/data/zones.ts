@@ -29,6 +29,48 @@ export const ZONES = {
       { id: 'badger', weight: 15 },
     ] as { id: MonsterId; weight: number }[],
   },
+  // DRAFT — name/description/quote are first-pass placeholders per
+  // ACT_1_STORYLINE.md ("not locked in yet"), open to a naming/voice pass.
+  // Monster pool is the wetland-themed half of the 11 level-2 stubs
+  // (monstats.ts entryNo 5-15); ordered shore-to-shallows-to-drylandwards,
+  // same load-bearing-order convention as zone1.
+  zone2: {
+    name: 'Rainbow Bog',
+    description:
+      'The name predates the bog. Nobody currently employed by any nearby settlement can explain the rainbow part, and several have stopped trying.',
+    quote: {
+      text: "You don't sink in the Bog. The Bog just gets taller around you.",
+      attribution: 'Widow Pruitt, Innkeeper',
+    },
+    monsters: [
+      { id: 'watersnake', weight: 12 },
+      { id: 'deceptiveMoundLookingSolidButWasActuallyWetFeet', weight: 4 },
+      { id: 'duckJustADuck', weight: 14 },
+      { id: 'moose', weight: 6 },
+      { id: 'blueberry', weight: 5 },
+      { id: 'feralGoat', weight: 9 },
+      { id: 'fox', weight: 9 },
+    ] as { id: MonsterId; weight: number }[],
+  },
+  // DRAFT — same caveats as zone2. Bureaucracy/property-dispute theme,
+  // built around the four "ownership satire" stubs already on the books
+  // (Ruffian, Rat King, Guy Who Definitely Owns This Now, The Auditor).
+  // Ordered by seniority: squatter -> enforcer -> organization -> authority.
+  zone3: {
+    name: 'The Last Ledger',
+    description:
+      "Somebody kept immaculate records here, right up until they stopped. The books are still open on the desk, mid-entry, as if whoever was writing just meant to step out for a moment.",
+    quote: {
+      text: 'Possession is nine-tenths of the law. The other tenth is whoever still has the stamp.',
+      attribution: 'Marginal note, unsigned ledger',
+    },
+    monsters: [
+      { id: 'guyWhoDefinitelyOwnsThisNow', weight: 10 },
+      { id: 'ruffian', weight: 12 },
+      { id: 'suspiciouslyOrganizedRatKing', weight: 3 },
+      { id: 'theAuditor', weight: 2 },
+    ] as { id: MonsterId; weight: number }[],
+  },
 } as const;
 
 export type ZoneId = keyof typeof ZONES;

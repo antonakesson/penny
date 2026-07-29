@@ -88,12 +88,71 @@ even accidentally — they are not the same mystery.
 
 | Zone | Level band | Monster pool | Status |
 |---|---|---|---|
-| Whispering Woods (`zone1`) | 1–~4 | existing 4 | Built. Cobb's quote lives here. |
-| *rainbowBog* (placeholder name) | ~4–7 | subset of the 11 already-authored level-2 stubs (`monstats.ts` entryNo 5–15) | Not built — no `ZONES` entry, no zone-transition logic exists at all (`zone.svelte.ts` is hardcoded to `zone1` permanently). |
-| *theLastLedger* (placeholder name) | ~7–10 | remaining level-2 stubs, possibly some new ones | Not built, same gap. |
+| Whispering Woods (`zone1`) | 0–4 | existing 4 | Built. Cobb's quote lives here. |
+| *Rainbow Bog* (placeholder name) | 4–6 | subset of the 11 already-authored level-2 stubs (`monstats.ts` entryNo 5–15) | Not built — no `ZONES` entry, no zone-transition logic exists at all (`zone.svelte.ts` is hardcoded to `zone1` permanently). |
+| *The Last Ledger* (placeholder name) | 6–8 | remaining level-2 stubs, possibly some new ones | Not built, same gap. |
+| Possible finale / RP / grind event | 9–10 | TBD | Not decided — may not be a zone at all, could be the climax event itself. |
 
 Placeholder zone names need their own Codex-voice naming pass (like
 Whispering Woods got) before they're final — not locked in yet.
+
+## Zone dumps
+
+### Whispering Woods (`zone1`) — built
+
+> The trees are evenly distributed. And strangely, equally tall, as if
+> guided by some cost-benefit analysis of structural integrity versus
+> sunlight yield. Adventurers who linger report a profound sense of
+> purpose, followed shortly by a normal sense of purpose.
+
+Quote: *"If you don't count the people who don't come back, the forest
+is 100% safe."* — Cobb Thistlewood, Ranger / Coroner
+
+| Monster | Weight | Level | HP | XP |
+|---|---|---|---|---|
+| Thorny Shrubbery | 8 | 1 | 8 | 3 |
+| Boar | 10 | 1 | 5 | 2 |
+| Honeybee | 1 | 1 | 2 | 8 |
+| Badger | 15 | 1 | 3 | 1 |
+
+Order is load-bearing (see comment in `zones.ts`) — array position maps
+to a signal band, low to high: Thorny Shrubbery (wet valley floor) →
+Boar → Honeybee (narrow transition marker) → Badger (high ground).
+
+### Rainbow Bog (`zone2`) — data wired, not reachable in-game
+
+`ZONES` entry exists with name/description/quote/weights (all marked
+`DRAFT` in `zones.ts` — first-pass, not a locked naming/voice pass).
+Wetland-themed half of the 11 level-2 stubs. Ordered shore-to-dryland,
+same load-bearing-order convention as zone1.
+
+| Monster | Weight | Level | HP | XP |
+|---|---|---|---|---|
+| Watersnake | 12 | 2 | 4 | 2 |
+| Deceptive Mound (Looking Solid But Was Actually Wet Feet) | 4 | 2 | 3 | 7 |
+| Duck. Just a Duck. | 14 | 2 | 2 | 1 |
+| Moose | 6 | 2 | 12 | 4 |
+| Blueberry | 5 | 2 | 6 | 6 |
+| Feral Goat | 9 | 2 | 5 | 2 |
+| Fox | 9 | 2 | 5 | 2 |
+
+### The Last Ledger (`zone3`) — data wired, not reachable in-game
+
+Same status as Rainbow Bog: `ZONES` entry exists, `DRAFT` flavor.
+Bureaucracy/property-dispute theme, built around the four stubs that
+already read as ownership satire. Ordered by seniority: squatter →
+enforcer → organization → authority.
+
+| Monster | Weight | Level | HP | XP |
+|---|---|---|---|---|
+| Guy Who Definitely Owns This Now | 10 | 2 | 6 | 3 |
+| Ruffian | 12 | 2 | 10 | 4 |
+| Suspiciously Organized Rat King | 3 | 2 | 14 | 9 |
+| The Auditor | 2 | 2 | 9 | 9 |
+
+Neither zone is reachable in-game yet — `zone.svelte.ts` is still
+hardcoded to `zone1` permanently, no zone-transition logic exists at
+all (see "Not yet built" below).
 
 ## Open questions (not yet decided)
 
