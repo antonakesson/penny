@@ -2,7 +2,6 @@ import { MONSTERS, type MonsterId } from '../data/monstats';
 import { pickEncounter } from '../data/zones';
 import { getCurrentZoneId } from './zone.svelte';
 import { isDiscovered } from './bestiary.svelte';
-import { getEventEncounter } from './events.svelte';
 import type { Monster } from '../types';
 
 let nextInstanceId = 1;
@@ -26,11 +25,15 @@ export function createMonster(id: MonsterId): Monster {
   };
 }
 
-function createNextEncounter(): Monster {
-  return getEventEncounter() ?? createMonster(pickEncounter(getCurrentZoneId()));
-}
-
-let current = $state<Monster>(createNextEncounter());
+// Throwaway initial value - almost always immediately replaced by
+// hydrateEncounter() on load. Deliberately just a plain zone pick, never
+// event-aware: this runs before any save is hydrated (distance/firedMask
+// both still at their defaults), so an event roll here would either be
+// meaningless (distance 0 is always below any event's eligible band) or,
+// worse, burn a one-shot event on a Monster instance nobody ever sees.
+// Real "what's next" decisions belong entirely to engine.ts's
+// decideNextEncounter() - this module no longer knows events exist.
+let current = $state<Monster>(createMonster(pickEncounter(getCurrentZoneId())));
 
 export function getEncounter(): Monster {
   return current;
@@ -45,8 +48,11 @@ export function killMonster() {
   current.diedAt = Date.now();
 }
 
-export function spawn() {
-  current = createNextEncounter();
+// Dumb setter - engine.ts decides which Monster comes next and hands it
+// here. This module just holds and mutates the current encounter, it
+// doesn't choose it.
+export function spawn(monster: Monster) {
+  current = monster;
 }
 
 export interface EncounterSnapshot {

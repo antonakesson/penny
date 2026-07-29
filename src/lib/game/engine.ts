@@ -1,6 +1,9 @@
 import { ACTION, ENCOUNTER_END_MS, SPAWN_FREEZE_KILLS, INVESTIGATE } from './config';
-import { getEncounter, damageMonster, killMonster, spawn } from './state/encounter.svelte';
+import { getEncounter, createMonster, damageMonster, killMonster, spawn } from './state/encounter.svelte';
 import { advance } from './state/map.svelte';
+import { pickEncounter } from './data/zones';
+import { getCurrentZoneId } from './state/zone.svelte';
+import { shouldShowEvent, markEventFired } from './state/events.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { awardXp, getLevel } from './state/xp.svelte';
 import { addItem, removeItem } from './state/inventory.svelte';
@@ -14,7 +17,7 @@ import { startSpawnFreeze, consumeSpawnFreeze } from './state/spawnFreeze.svelte
 import { assertNever } from './util/assertNever';
 import { playSound } from './audio';
 import type { Monster } from './types';
-import type { EncounterAction } from './data/monstats';
+import type { EncounterAction, MonsterId } from './data/monstats';
 
 // Attack and investigate are mutually exclusive activities on the same
 // "self" occupant - they share one ActionState mutex (kind-tagged) rather
@@ -178,8 +181,24 @@ export function tick() {
     // otherwise a stale cooldown/active status can bleed across the
     // respawn boundary into a differently-kinded encounter.
     setActionIdle();
-    spawn();
+    spawn(decideNextEncounter());
   }
+}
+
+// Priority: a spawn-freeze charge held on this kill forces an exact replay
+// of the same monster (bridged from resolveKill(), captured at kill time -
+// see replayMonsterId below for why it can't be re-derived here from
+// getSpawnFreezeRemaining() alone); otherwise an eligible event takes over;
+// otherwise the normal weighted zone pick.
+function decideNextEncounter(): Monster {
+  if (replayMonsterId !== null) {
+    const id = replayMonsterId;
+    replayMonsterId = null;
+    return createMonster(id);
+  }
+  const eventMonsterId = shouldShowEvent();
+  if (eventMonsterId) return createMonster(eventMonsterId);
+  return createMonster(pickEncounter(getCurrentZoneId()));
 }
 
 function awardLoot(dropTableId: readonly string[], xpReward: number) {
@@ -213,8 +232,18 @@ function applyItemAction(actionId: ItemActionId) {
   }
 }
 
+// Bridges kill-time -> spawn-time (500ms later, ENCOUNTER_END_MS): must be
+// captured once here, not re-derived from getSpawnFreezeRemaining() at
+// decideNextEncounter() time, since the charge for *this* kill is already
+// consumed by then - a fresh read there would miss the last covered kill
+// in a freeze streak.
+let replayMonsterId: MonsterId | null = null;
+
 function resolveKill(monster: Monster) {
   awardLoot(monster.dropTableId, monster.xpReward);
+  markEventFired(monster.id);
+  const wasFrozen = consumeSpawnFreeze();
+  replayMonsterId = wasFrozen ? (monster.id as MonsterId) : null;
   killMonster();
-  if (!consumeSpawnFreeze()) advance();
+  if (!wasFrozen) advance();
 }

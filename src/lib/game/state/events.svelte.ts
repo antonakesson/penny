@@ -8,20 +8,29 @@
 // declarative config and code" that killed the previous event system.
 // Revisit only once a few more hardcoded events reveal real repetition.
 import { getDistance } from './map.svelte';
-import { createMonster } from './encounter.svelte';
 import { rollDistanceChance } from '../util/weighted';
-import type { Monster } from '../types';
+import type { MonsterId } from '../data/monstats';
 
 let firedMask = $state<bigint>(0n);
 
-export function getEventEncounter(): Monster | undefined {
+// Pure check - which event (if any) should show right now. Does NOT mark
+// anything fired; that only happens once the resulting encounter is
+// actually killed (see markEventFired), so a roll that never resolves
+// (e.g. a throwaway speculative encounter discarded by hydration) can't
+// permanently burn a one-shot event nobody ever saw.
+export function shouldShowEvent(): MonsterId | undefined {
   const hastilyAbandonedCampFired = (firedMask & 1n) !== 0n;
   if (!hastilyAbandonedCampFired && rollDistanceChance(50, 100, getDistance())) {
-    firedMask |= 1n;
-    return createMonster('hastilyAbandonedCamp');
+    return 'hastilyAbandonedCamp';
   }
 
   return undefined;
+}
+
+// Called from resolveKill() once an event encounter is actually completed -
+// a no-op for any non-event monster id.
+export function markEventFired(monsterId: string) {
+  if (monsterId === 'hastilyAbandonedCamp') firedMask |= 1n;
 }
 
 export function serializeFiredEvents(): string {
