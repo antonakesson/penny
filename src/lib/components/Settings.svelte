@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { exportSave, importSave, resetSave, getSeed, getDistance } from '../game/game';
+  import { exportSave, importSave, resetSave, getSeed, getDistance, isSoundEnabled, setSoundEnabled } from '../game/game';
   import { requestConfirm } from '../ui/confirmDialog.svelte';
   import Chip from './Chip.svelte';
+  import Toggle from './Toggle.svelte';
 
   function handleExport() {
     const encoded = exportSave();
@@ -31,6 +32,12 @@
     <div class="row">
       <button onclick={handleExport}>Export save</button>
       <button onclick={handleImport}>Import save</button>
+    </div>
+  </section>
+  <section>
+    <p class="section-label">Audio</p>
+    <div class="row">
+      <Toggle label="Sound" checked={isSoundEnabled()} onchange={setSoundEnabled} />
     </div>
   </section>
   <dl class="status">

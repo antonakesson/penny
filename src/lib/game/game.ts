@@ -13,6 +13,7 @@ import {
   dismissAnnouncement as dismissAnnouncementState,
 } from './state/features.svelte';
 import { FEATURES, type FeatureId } from './data/features';
+import { isSoundEnabled as isSoundEnabledState, setSoundEnabled as setSoundEnabledState } from './state/settings.svelte';
 import type { ItemId } from './data/loot';
 import {
   click as clickInternal,
@@ -126,4 +127,12 @@ export function importSave(encoded: string) {
 
 export function resetSave() {
   resetSaveInternal();
+}
+
+export function isSoundEnabled() {
+  return isSoundEnabledState();
+}
+
+export function setSoundEnabled(value: boolean) {
+  setSoundEnabledState(value);
 }

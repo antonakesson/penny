@@ -12,6 +12,7 @@ import { ITEM_ACTIONS, type ItemActionId } from './data/itemActions';
 import { unlockFeature } from './state/features.svelte';
 import { startSpawnFreeze, consumeSpawnFreeze } from './state/spawnFreeze.svelte';
 import { assertNever } from './util/assertNever';
+import { playSound } from './audio';
 
 export function startAction() {
   const action = getAction();
@@ -51,6 +52,7 @@ function awardLoot(dropTableId: readonly string[], xpReward: number) {
   const drops = resolveDropIds(dropTableId);
   awardXp(xpReward);
   spawnXpFloatingText(xpReward);
+  playSound(drops.length > 0 ? 'LootDropped' : 'LootEmpty');
   for (const dropId of drops) {
     addItem(dropId, 1);
     spawnLootText(`+1 ${ITEMS[dropId].name}`, ITEMS[dropId].rarity);

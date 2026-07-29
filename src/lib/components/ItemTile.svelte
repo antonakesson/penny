@@ -33,6 +33,7 @@
   class:legendary={item.rarity === 'legendary'}
   class:actionable={item.action}
   style="--tier: var(--rarity-{item.rarity})"
+  role="button"
   tabindex="0"
   bind:this={tileEl}
   onpointerenter={show}
