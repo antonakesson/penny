@@ -2,21 +2,31 @@ import { MONSTERS, type MonsterId } from '../data/monstats';
 import { pickEncounter } from '../data/zones';
 import { getCurrentZoneId } from './zone.svelte';
 import { isDiscovered } from './bestiary.svelte';
+import { NAIVE_SCALE_PER_LEVEL } from '../config';
 import type { Monster } from '../types';
 
 let nextInstanceId = 1;
 
-export function createMonster(id: MonsterId): Monster {
+// level defaults to the monster's own authored level - i.e. no scaling -
+// so callers that don't pass one (event/one-shot monsters like
+// hastilyAbandonedCamp) get their hardcoded stats untouched. Only
+// zone-table spawns pass an explicit zone-difficulty level (see engine.ts).
+export function createMonster(id: MonsterId, level: number = MONSTERS[id].level): Monster {
   const base = MONSTERS[id];
+  // Naive step-1 scaling: flat per-level multiplier is a placeholder - see
+  // NAIVE_SCALE_PER_LEVEL, replaced by a real curve in step 2.
+  const scale = 1 + NAIVE_SCALE_PER_LEVEL * (level - base.level);
+  const maxHp = Math.max(1, Math.round(base.maxHp * scale));
+  const xpReward = Math.max(1, Math.round(base.xpReward * scale));
   return {
     instanceId: nextInstanceId++,
     id,
     name: base.name,
-    level: base.level,
+    level,
     entryNo: base.entryNo,
-    hp: base.maxHp,
-    maxHp: base.maxHp,
-    xpReward: base.xpReward,
+    hp: maxHp,
+    maxHp,
+    xpReward,
     dropTableId: base.dropTableId,
     status: 'active',
     diedAt: null,
@@ -57,7 +67,10 @@ export function spawn(monster: Monster) {
 
 export interface EncounterSnapshot {
   id: string;
+  level: number;
   hp: number;
+  maxHp: number;
+  xpReward: number;
   status: Monster['status'];
   diedAt: number | null;
   isNewDiscovery: boolean;
@@ -66,24 +79,32 @@ export interface EncounterSnapshot {
 export function serializeEncounter(): EncounterSnapshot {
   return {
     id: current.id,
+    level: current.level,
     hp: current.hp,
+    maxHp: current.maxHp,
+    xpReward: current.xpReward,
     status: current.status,
     diedAt: current.diedAt,
     isNewDiscovery: current.isNewDiscovery,
   };
 }
 
-// createMonster() would recompute isNewDiscovery from the current bestiary
-// mask - which, by reload time, already says "discovered" (the Bestiary
-// marks a monster discovered almost immediately on spawn, well before
-// it's persisted). That's the exact "vanishes within a tick" bug this
-// field's own snapshot-at-creation was meant to prevent, just reached via
-// reload instead of live play. Override with the persisted value instead
-// of trusting the freshly recomputed one.
+// createMonster() would recompute level/maxHp/xpReward/isNewDiscovery from
+// current live state instead of what was true at spawn time - level would
+// re-roll from wherever distance/difficulty sit *now* (could easily differ
+// from the roll at spawn), and isNewDiscovery would read the bestiary mask
+// which, by reload time, already says "discovered" (marked almost
+// immediately on spawn, well before persistence). Both are the same
+// "vanishes/drifts within a tick" bug, just reached via reload instead of
+// live play. Override every spawn-time-dependent field with the persisted
+// value instead of trusting a fresh recompute.
 export function hydrateEncounter(snapshot: EncounterSnapshot) {
   current = {
     ...createMonster(snapshot.id as MonsterId),
+    level: snapshot.level,
     hp: snapshot.hp,
+    maxHp: snapshot.maxHp,
+    xpReward: snapshot.xpReward,
     status: snapshot.status,
     diedAt: snapshot.diedAt,
     isNewDiscovery: snapshot.isNewDiscovery,

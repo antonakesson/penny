@@ -3,6 +3,12 @@ import { hashSeed, elevationNoise } from '../util/noise';
 
 let seed = $state<string>(crypto.randomUUID());
 let numericSeed = hashSeed(seed);
+// Separately-hashed seed, not the same numericSeed reused at a different
+// offset - two lattices sharing one seed would still correlate at nearby x
+// (any shared gradient point ties both curves to the same value there).
+// A second hash gives an independent lattice so difficulty and terrain can
+// disagree at the same distance.
+let difficultyNumericSeed = hashSeed(seed + ':difficulty');
 let distance = $state(0);
 
 export function getDistance(): number {
@@ -34,6 +40,20 @@ export function getSignal(): number {
   return getSignalAt(distance);
 }
 
+// 0..1 — a second, independent seed-derived signal at an arbitrary distance.
+// Same shape and contract as getSignalAt (agnostic, caller interprets), but
+// deliberately decorrelated from it so a caller can use one for "what" and
+// the other for "how much" without the two riding the same curve. zones.ts
+// uses this one for encounter difficulty.
+export function getDifficultyAt(atDistance: number): number {
+  return (elevationNoise(atDistance * DISTANCE_STEP, difficultyNumericSeed) + 1) / 2;
+}
+
+// 0..1 — the difficulty signal at the player's current distance.
+export function getDifficulty(): number {
+  return getDifficultyAt(distance);
+}
+
 export interface MapSnapshot {
   seed: string;
   distance: number;
@@ -46,5 +66,6 @@ export function serializeMap(): MapSnapshot {
 export function hydrateMap(snapshot: MapSnapshot) {
   seed = snapshot.seed;
   numericSeed = hashSeed(seed);
+  difficultyNumericSeed = hashSeed(seed + ':difficulty');
   distance = snapshot.distance;
 }

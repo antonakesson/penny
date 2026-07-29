@@ -1,7 +1,7 @@
 import { ACTION, ENCOUNTER_END_MS, SPAWN_FREEZE_KILLS, INVESTIGATE } from './config';
 import { getEncounter, createMonster, damageMonster, killMonster, spawn } from './state/encounter.svelte';
 import { advance } from './state/map.svelte';
-import { pickEncounter } from './data/zones';
+import { pickEncounter, pickLevel } from './data/zones';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { shouldShowEvent, markEventFired } from './state/events.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
@@ -194,11 +194,15 @@ function decideNextEncounter(): Monster {
   if (replayMonsterId !== null) {
     const id = replayMonsterId;
     replayMonsterId = null;
-    return createMonster(id);
+    // Distance is held still by the same freeze, so the difficulty signal
+    // resamples to the same value - re-picking here (rather than reusing a
+    // stashed level) rides that determinism instead of duplicating it.
+    return createMonster(id, pickLevel(getCurrentZoneId()));
   }
   const eventMonsterId = shouldShowEvent();
   if (eventMonsterId) return createMonster(eventMonsterId);
-  return createMonster(pickEncounter(getCurrentZoneId()));
+  const zoneId = getCurrentZoneId();
+  return createMonster(pickEncounter(zoneId), pickLevel(zoneId));
 }
 
 function awardLoot(dropTableId: readonly string[], xpReward: number) {

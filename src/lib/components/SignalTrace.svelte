@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getDistance, getSignalAt } from '../game/state/map.svelte';
+  import { getDistance, getSignalAt, getDifficultyAt } from '../game/state/map.svelte';
 
   const WINDOW = 30;
   const VIEW_W = 300;
@@ -8,35 +8,46 @@
 
   let distance = $derived(getDistance());
 
-  // The signal is a pure function of distance — recomputed per point on
+  // Both signals are pure functions of distance — recomputed per point on
   // every render rather than read from any stored history.
-  let points = $derived.by(() => {
+  function samplePoints(sampler: (d: number) => number): number[] {
     const start = Math.max(0, distance - (WINDOW - 1));
     const values: number[] = [];
-    for (let d = start; d <= distance; d++) values.push(getSignalAt(d));
+    for (let d = start; d <= distance; d++) values.push(sampler(d));
     return values;
-  });
+  }
 
-  let linePoints = $derived.by(() => {
-    const n = points.length;
+  function toLine(values: number[]): string {
+    const n = values.length;
     if (n === 0) return '';
-    return points
+    return values
       .map((v, i) => {
         const x = n === 1 ? VIEW_W : (i / (n - 1)) * VIEW_W;
         const y = PAD_Y + (1 - v) * (VIEW_H - PAD_Y * 2);
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       })
       .join(' ');
-  });
+  }
+
+  let points = $derived(samplePoints(getSignalAt));
+  let difficultyPoints = $derived(samplePoints(getDifficultyAt));
+
+  let linePoints = $derived(toLine(points));
+  let difficultyLinePoints = $derived(toLine(difficultyPoints));
 
   let current = $derived(points.at(-1) ?? 0);
   let currentY = $derived(PAD_Y + (1 - current) * (VIEW_H - PAD_Y * 2));
+
+  let currentDifficulty = $derived(difficultyPoints.at(-1) ?? 0);
+  let currentDifficultyY = $derived(PAD_Y + (1 - currentDifficulty) * (VIEW_H - PAD_Y * 2));
 </script>
 
 <div class="signal-trace">
   <svg viewBox="0 0 {VIEW_W} {VIEW_H}" preserveAspectRatio="none" class="chart">
     <line x1="0" y1={VIEW_H / 2} x2={VIEW_W} y2={VIEW_H / 2} class="baseline" />
+    <polyline points={difficultyLinePoints} class="line difficulty" />
     <polyline points={linePoints} class="line" />
+    <circle cx={VIEW_W} cy={currentDifficultyY} r="4" class="end-dot difficulty" />
     <circle cx={VIEW_W} cy={currentY} r="4" class="end-dot" />
   </svg>
 </div>
@@ -63,9 +74,15 @@
     stroke-linejoin: round;
     stroke-linecap: round;
   }
+  .line.difficulty {
+    stroke: var(--wax);
+  }
   .end-dot {
     fill: var(--accent);
     stroke: var(--page);
     stroke-width: 2;
+  }
+  .end-dot.difficulty {
+    fill: var(--wax);
   }
 </style>
