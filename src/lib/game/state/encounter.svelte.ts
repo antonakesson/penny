@@ -8,11 +8,20 @@ import {
 import { pickEncounter } from '../data/zones';
 import { getCurrentZoneId } from './zone.svelte';
 import { isDiscovered } from './bestiary.svelte';
+import { getBestiaryEntry } from '../data/bestiary';
 import { NAIVE_SCALE_PER_LEVEL, INVESTIGATE } from '../config';
 import { assertNever } from '../util/assertNever';
 import type { Encounter, Monster, Investigation, RabbidSquirrel } from '../types';
 
 let nextInstanceId = 1;
+
+// Only bestiary-listed encounters get discovery-tracked at all - a one-shot
+// event or unfinished placeholder with no BestiaryEntry has nothing to
+// "discover", so it never gets the reveal treatment.
+function isNewDiscoveryFor(name: string): boolean {
+  const entry = getBestiaryEntry(name);
+  return entry !== undefined && !isDiscovered(entry.entryNo);
+}
 
 // Naive step-1 scaling: flat per-level multiplier is a placeholder - see
 // NAIVE_SCALE_PER_LEVEL, replaced by a real curve in step 2.
@@ -26,14 +35,13 @@ function createMonster(id: EncounterId, def: MonsterDef, level: number): Monster
     name: def.name,
     action: 'attack',
     level,
-    entryNo: def.entryNo,
     hp: maxHp,
     maxHp,
     xpReward,
     dropTableId: def.dropTableId,
     status: 'active',
     diedAt: null,
-    isNewDiscovery: !isDiscovered(def.entryNo),
+    isNewDiscovery: isNewDiscoveryFor(def.name),
   };
 }
 
@@ -48,14 +56,13 @@ function createInvestigation(id: EncounterId, def: InvestigationDef): Investigat
     id,
     name: def.name,
     action: 'investigate',
-    entryNo: def.entryNo,
     hp: maxHp,
     maxHp,
     xpReward: def.xpReward,
     dropTableId: def.dropTableId,
     status: 'active',
     diedAt: null,
-    isNewDiscovery: !isDiscovered(def.entryNo),
+    isNewDiscovery: isNewDiscoveryFor(def.name),
   };
 }
 
@@ -66,10 +73,9 @@ function createRabbidSquirrel(id: EncounterId, def: RabbidSquirrelDef, level: nu
     name: def.name,
     action: 'rabbidSquirrel',
     level,
-    entryNo: def.entryNo,
     status: 'active',
     diedAt: null,
-    isNewDiscovery: !isDiscovered(def.entryNo),
+    isNewDiscovery: isNewDiscoveryFor(def.name),
   };
 }
 

@@ -8,6 +8,7 @@ import { getAction, setActionActive, setActionCooldown, setActionIdle } from './
 import { awardXp, getLevel } from './state/xp.svelte';
 import { addItem, removeItem } from './state/inventory.svelte';
 import { discoverMonster } from './state/bestiary.svelte';
+import { getBestiaryEntry } from './data/bestiary';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
 import { spawnXpFloatingText } from './state/xpFloatingText.svelte';
 import { resolveDropIds, ITEMS, type ItemId, type ItemDef } from './data/loot';
@@ -185,8 +186,11 @@ export function tick() {
   // Discovery is logged as soon as the monster is on screen, not on kill —
   // a no-op past the first tick it's seen, since discoverMonster just sets
   // a bit. Gated on the Bestiary unlock itself: there's no journal to log
-  // into before that, so nothing should get marked seen ahead of it.
-  if (isFeatureUnlocked('bestiary')) discoverMonster(encounter.entryNo);
+  // into before that, so nothing should get marked seen ahead of it. Only
+  // bestiary-listed encounters have anything to log — one-shot events and
+  // placeholders just aren't species in the pokedex.
+  const bestiaryEntry = getBestiaryEntry(encounter.name);
+  if (bestiaryEntry && isFeatureUnlocked('bestiary')) discoverMonster(bestiaryEntry.entryNo);
 
   if (encounter.status === 'dead' && encounter.diedAt !== null && now - encounter.diedAt >= ENCOUNTER_END_MS) {
     // Reset the shared mutex before the next encounter's kind takes over -

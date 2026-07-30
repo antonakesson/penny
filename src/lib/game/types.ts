@@ -4,7 +4,6 @@ interface EncounterBase {
   instanceId: number; // UI-transition key only (hp-fill transition reset) — not meaningful data
   id: string;
   name: string;
-  entryNo: number;
   status: 'active' | 'dead';
   diedAt: number | null;
   // Snapshot at spawn time, not derived live from bestiary state — the

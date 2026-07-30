@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { isDiscoveryVisible } from '../game/game';
+  import { getBestiaryEntry } from '../game/data/bestiary';
   import {
     ENCOUNTERS,
     type EncounterId,
@@ -12,13 +13,17 @@
 
   let { monster, children }: { monster: Encounter; children: Snippet } = $props();
 
-  let visible = $derived(isDiscoveryVisible(monster.isNewDiscovery));
-  let entryLabel = $derived(`Entry No. ${String(monster.entryNo).padStart(3, '0')}`);
+  // Only bestiary-listed encounters get an entry-no chip - a one-shot event
+  // or unfinished placeholder has no BestiaryEntry to number it with.
+  let entryNo = $derived(getBestiaryEntry(monster.name)?.entryNo);
+  let visible = $derived(entryNo !== undefined && isDiscoveryVisible(monster.isNewDiscovery));
+  let entryLabel = $derived(`Entry No. ${String(entryNo).padStart(3, '0')}`);
 
-  // Investigation kinds walk through a beats array as progress advances
-  // instead of showing one static blurb for the whole hold - see
-  // InvestigationDef.descriptions. Every other kind just shows its one
-  // description, as before.
+  // The encounter's own flavor text - shown every time it's live, not
+  // gated on Bestiary discovery (that's a separate, sparser note the
+  // Bestiary keeps for itself - see data/bestiary.ts). Investigation kinds
+  // walk through a beats array as progress advances instead of showing one
+  // static blurb for the whole hold - see InvestigationDef.descriptions.
   let description = $derived.by(() => {
     if (monster.action === 'investigate') {
       const beats = (ENCOUNTERS[monster.id as EncounterId] as InvestigationDef).descriptions;
@@ -35,7 +40,7 @@
   <p class="entry-no">{entryLabel}</p>
 {/if}
 {@render children()}
-{#if visible && description}
+{#if description}
   {#key description}
     <p class="description">{description}</p>
   {/key}

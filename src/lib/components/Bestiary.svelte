@@ -1,18 +1,13 @@
 <script lang="ts">
-  import { ENCOUNTERS, type EncounterDef } from '../game/data/encounters';
+  import { BESTIARY_ENTRIES, type BestiaryEntry } from '../game/data/bestiary';
   import { isMonsterDiscovered, getMaxDiscoveredEntryNo } from '../game/game';
 
-  // Investigation kinds don't have one static description - they walk
-  // through descriptions[] live as progress advances (see Discovery.svelte).
-  // Browsed after the fact here, so the full run of beats reads as one
-  // recap paragraph instead of picking just one.
-  function descriptionFor(def: EncounterDef): string | undefined {
-    return def.kind === 'investigation' ? def.descriptions?.join(' ') : def.description;
-  }
-
-  const nameByEntryNo = Object.fromEntries(Object.values(ENCOUNTERS).map((m) => [m.entryNo, m.name]));
-  const descriptionByEntryNo = Object.fromEntries(
-    Object.values(ENCOUNTERS).map((m) => [m.entryNo, descriptionFor(m as EncounterDef)])
+  // Widen each entry to BestiaryEntry explicitly - as-const'd for the
+  // compile-time bestiary check (see data/bestiary.ts), so an entry that
+  // never wrote `note` doesn't have the property at all in its own literal
+  // type, only in the shared interface.
+  const entryByNo: Record<number, BestiaryEntry> = Object.fromEntries(
+    BESTIARY_ENTRIES.map((entry): [number, BestiaryEntry] => [entry.entryNo, entry])
   );
 
   let maxEntryNo = $derived(getMaxDiscoveredEntryNo());
@@ -20,14 +15,15 @@
     Array.from({ length: maxEntryNo }, (_, i) => {
       const entryNo = i + 1;
       const discovered = isMonsterDiscovered(entryNo);
+      const entry = entryByNo[entryNo];
       return {
         entryNo,
-        name: discovered ? nameByEntryNo[entryNo] : null,
-        // Bestiary is browsed voluntarily, not shoved into every kill - the
-        // one venue where a monster's lore note can repeat without wearing
-        // out its welcome. See Monster.svelte's live encounter panel for
-        // the other venue (always-visible, reserved for one-shot reveals).
-        description: discovered ? descriptionByEntryNo[entryNo] : undefined,
+        name: discovered ? entry?.name : null,
+        // The Bestiary's own aside, separate from the encounter's own
+        // flavor text (which lives on the encounter card itself now, every
+        // time it's live - see Discovery.svelte). Sparse on purpose: most
+        // entries don't earn one.
+        note: discovered ? entry?.note : undefined,
       };
     })
   );
@@ -45,8 +41,8 @@
             <span class="entry-name">{row.name}</span>
           {/if}
         </div>
-        {#if row.description}
-          <p class="entry-description">{row.description}</p>
+        {#if row.note}
+          <p class="entry-note">{row.note}</p>
         {/if}
       </li>
     {/each}
@@ -88,7 +84,7 @@
     text-transform: uppercase;
     letter-spacing: 0.02em;
   }
-  .entry-description {
+  .entry-note {
     font-family: var(--font-body);
     font-style: italic;
     color: var(--ink-faint);

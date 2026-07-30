@@ -9,7 +9,6 @@ export interface MonsterDef {
   kind: 'monster';
   name: string;
   level: number;
-  entryNo: number;
   maxHp: number;
   xpReward: number;
   dropTableId: readonly string[];
@@ -19,7 +18,6 @@ export interface MonsterDef {
 export interface InvestigationDef {
   kind: 'investigation';
   name: string;
-  entryNo: number;
   durationMs: number; // authored honestly, not a guessed maxHp
   xpReward: number;
   dropTableId: readonly string[];
@@ -35,7 +33,6 @@ export interface InvestigationDef {
 export interface RabbidSquirrelDef {
   kind: 'rabbidSquirrel';
   name: string;
-  entryNo: number;
   level: number;
   description?: string;
 }
@@ -47,20 +44,14 @@ export const ENCOUNTERS = {
     kind: 'monster',
     name: 'Boar',
     level: 1,
-    entryNo: 1,
     maxHp: 5,
     xpReward: 2,
     dropTableId: ['boarDrops'],
-    // Not narration — this is someone else's caption, found under the one
-    // finished sketch in the camp's sketchbook (see hastilyAbandonedCamp).
-    // About his art, not the boar.
-    description: '"Stood very still for eleven minutes to get the shading right on the near foreleg. Worth it."',
   },
   honeybee: {
     kind: 'monster',
     name: 'Honeybee',
     level: 1,
-    entryNo: 2,
     maxHp: 2,
     xpReward: 8,
     dropTableId: ['honeybeeDrops'],
@@ -69,7 +60,6 @@ export const ENCOUNTERS = {
     kind: 'monster',
     name: 'Badger',
     level: 1,
-    entryNo: 3,
     maxHp: 3,
     xpReward: 1,
     dropTableId: ['badgerDrops'],
@@ -77,7 +67,6 @@ export const ENCOUNTERS = {
   thornyShrubbery: {
     kind: 'investigation',
     name: 'Thorny Shrubbery',
-    entryNo: 4,
     durationMs: 2_000, // was maxHp: 8 at dps 4
     xpReward: 3,
     dropTableId: ['shrubberyDrops'],
@@ -86,26 +75,24 @@ export const ENCOUNTERS = {
     kind: 'monster',
     name: 'Fish',
     level: 1,
-    entryNo: 5,
     maxHp: 3,
     xpReward: 5,
     dropTableId: ['fishDrops'],
     description: 'Not the first of its kind to try to walk on land. The others, notably, did not go back.',
   },
 
-  watersnake: { kind: 'monster', name: 'Watersnake', level: 2, entryNo: 6, maxHp: 4, xpReward: 2, dropTableId: [] },
-  fox: { kind: 'monster', name: 'Fox', level: 2, entryNo: 7, maxHp: 5, xpReward: 2, dropTableId: [] },
+  watersnake: { kind: 'monster', name: 'Watersnake', level: 2, maxHp: 4, xpReward: 2, dropTableId: [] },
+  fox: { kind: 'monster', name: 'Fox', level: 2, maxHp: 5, xpReward: 2, dropTableId: [] },
   // xpReward was 4 (ratio 0.33) - worse than every commoner monster in the
   // pool despite being the third-rarest by weight. Bumped to fit "rarer is
   // a treat" between Blueberry (rarer, ratio 1.0) and Feral Goat/Fox
   // (commoner, ratio 0.4).
-  moose: { kind: 'monster', name: 'Moose', level: 2, entryNo: 8, maxHp: 12, xpReward: 8, dropTableId: [] },
-  blueberry: { kind: 'monster', name: 'Blueberry', level: 2, entryNo: 9, maxHp: 6, xpReward: 6, dropTableId: [] },
+  moose: { kind: 'monster', name: 'Moose', level: 2, maxHp: 12, xpReward: 8, dropTableId: [] },
+  blueberry: { kind: 'monster', name: 'Blueberry', level: 2, maxHp: 6, xpReward: 6, dropTableId: [] },
   duckJustADuck: {
     kind: 'monster',
     name: 'Duck. Just a Duck.',
     level: 2,
-    entryNo: 10,
     maxHp: 2,
     xpReward: 1,
     dropTableId: [],
@@ -114,18 +101,16 @@ export const ENCOUNTERS = {
     kind: 'monster',
     name: 'Deceptive Mound (Looking Solid But Was Actually Wet Feet)',
     level: 2,
-    entryNo: 11,
     maxHp: 3,
     xpReward: 7,
     dropTableId: [],
   },
-  feralGoat: { kind: 'monster', name: 'Feral Goat', level: 2, entryNo: 12, maxHp: 5, xpReward: 2, dropTableId: [] },
-  ruffian: { kind: 'monster', name: 'Ruffian', level: 2, entryNo: 13, maxHp: 10, xpReward: 4, dropTableId: [] },
+  feralGoat: { kind: 'monster', name: 'Feral Goat', level: 2, maxHp: 5, xpReward: 2, dropTableId: [] },
+  ruffian: { kind: 'monster', name: 'Ruffian', level: 2, maxHp: 10, xpReward: 4, dropTableId: [] },
   suspiciouslyOrganizedRatKing: {
     kind: 'monster',
     name: 'Suspiciously Organized Rat King',
     level: 2,
-    entryNo: 14,
     maxHp: 14,
     xpReward: 9,
     dropTableId: [],
@@ -134,17 +119,15 @@ export const ENCOUNTERS = {
     kind: 'monster',
     name: 'Guy Who Definitely Owns This Now',
     level: 2,
-    entryNo: 15,
     maxHp: 6,
     xpReward: 3,
     dropTableId: [],
   },
-  theAuditor: { kind: 'monster', name: 'The Auditor', level: 2, entryNo: 16, maxHp: 9, xpReward: 9, dropTableId: [] },
+  theAuditor: { kind: 'monster', name: 'The Auditor', level: 2, maxHp: 9, xpReward: 9, dropTableId: [] },
 
   hastilyAbandonedCamp: {
     kind: 'investigation',
     name: 'Hastily Abandoned Camp',
-    entryNo: 17,
     durationMs: 75_000,
     xpReward: 100,
     dropTableId: ['hastilyAbandonedCampDrops'],
@@ -161,7 +144,6 @@ export const ENCOUNTERS = {
   rabbidSquirrel: {
     kind: 'rabbidSquirrel',
     name: 'Rabid Squirrel',
-    entryNo: 18,
     level: 1,
   },
 } as const satisfies Record<string, EncounterDef>;
