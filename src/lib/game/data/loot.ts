@@ -11,6 +11,12 @@ export const ITEMS = {
   badgerClaw: { name: 'Badger Claw', rarity: 'common' },
   eye: { name: 'Eye', rarity: 'common' },
   unidentifiedHair: { name: 'Unidentified Hair', rarity: 'common' },
+  fishScale: { name: 'Fish Scale', rarity: 'common' },
+  rustyHook: {
+    name: 'Rusty Hook',
+    rarity: 'common',
+    flavor: 'Never caught anything. Possibly not for lack of trying.',
+  },
   knottedTwineRing: {
     name: 'Knotted Twine Ring',
     rarity: 'uncommon',
@@ -63,6 +69,7 @@ const TREASURE: Record<string, DropPool> = {
   honeybeeDrops: { nothing: 9, honeycomb: 6, misc: 2, noobTreasure: 1 },
   badgerDrops: { nothing: 15, badgerClaw: 6, chicken: 6, misc: 2, noobTreasure: 1 },
   shrubberyDrops: { nothing: 15, thorn: 6, twig: 6, misc: 2, noobTreasure: 1 },
+  fishDrops: { nothing: 15, fishScale: 4, chicken: 6, misc: 2, noobTreasure: 1, rustyHook: 1 },
   // No 'nothing' entry — the camp is a guaranteed find, not a roll. Sole
   // source of wormEatenJournal; it used to also trickle out of noobTreasure,
   // pulled once the camp existed so the Bestiary unlock reads as "you found

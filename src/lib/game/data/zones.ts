@@ -34,9 +34,12 @@ export const ZONES = {
     },
     // Ordered low-to-high signal: cumulative weight position is what maps
     // a roll to a habitat band (see pickEncounter below), so array order is
-    // load-bearing, not incidental. Thorny Shrubbery holds the wet valley
-    // floor below Boar's foraging ground; Honeybee stays the narrow
-    // boar/badger transition marker; Badger holds the high ground.
+    // load-bearing, not incidental. Thorny Shrubbery and Fish share the wet
+    // valley floor - the path runs alongside a lake there - below Boar's
+    // foraging ground; Honeybee stays the narrow boar/badger transition
+    // marker; Badger holds the high ground. Fish's weight of 2 is carved
+    // out of Thorny Shrubbery's (was 8, now 6), not added on top, so the
+    // wet-end band's total width is unchanged.
     // hastilyAbandonedCamp is NOT here — one-shot discoveries don't belong
     // in a continuously-resampled terrain table (a threshold generous
     // enough to hit reliably is also generous enough to repeat several
@@ -44,7 +47,8 @@ export const ZONES = {
     // crossing it once). It's a hardcoded trigger in state/events.svelte.ts
     // instead.
     monsters: [
-      { id: 'thornyShrubbery', weight: 8 },
+      { id: 'thornyShrubbery', weight: 6 },
+      { id: 'fish', weight: 2 },
       { id: 'boar', weight: 10 },
       { id: 'honeybee', weight: 1 },
       { id: 'badger', weight: 15 },

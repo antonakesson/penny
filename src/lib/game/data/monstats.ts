@@ -49,6 +49,15 @@ export const MONSTERS = {
     dropTableId: ['shrubberyDrops'],
     action: 'investigate',
   },
+  fish: {
+    name: 'Fish',
+    level: 1,
+    entryNo: 17,
+    maxHp: 3,
+    xpReward: 5,
+    dropTableId: ['fishDrops'],
+    description: 'Not the first of its kind to try to walk on land. The others, notably, did not go back.',
+  },
 
   watersnake: { name: 'Watersnake', level: 2, entryNo: 5, maxHp: 4, xpReward: 2, dropTableId: [] },
   fox: { name: 'Fox', level: 2, entryNo: 6, maxHp: 5, xpReward: 2, dropTableId: [] },
