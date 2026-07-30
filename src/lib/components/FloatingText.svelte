@@ -6,6 +6,9 @@
 
 <div class="floating-text-layer">
   {#each texts as t (t.id)}
+    <!-- String-interpolated class, not class: - variant is FloatingTextEntry's
+    own closed enum, not a boolean toggle, so this reads as one class lookup
+    instead of one class: directive per variant. -->
     <span
       class="floating-text floating-text-{t.variant}"
       style="left: calc(50% + {t.offset}px); {t.rarity ? `color: var(--rarity-${t.rarity})` : ''}"

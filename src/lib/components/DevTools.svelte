@@ -28,7 +28,7 @@
   <section>
     <p class="section-label">Spawn</p>
     <div class="row">
-      <select bind:value={selectedMonster}>
+      <select bind:value={selectedMonster} aria-label="Encounter to spawn">
         {#each monsterIds as id (id)}
           <option value={id}>{ENCOUNTERS[id].name}</option>
         {/each}
@@ -40,12 +40,12 @@
   <section>
     <p class="section-label">Inventory</p>
     <div class="row">
-      <select bind:value={selectedItem}>
+      <select bind:value={selectedItem} aria-label="Item to add">
         {#each itemIds as id (id)}
           <option value={id}>{ITEMS[id].name}</option>
         {/each}
       </select>
-      <input type="number" min="1" bind:value={itemQty} />
+      <input type="number" min="1" bind:value={itemQty} aria-label="Quantity" />
       <button onclick={() => devToolsAddItem(selectedItem, itemQty)}>Add item</button>
     </div>
   </section>
@@ -53,7 +53,7 @@
   <section>
     <p class="section-label">XP</p>
     <div class="row">
-      <input type="number" min="0" bind:value={xpAmount} />
+      <input type="number" min="0" bind:value={xpAmount} aria-label="XP amount" />
       <button onclick={() => devToolsAwardXp(xpAmount)}>Award XP</button>
     </div>
   </section>
@@ -61,11 +61,11 @@
   <section>
     <p class="section-label">Map</p>
     <div class="row">
-      <input type="number" min="0" bind:value={distanceInput} />
+      <input type="number" min="0" bind:value={distanceInput} aria-label="Distance" />
       <button onclick={() => devToolsSetDistance(distanceInput)}>Set distance</button>
     </div>
     <div class="row">
-      <input class="seed-input" type="text" bind:value={seedInput} />
+      <input class="seed-input" type="text" bind:value={seedInput} aria-label="Seed" />
       <button onclick={() => devToolsSetSeed(seedInput)}>Set seed</button>
     </div>
   </section>
@@ -85,13 +85,6 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-  }
-  .section-label {
-    font: 600 11px/1 var(--font-ui);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin: 0 0 10px;
   }
   .row {
     display: flex;

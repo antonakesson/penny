@@ -1,5 +1,6 @@
 <script lang="ts">
   import { getAction } from '../game/game';
+  import Meter from './Meter.svelte';
 
   let action = $derived(getAction());
   let holding = $derived(action.kind === 'investigate' && action.status === 'active');
@@ -7,13 +8,14 @@
 </script>
 
 <div class="investigation-meter">
-  <p class="label">
-    <span>{label}</span>
-    <span class="hint">Hold to search</span>
-  </p>
-  <div class="bar">
-    <div class="fill" class:holding></div>
-  </div>
+  <Meter {label}>
+    {#snippet secondary()}
+      <span class="hint">Hold to search</span>
+    {/snippet}
+    {#snippet fill()}
+      <div class="fill" class:holding></div>
+    {/snippet}
+  </Meter>
 </div>
 
 <style>
@@ -21,28 +23,11 @@
     max-width: 340px;
     margin-bottom: 20px;
   }
-  .label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font: 600 12px/1 var(--font-ui);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin: 0 0 8px;
-  }
   .hint {
     font-weight: 400;
     text-transform: none;
     letter-spacing: normal;
     opacity: 0.7;
-  }
-  .bar {
-    height: 7px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    background: var(--page-sunken);
-    overflow: hidden;
   }
   .fill {
     height: 40%;

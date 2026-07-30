@@ -73,13 +73,6 @@
   .fill {
     flex: 1 1 auto;
   }
-  .section-label {
-    font: 600 11px/1 var(--font-ui);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin: 0 0 10px;
-  }
   .row {
     display: flex;
     gap: 8px;

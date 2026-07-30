@@ -1,6 +1,7 @@
 <script lang="ts">
   import { getAction } from '../game/game';
   import { ACTION } from '../game/config';
+  import Meter from './Meter.svelte';
 
   let now = $state(Date.now());
 
@@ -31,13 +32,14 @@
 </script>
 
 <div class="attack-meter">
-  <p class="label">
-    <span>{label}</span>
-    {#if phase !== 'idle'}<span class="timer">{(remainingMs / 1000).toFixed(1)}s</span>{/if}
-  </p>
-  <div class="bar">
-    <div class="fill" class:cooldown={phase === 'cooldown'} style="width: {pct}%"></div>
-  </div>
+  <Meter {label}>
+    {#snippet secondary()}
+      {#if phase !== 'idle'}<span class="timer">{(remainingMs / 1000).toFixed(1)}s</span>{/if}
+    {/snippet}
+    {#snippet fill()}
+      <div class="fill" class:cooldown={phase === 'cooldown'} style="width: {pct}%"></div>
+    {/snippet}
+  </Meter>
 </div>
 
 <style>
@@ -45,25 +47,8 @@
     max-width: 340px;
     margin-bottom: 20px;
   }
-  .label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font: 600 12px/1 var(--font-ui);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin: 0 0 8px;
-  }
   .timer {
     font-variant-numeric: tabular-nums;
-  }
-  .bar {
-    height: 7px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    background: var(--page-sunken);
-    overflow: hidden;
   }
   .fill {
     height: 100%;
