@@ -1,24 +1,17 @@
 <script lang="ts">
   import { getEncounter } from '../game/game';
-  import { MONSTERS, type MonsterId, type MonsterDef } from '../game/data/monstats';
+  import Discovery from './Discovery.svelte';
 
   let monster = $derived(getEncounter());
-  let entryLabel = $derived(`Entry No. ${String(monster.entryNo).padStart(3, '0')}`);
   let pct = $derived(Math.round((monster.hp / monster.maxHp) * 100));
-  let description = $derived((MONSTERS[monster.id as MonsterId] as MonsterDef).description);
 </script>
 
 <section class="encounter" class:done={monster.status === 'dead'}>
-  {#if monster.isNewDiscovery}
-    <p class="entry-no">{entryLabel}</p>
-  {/if}
   <div class="header">
     <h3 class="name">{monster.name}</h3>
     <span class="level">Lv. {monster.level}</span>
   </div>
-  {#if monster.isNewDiscovery && description}
-    <p class="description">{description}</p>
-  {/if}
+  <Discovery {monster} />
   <div class="hp-row">
     <div class="hp-bar">
       {#key monster.instanceId}
@@ -38,15 +31,6 @@
   }
   .encounter.done {
     opacity: 0.4;
-  }
-  .entry-no {
-    font: 600 11px/1 var(--font-ui);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent-text);
-    margin: 0 0 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
   }
   .header {
     display: flex;
@@ -68,12 +52,6 @@
     text-transform: uppercase;
     color: var(--ink-faint);
     white-space: nowrap;
-  }
-  .description {
-    font-family: var(--font-body);
-    font-style: italic;
-    color: var(--ink-faint);
-    margin: 0 0 12px;
   }
   .hp-row {
     position: relative;

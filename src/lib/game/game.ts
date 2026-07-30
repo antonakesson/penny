@@ -93,6 +93,13 @@ export function isFeatureUnlocked(id: FeatureId) {
   return isFeatureUnlockedState(id);
 }
 
+// Combines encounter state (is this the monster's first-ever encounter)
+// with feature-unlock state (has the player unlocked the Bestiary yet) -
+// the discovery reveal must never show ahead of the unlock itself.
+export function isDiscoveryVisible(isNewDiscovery: boolean) {
+  return isNewDiscovery && isFeatureUnlockedState('bestiary');
+}
+
 export function getPendingFeatureAnnouncement() {
   const id = getPendingAnnouncementState();
   return id ? { id, ...FEATURES[id] } : null;
