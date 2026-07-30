@@ -12,7 +12,7 @@ import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
 import { spawnXpFloatingText } from './state/xpFloatingText.svelte';
 import { resolveDropIds, ITEMS, type ItemId, type ItemDef } from './data/loot';
 import { ITEM_ACTIONS, type ItemActionId } from './data/itemActions';
-import { unlockFeature } from './state/features.svelte';
+import { unlockFeature, isFeatureUnlocked } from './state/features.svelte';
 import { startSpawnFreeze, consumeSpawnFreeze } from './state/spawnFreeze.svelte';
 import { assertNever } from './util/assertNever';
 import { playSound } from './audio';
@@ -173,8 +173,9 @@ export function tick() {
   const now = Date.now();
   // Discovery is logged as soon as the monster is on screen, not on kill —
   // a no-op past the first tick it's seen, since discoverMonster just sets
-  // a bit.
-  discoverMonster(monster.entryNo);
+  // a bit. Gated on the Bestiary unlock itself: there's no journal to log
+  // into before that, so nothing should get marked seen ahead of it.
+  if (isFeatureUnlocked('bestiary')) discoverMonster(monster.entryNo);
 
   if (monster.status === 'dead' && monster.diedAt !== null && now - monster.diedAt >= ENCOUNTER_END_MS) {
     // Reset the shared mutex before the next encounter's kind takes over -

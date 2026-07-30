@@ -1,9 +1,10 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
   import { isDiscoveryVisible } from '../game/game';
   import { MONSTERS, type MonsterId, type MonsterDef } from '../game/data/monstats';
   import type { Monster } from '../game/types';
 
-  let { monster }: { monster: Monster } = $props();
+  let { monster, children }: { monster: Monster; children: Snippet } = $props();
 
   let visible = $derived(isDiscoveryVisible(monster.isNewDiscovery));
   let entryLabel = $derived(`Entry No. ${String(monster.entryNo).padStart(3, '0')}`);
@@ -13,6 +14,7 @@
 {#if visible}
   <p class="entry-no">{entryLabel}</p>
 {/if}
+{@render children()}
 {#if visible && description}
   <p class="description">{description}</p>
 {/if}

@@ -7,11 +7,12 @@
 </script>
 
 <section class="encounter" class:done={monster.status === 'dead'}>
-  <div class="header">
-    <h3 class="name">{monster.name}</h3>
-    <span class="level">Lv. {monster.level}</span>
-  </div>
-  <Discovery {monster} />
+  <Discovery {monster}>
+    <div class="header">
+      <h3 class="name">{monster.name}</h3>
+      <span class="level">Lv. {monster.level}</span>
+    </div>
+  </Discovery>
   <div class="hp-row">
     <div class="hp-bar">
       {#key monster.instanceId}
