@@ -28,6 +28,10 @@ export function devSetDistance(distance: number) {
   hydrateMap({ seed: getSeed(), distance });
 }
 
+export function devSetSeed(seed: string) {
+  hydrateMap({ seed, distance: getDistance() });
+}
+
 export function devStartSpawnFreeze(kills: number) {
   startSpawnFreeze(kills);
 }
@@ -48,6 +52,7 @@ if (import.meta.env.DEV) {
     addItem: devAddItem,
     awardXp: devAwardXp,
     setDistance: devSetDistance,
+    setSeed: devSetSeed,
     setSpawnFreeze: devStartSpawnFreeze,
     state: devDumpState,
   };

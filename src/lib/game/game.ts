@@ -36,6 +36,7 @@ import {
   devAddItem,
   devAwardXp,
   devSetDistance,
+  devSetSeed,
   devStartSpawnFreeze,
   devDumpState,
 } from './devtools';
@@ -167,6 +168,10 @@ export function devToolsAwardXp(amount: number) {
 
 export function devToolsSetDistance(distance: number) {
   devSetDistance(distance);
+}
+
+export function devToolsSetSeed(seed: string) {
+  devSetSeed(seed);
 }
 
 export function devToolsStartSpawnFreeze(kills: number) {

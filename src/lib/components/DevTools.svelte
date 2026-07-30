@@ -5,7 +5,9 @@
     devToolsAwardXp,
     devToolsSetDistance,
     devToolsStartSpawnFreeze,
+    devToolsSetSeed,
     getDistance,
+    getSeed,
   } from '../game/game';
   import { MONSTERS, type MonsterId } from '../game/data/monstats';
   import { ITEMS, type ItemId } from '../game/data/loot';
@@ -19,6 +21,7 @@
   let itemQty = $state(1);
   let xpAmount = $state(100);
   let distanceInput = $state(getDistance());
+  let seedInput = $state(getSeed());
 </script>
 
 <div class="devtools">
@@ -61,6 +64,10 @@
       <input type="number" min="0" bind:value={distanceInput} />
       <button onclick={() => devToolsSetDistance(distanceInput)}>Set distance</button>
     </div>
+    <div class="row">
+      <input class="seed-input" type="text" bind:value={seedInput} />
+      <button onclick={() => devToolsSetSeed(seedInput)}>Set seed</button>
+    </div>
   </section>
 
   <section>
@@ -89,6 +96,14 @@
   .row {
     display: flex;
     gap: 8px;
+  }
+  .row + .row {
+    margin-top: 8px;
+  }
+  .seed-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--font-mono);
   }
   select,
   input,
