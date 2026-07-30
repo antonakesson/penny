@@ -6,7 +6,12 @@ import { isDiscovered as isDiscoveredState, getMaxDiscoveredEntryNo as getMaxDis
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getXpFloatingTexts as getXpFloatingTextsState } from './state/xpFloatingText.svelte';
 import { getCurrentZoneId } from './state/zone.svelte';
-import { getSeed as getSeedState, getDistance as getDistanceState } from './state/map.svelte';
+import {
+  getSeed as getSeedState,
+  getDistance as getDistanceState,
+  getSignalAt as getSignalAtState,
+  getDifficultyAt as getDifficultyAtState,
+} from './state/map.svelte';
 import {
   isFeatureUnlocked as isFeatureUnlockedState,
   getPendingAnnouncement as getPendingAnnouncementState,
@@ -88,6 +93,14 @@ export function getSeed() {
 
 export function getDistance() {
   return getDistanceState();
+}
+
+export function getSignalAt(distance: number) {
+  return getSignalAtState(distance);
+}
+
+export function getDifficultyAt(distance: number) {
+  return getDifficultyAtState(distance);
 }
 
 export function isFeatureUnlocked(id: FeatureId) {

@@ -5,6 +5,7 @@
 // Math.random() but callers can supply their own (e.g. zones.ts feeds it a
 // signal-biased roll instead of a uniform one).
 export function weightedPick<T>(entries: readonly (readonly [T, number])[], roll: number = Math.random()): T {
+  if (entries.length === 0) throw new Error('weightedPick: entries is empty');
   const totalWeight = entries.reduce((sum, [, weight]) => sum + weight, 0);
   let r = roll * totalWeight;
   for (const [item, weight] of entries) {

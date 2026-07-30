@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getDistance, getSignalAt, getDifficultyAt } from '../game/state/map.svelte';
+  import { getDistance, getSignalAt, getDifficultyAt } from '../game/game';
 
   const WINDOW = 30;
   const VIEW_W = 300;
