@@ -21,6 +21,7 @@ import {
   tick as tickInternal,
   useItem as useItemInternal,
   calculateDamage as calculateDamageInternal,
+  resolveRabbidSquirrelPick as resolveRabbidSquirrelPickInternal,
 } from './engine';
 import {
   loadSave,
@@ -30,7 +31,7 @@ import {
   resetSave as resetSaveInternal,
 } from './save';
 import { ZONES } from './data/zones';
-import type { MonsterId } from './data/monstats';
+import type { EncounterId } from './data/encounters';
 import {
   devSpawn,
   devAddItem,
@@ -125,6 +126,10 @@ export function useItem(itemId: ItemId) {
   useItemInternal(itemId);
 }
 
+export function resolveRabbidSquirrelPick() {
+  resolveRabbidSquirrelPickInternal();
+}
+
 export function tick() {
   tickInternal();
 }
@@ -161,7 +166,7 @@ export function setSoundEnabled(value: boolean) {
 
 // Dev-only passthroughs - DevTools.svelte is the only caller, and it's
 // itself gated by import.meta.env.DEV at its usage site.
-export function devToolsSpawn(id: MonsterId) {
+export function devToolsSpawn(id: EncounterId) {
   devSpawn(id);
 }
 

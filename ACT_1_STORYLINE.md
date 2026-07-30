@@ -35,6 +35,19 @@ Nobody's dead. Nobody's trapped. Nobody's a villain.
   had to move the village."* Total, unblinking confidence in maps that
   are quietly wrong. Never portrayed as a threat or a fool being punished
   — just an artist whose medium happens to get people lost.
+  - Two-axis characterization: genuinely talented artist (the sketches
+    are good — this is why his sketchbook can carry real illustration,
+    not a joke-bad doodle) crossed with a genuinely hopeless
+    survivalist/explorer/cartographer. The maps are beautiful *and*
+    wrong for the same underlying reason: he trusts his eye over the
+    terrain. Comedy comes from the mismatch between competence and
+    domain, not from mocking him — same "total sincerity" rule as the
+    map quotes above.
+  - Carries two separate physical artifacts, not one — see "Delivery
+    mechanisms" below: a sketchbook/proto-bestiary (found whole at the
+    camp) and a personal diary (found in pieces, scattered across all
+    three zones). Different object, different find-condition, different
+    voice register.
 - Adventurers who trusted his maps didn't die or get monster-mauled —
   they just ended up somewhere else entirely. That somewhere is a real,
   pleasant, hidden village (working name **New Fivemarsh** — they were
@@ -60,18 +73,33 @@ even accidentally — they are not the same mystery.
 ## Delivery mechanisms
 
 - **The camp** (built) — `hastilyAbandonedCamp`, one-shot event
-  (`state/events.svelte.ts`), investigate-kind. Breadcrumb that
-  introduces the journal / Jimothy hook via `wormEatenJournal`.
-- **Journal pages** (not built) — dropped from the *normal* loot pool
-  across all three zones, not gated to one event, using a new `unique`
-  flag on `ItemDef` (`loot.ts`) so each page can only ever be obtained
-  once (resolves to a whiff if already owned, per `resolveDropIds()`).
-  Pickup order is incidental — a future Journal/Codex screen displays
-  collected pages in fixed canonical (story) order regardless of the
-  order they actually dropped in, the same way a sticker album works.
-  Pure Jimothy characterization early, never touching the mystery
-  directly; later pages get closer to the edge of the reveal without
-  ever crossing it.
+  (`state/events.svelte.ts`), investigate-kind. Found item is Jimothy's
+  own sketchbook/proto-bestiary — whole, not torn, just barely started:
+  one finished page (a genuinely skillful Boar) and blank pages after
+  it, because he had to flee before filling in more. Not damage, just
+  interruption — that's the mystery hook ("why did he stop"), not a
+  ruined artifact. This is the diegetic reason the player's own Bestiary
+  exists and starts non-empty. Item is `barelyUsedSketchbook` (existing,
+  renamed from `wormEatenJournal` — "journal" now collides with the diary
+  below, and "worm-eaten" undersold what it actually is: fresh, bought for
+  this trip, one page in). No torn-out pages; the Boar page and the blanks
+  after it are both intact. Breadcrumb that introduces the Jimothy hook;
+  the diary below is the separate object
+  that actually gets torn apart.
+- **Journal pages** (not built) — Jimothy's personal diary, a *different*
+  object from the camp's sketchbook: found in pieces, dropped from the
+  *normal* loot pool across all three zones (not gated to one event),
+  using a new `unique` flag on `ItemDef` (`loot.ts`) so each page can
+  only ever be obtained once (resolves to a whiff if already owned, per
+  `resolveDropIds()`). Pickup order is incidental — a future
+  Journal/Codex screen displays collected pages in fixed canonical
+  (story) order regardless of the order they actually dropped in, the
+  same way a sticker album works. Day-numbered, first-person, misspelled
+  in character (not proofread — written by someone who thinks he's
+  fine), e.g.: *"Day 2. The chafing is unbearable. The hair is of VITAL
+  importans. Both as a cusion and for heat disipation."* Pure Jimothy
+  characterization early, never touching the mystery directly; later
+  pages get closer to the edge of the reveal without ever crossing it.
 - **Mystery-event pool** (not built) — code-driven, state-dependent
   triggers (distance/zone gated) for atmosphere beats like the
   tree-screaming hint, reusing the same `events.svelte.ts` pattern the
@@ -163,6 +191,10 @@ all (see "Not yet built" below).
 5. Exact wording of the climax event and how late/early the "Fivemarsh"
    name should be seeded in earlier journal pages (so the climax lands
    as recognition, not a cold reveal).
+6. Whether the sketchbook has a visible cover/title, and — if so — whether
+   it's the first place his name (or an oblique fragment of it) ever
+   appears in-fiction, vs. staying anonymous until a later, deliberate
+   reveal beat.
 
 ## Not yet built (technical prerequisites, tracked here for visibility)
 

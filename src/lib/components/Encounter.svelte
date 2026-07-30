@@ -1,11 +1,27 @@
 <script lang="ts">
-  import Monster from './Monster.svelte';
+  import { getEncounter } from '../game/game';
+  import MonsterCard from './MonsterCard.svelte';
+  import InvestigationCard from './InvestigationCard.svelte';
+  import RabbidSquirrelCard from './RabbidSquirrelCard.svelte';
+  import AttackMeter from './AttackMeter.svelte';
+  import InvestigationMeter from './InvestigationMeter.svelte';
   import FloatingText from './FloatingText.svelte';
+
+  let encounter = $derived(getEncounter());
 </script>
 
 <div class="encounter-slot">
-  <Monster />
-  <FloatingText />
+  {#if encounter.action === 'attack'}
+    <MonsterCard />
+    <FloatingText />
+    <AttackMeter />
+  {:else if encounter.action === 'investigate'}
+    <InvestigationCard />
+    <FloatingText />
+    <InvestigationMeter />
+  {:else}
+    <RabbidSquirrelCard />
+  {/if}
 </div>
 
 <style>

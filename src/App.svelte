@@ -2,8 +2,6 @@
   import Zone from './lib/components/Zone.svelte';
   import SignalTrace from './lib/components/SignalTrace.svelte';
   import Encounter from './lib/components/Encounter.svelte';
-  import AttackMeter from './lib/components/AttackMeter.svelte';
-  import InvestigationMeter from './lib/components/InvestigationMeter.svelte';
   import Character from './lib/components/Character.svelte';
   import Inventory from './lib/components/Inventory.svelte';
   import Bestiary from './lib/components/Bestiary.svelte';
@@ -20,7 +18,6 @@
     release,
     initGame,
     saveNow,
-    getEncounter,
     getPendingFeatureAnnouncement,
     dismissFeatureAnnouncement,
   } from './lib/game/game';
@@ -30,7 +27,6 @@
 
   let confirmRequest = $derived(getConfirmRequest());
   let featureAnnouncement = $derived(getPendingFeatureAnnouncement());
-  let encounter = $derived(getEncounter());
 
   // Runs synchronously during component init, before first render — any
   // saved state is hydrated before the player sees a frame of fresh state.
@@ -91,11 +87,6 @@
     <Zone />
     <SignalTrace />
     <Encounter />
-    {#if encounter.action === 'investigate'}
-      <InvestigationMeter />
-    {:else}
-      <AttackMeter />
-    {/if}
   </main>
   <Pane paneId="character" label="Character">
     <Character />

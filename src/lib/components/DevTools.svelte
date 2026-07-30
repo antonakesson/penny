@@ -9,14 +9,14 @@
     getDistance,
     getSeed,
   } from '../game/game';
-  import { MONSTERS, type MonsterId } from '../game/data/monstats';
+  import { ENCOUNTERS, type EncounterId } from '../game/data/encounters';
   import { ITEMS, type ItemId } from '../game/data/loot';
   import { SPAWN_FREEZE_KILLS } from '../game/config';
 
-  const monsterIds = Object.keys(MONSTERS) as MonsterId[];
+  const monsterIds = Object.keys(ENCOUNTERS) as EncounterId[];
   const itemIds = Object.keys(ITEMS) as ItemId[];
 
-  let selectedMonster = $state<MonsterId>(monsterIds[0]);
+  let selectedMonster = $state<EncounterId>(monsterIds[0]);
   let selectedItem = $state<ItemId>(itemIds[0]);
   let itemQty = $state(1);
   let xpAmount = $state(100);
@@ -30,7 +30,7 @@
     <div class="row">
       <select bind:value={selectedMonster}>
         {#each monsterIds as id (id)}
-          <option value={id}>{MONSTERS[id].name}</option>
+          <option value={id}>{ENCOUNTERS[id].name}</option>
         {/each}
       </select>
       <button onclick={() => devToolsSpawn(selectedMonster)}>Spawn</button>

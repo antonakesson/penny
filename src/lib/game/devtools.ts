@@ -3,17 +3,17 @@
 // compile-time constant Vite replaces with `false` in production builds,
 // so dead-code elimination strips this whole module's effects (including
 // the window assignment) out of the shipped bundle entirely.
-import { createMonster, spawn, getEncounter } from './state/encounter.svelte';
+import { createEncounter, spawn, getEncounter } from './state/encounter.svelte';
 import { getAction } from './state/action.svelte';
 import { addItem, getInventory } from './state/inventory.svelte';
 import { awardXp, getXp } from './state/xp.svelte';
 import { getSeed, getDistance, hydrateMap } from './state/map.svelte';
 import { startSpawnFreeze } from './state/spawnFreeze.svelte';
-import type { MonsterId } from './data/monstats';
+import type { EncounterId } from './data/encounters';
 import type { ItemId } from './data/loot';
 
-export function devSpawn(id: MonsterId) {
-  spawn(createMonster(id));
+export function devSpawn(id: EncounterId) {
+  spawn(createEncounter(id));
 }
 
 export function devAddItem(id: ItemId, qty: number) {

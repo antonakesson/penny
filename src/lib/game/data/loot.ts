@@ -34,10 +34,10 @@ export const ITEMS = {
   },
   thorn: { name: 'Thorn', rarity: 'common', flavor: 'Not worth the epidermal inconvenience.' },
   twig: { name: 'Twig', rarity: 'common', flavor: 'You really could have just walked around it.' },
-  wormEatenJournal: {
-    name: 'Worm-Eaten Journal',
+  barelyUsedSketchbook: {
+    name: 'Barely-Used Sketchbook',
     rarity: 'rare',
-    flavor: 'Waterlogged pages, but the sketches are still legible. Someone was keeping notes on everything out here.',
+    flavor: 'One boar in, and already abandoned.',
     action: 'unlockBestiary',
   },
   bottledDejaVu: {
@@ -71,10 +71,10 @@ const TREASURE: Record<string, DropPool> = {
   shrubberyDrops: { nothing: 15, thorn: 6, twig: 6, misc: 2, noobTreasure: 1 },
   fishDrops: { nothing: 15, fishScale: 4, chicken: 6, misc: 2, noobTreasure: 1, rustyHook: 1 },
   // No 'nothing' entry — the camp is a guaranteed find, not a roll. Sole
-  // source of wormEatenJournal; it used to also trickle out of noobTreasure,
-  // pulled once the camp existed so the Bestiary unlock reads as "you found
-  // the camp" rather than "you got lucky killing a boar."
-  hastilyAbandonedCampDrops: { wormEatenJournal: 1 },
+  // source of barelyUsedSketchbook; it used to also trickle out of
+  // noobTreasure, pulled once the camp existed so the Bestiary unlock reads
+  // as "you found the camp" rather than "you got lucky killing a boar."
+  hastilyAbandonedCampDrops: { barelyUsedSketchbook: 1 },
 
   // Utils
   misc: { eye: 1, unidentifiedHair: 1, knottedTwineRing: 1 },

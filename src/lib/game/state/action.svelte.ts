@@ -1,5 +1,4 @@
-import type { ActionState } from '../types';
-import type { EncounterAction } from '../data/monstats';
+import type { ActionState, ActionKind } from '../types';
 
 let action = $state<ActionState>({ kind: 'attack', status: 'idle', startedAt: null });
 
@@ -7,7 +6,7 @@ export function getAction(): ActionState {
   return action;
 }
 
-export function setActionActive(kind: EncounterAction, startedAt: number) {
+export function setActionActive(kind: ActionKind, startedAt: number) {
   action.kind = kind;
   action.status = 'active';
   action.startedAt = startedAt;

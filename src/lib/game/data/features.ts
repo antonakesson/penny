@@ -9,7 +9,7 @@ export interface FeatureDef {
 export const FEATURES = {
   bestiary: {
     title: 'Bestiary Unlocked',
-    message: "The journal isn't yours, but the empty pages are begging to be filled. You start a bestiary.",
+    message: "Not your journal. Not quite empty, either — one page in, then nothing. You start filling in the rest.",
   },
 } as const satisfies Record<string, FeatureDef>;
 

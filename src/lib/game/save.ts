@@ -12,7 +12,9 @@ import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-const SAVE_VERSION = 3;
+// v4: EncounterSnapshot became a discriminated union (Monster/Investigation/
+// RabbidSquirrel) instead of one flat shape - see ENCOUNTER_REFACTOR.md.
+const SAVE_VERSION = 4;
 
 interface SaveData {
   xp: number;
@@ -70,7 +72,9 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
   const encounter = data.encounter as Record<string, unknown> | undefined;
   return (
     encounter === undefined ||
-    (typeof encounter.id === 'string' && typeof encounter.isNewDiscovery === 'boolean')
+    (typeof encounter.id === 'string' &&
+      typeof encounter.action === 'string' &&
+      typeof encounter.isNewDiscovery === 'boolean')
   );
 }
 

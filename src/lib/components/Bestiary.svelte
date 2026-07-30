@@ -1,10 +1,18 @@
 <script lang="ts">
-  import { MONSTERS, type MonsterDef } from '../game/data/monstats';
+  import { ENCOUNTERS, type EncounterDef } from '../game/data/encounters';
   import { isMonsterDiscovered, getMaxDiscoveredEntryNo } from '../game/game';
 
-  const nameByEntryNo = Object.fromEntries(Object.values(MONSTERS).map((m) => [m.entryNo, m.name]));
+  // Investigation kinds don't have one static description - they walk
+  // through descriptions[] live as progress advances (see Discovery.svelte).
+  // Browsed after the fact here, so the full run of beats reads as one
+  // recap paragraph instead of picking just one.
+  function descriptionFor(def: EncounterDef): string | undefined {
+    return def.kind === 'investigation' ? def.descriptions?.join(' ') : def.description;
+  }
+
+  const nameByEntryNo = Object.fromEntries(Object.values(ENCOUNTERS).map((m) => [m.entryNo, m.name]));
   const descriptionByEntryNo = Object.fromEntries(
-    Object.values(MONSTERS).map((m) => [m.entryNo, (m as MonsterDef).description])
+    Object.values(ENCOUNTERS).map((m) => [m.entryNo, descriptionFor(m as EncounterDef)])
   );
 
   let maxEntryNo = $derived(getMaxDiscoveredEntryNo());

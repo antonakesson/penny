@@ -1,5 +1,5 @@
 import { ACTION, ENCOUNTER_END_MS, SPAWN_FREEZE_KILLS, INVESTIGATE } from './config';
-import { getEncounter, createMonster, damageMonster, killMonster, spawn } from './state/encounter.svelte';
+import { getEncounter, createEncounter, damageMonster, killMonster, spawn } from './state/encounter.svelte';
 import { advance } from './state/map.svelte';
 import { pickEncounter, pickLevel } from './data/zones';
 import { getCurrentZoneId } from './state/zone.svelte';
@@ -16,8 +16,8 @@ import { unlockFeature, isFeatureUnlocked } from './state/features.svelte';
 import { startSpawnFreeze, consumeSpawnFreeze } from './state/spawnFreeze.svelte';
 import { assertNever } from './util/assertNever';
 import { playSound } from './audio';
-import type { Monster } from './types';
-import type { EncounterAction, MonsterId } from './data/monstats';
+import type { Encounter, Monster, Investigation, ActionKind } from './types';
+import type { EncounterId } from './data/encounters';
 
 // Attack and investigate are mutually exclusive activities on the same
 // "self" occupant - they share one ActionState mutex (kind-tagged) rather
@@ -89,8 +89,15 @@ const investigateHandler: ActionHandler = {
   },
 };
 
-function currentHandler(): ActionHandler {
-  return getEncounter().action === 'investigate' ? investigateHandler : attackHandler;
+// null for any kind that doesn't use the ActionState mutex at all -
+// RabbidSquirrel's discrete click-to-pick, for one (see ENCOUNTER_REFACTOR.md
+// decision 1). Its card calls the resolve function directly instead of going
+// through press()/release()/tick().
+function currentHandler(): ActionHandler | null {
+  const action = getEncounter().action;
+  if (action === 'attack') return attackHandler;
+  if (action === 'investigate') return investigateHandler;
+  return null;
 }
 
 // Base damage is just the character's level for now - no equipment or
@@ -130,7 +137,7 @@ export function calculateInvestigationDamage(): number {
   return whole;
 }
 
-function damageForKind(kind: EncounterAction): number {
+function damageForKind(kind: ActionKind): number {
   switch (kind) {
     case 'attack':
       return calculateDamage();
@@ -142,7 +149,11 @@ function damageForKind(kind: EncounterAction): number {
 }
 
 function applyHit() {
-  const monster = getEncounter();
+  const encounter = getEncounter();
+  // RabbidSquirrel never reaches here - currentHandler() returns null for
+  // it, so nothing ever calls applyHit() while it's current. Narrows the
+  // rest of this function to the hp-drain kinds.
+  if (encounter.action === 'rabbidSquirrel') return;
   // A dead monster can't be hit again. Attack never hit this case because
   // resolving a swing always leaves ActionState in 'cooldown', which its
   // own tick() guard already blocks - but investigate's continuous hold
@@ -150,34 +161,34 @@ function applyHit() {
   // down, so without this check a kill mid-hold kept re-triggering
   // resolveKill() every tick until the next encounter spawned (and
   // killMonster() resetting diedAt each time kept postponing that, too).
-  if (monster.status !== 'active') return;
-  const damage = damageForKind(monster.action);
+  if (encounter.status !== 'active') return;
+  const damage = damageForKind(encounter.action);
   if (damage <= 0) return;
   spawnFloatingText(`-${damage}`, 'damage');
   damageMonster(damage);
-  if (monster.hp <= 0) resolveKill(monster);
+  if (encounter.hp <= 0) resolveKill(encounter);
 }
 
 export function press() {
-  if (currentHandler().onDown()) applyHit();
+  if (currentHandler()?.onDown()) applyHit();
 }
 
 export function release() {
-  if (currentHandler().onUp()) applyHit();
+  if (currentHandler()?.onUp()) applyHit();
 }
 
 export function tick() {
-  if (currentHandler().tick()) applyHit();
+  if (currentHandler()?.tick()) applyHit();
 
-  const monster = getEncounter();
+  const encounter = getEncounter();
   const now = Date.now();
   // Discovery is logged as soon as the monster is on screen, not on kill —
   // a no-op past the first tick it's seen, since discoverMonster just sets
   // a bit. Gated on the Bestiary unlock itself: there's no journal to log
   // into before that, so nothing should get marked seen ahead of it.
-  if (isFeatureUnlocked('bestiary')) discoverMonster(monster.entryNo);
+  if (isFeatureUnlocked('bestiary')) discoverMonster(encounter.entryNo);
 
-  if (monster.status === 'dead' && monster.diedAt !== null && now - monster.diedAt >= ENCOUNTER_END_MS) {
+  if (encounter.status === 'dead' && encounter.diedAt !== null && now - encounter.diedAt >= ENCOUNTER_END_MS) {
     // Reset the shared mutex before the next encounter's kind takes over -
     // otherwise a stale cooldown/active status can bleed across the
     // respawn boundary into a differently-kinded encounter.
@@ -187,23 +198,23 @@ export function tick() {
 }
 
 // Priority: a spawn-freeze charge held on this kill forces an exact replay
-// of the same monster (bridged from resolveKill(), captured at kill time -
-// see replayMonsterId below for why it can't be re-derived here from
+// of the same encounter (bridged from resolveKill(), captured at kill time -
+// see replayEncounterId below for why it can't be re-derived here from
 // getSpawnFreezeRemaining() alone); otherwise an eligible event takes over;
 // otherwise the normal weighted zone pick.
-function decideNextEncounter(): Monster {
-  if (replayMonsterId !== null) {
-    const id = replayMonsterId;
-    replayMonsterId = null;
+function decideNextEncounter(): Encounter {
+  if (replayEncounterId !== null) {
+    const id = replayEncounterId;
+    replayEncounterId = null;
     // Distance is held still by the same freeze, so the difficulty signal
     // resamples to the same value - re-picking here (rather than reusing a
     // stashed level) rides that determinism instead of duplicating it.
-    return createMonster(id, pickLevel(getCurrentZoneId()));
+    return createEncounter(id, pickLevel(getCurrentZoneId()));
   }
-  const eventMonsterId = shouldShowEvent();
-  if (eventMonsterId) return createMonster(eventMonsterId);
+  const eventEncounterId = shouldShowEvent();
+  if (eventEncounterId) return createEncounter(eventEncounterId);
   const zoneId = getCurrentZoneId();
-  return createMonster(pickEncounter(zoneId), pickLevel(zoneId));
+  return createEncounter(pickEncounter(zoneId), pickLevel(zoneId));
 }
 
 function awardLoot(dropTableId: readonly string[], xpReward: number) {
@@ -242,13 +253,28 @@ function applyItemAction(actionId: ItemActionId) {
 // decideNextEncounter() time, since the charge for *this* kill is already
 // consumed by then - a fresh read there would miss the last covered kill
 // in a freeze streak.
-let replayMonsterId: MonsterId | null = null;
+let replayEncounterId: EncounterId | null = null;
 
-function resolveKill(monster: Monster) {
-  awardLoot(monster.dropTableId, monster.xpReward);
-  markEventFired(monster.id);
+// Only the hp-drain kinds resolve through here - RabbidSquirrel gets its own
+// resolveRabbidSquirrelPick() below, since "loot + xp" doesn't fit what a
+// discrete choice grants.
+function resolveKill(encounter: Monster | Investigation) {
+  awardLoot(encounter.dropTableId, encounter.xpReward);
+  markEventFired(encounter.id);
   const wasFrozen = consumeSpawnFreeze();
-  replayMonsterId = wasFrozen ? (monster.id as MonsterId) : null;
+  replayEncounterId = wasFrozen ? (encounter.id as EncounterId) : null;
   killMonster();
   if (!wasFrozen) advance();
+}
+
+// Placeholder resolution - the real Recruit Pet stages (Bribe/Shoo, pet
+// grant, decline) are a follow-up; this just proves a non-hp-drain kind can
+// resolve outside the attack/investigate path at all. Triggered by
+// <RabbidSquirrelCard/>'s button, not by applyHit() - RabbidSquirrel never
+// enters that path (see currentHandler()).
+export function resolveRabbidSquirrelPick() {
+  const encounter = getEncounter();
+  if (encounter.action !== 'rabbidSquirrel' || encounter.status !== 'active') return;
+  killMonster();
+  advance();
 }

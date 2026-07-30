@@ -1,14 +1,34 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { isDiscoveryVisible } from '../game/game';
-  import { MONSTERS, type MonsterId, type MonsterDef } from '../game/data/monstats';
-  import type { Monster } from '../game/types';
+  import {
+    ENCOUNTERS,
+    type EncounterId,
+    type MonsterDef,
+    type InvestigationDef,
+    type RabbidSquirrelDef,
+  } from '../game/data/encounters';
+  import type { Encounter } from '../game/types';
 
-  let { monster, children }: { monster: Monster; children: Snippet } = $props();
+  let { monster, children }: { monster: Encounter; children: Snippet } = $props();
 
   let visible = $derived(isDiscoveryVisible(monster.isNewDiscovery));
   let entryLabel = $derived(`Entry No. ${String(monster.entryNo).padStart(3, '0')}`);
-  let description = $derived((MONSTERS[monster.id as MonsterId] as MonsterDef).description);
+
+  // Investigation kinds walk through a beats array as progress advances
+  // instead of showing one static blurb for the whole hold - see
+  // InvestigationDef.descriptions. Every other kind just shows its one
+  // description, as before.
+  let description = $derived.by(() => {
+    if (monster.action === 'investigate') {
+      const beats = (ENCOUNTERS[monster.id as EncounterId] as InvestigationDef).descriptions;
+      if (!beats || beats.length === 0) return undefined;
+      const progress = 1 - monster.hp / monster.maxHp;
+      const index = Math.min(beats.length - 1, Math.floor(progress * beats.length));
+      return beats[index];
+    }
+    return (ENCOUNTERS[monster.id as EncounterId] as MonsterDef | RabbidSquirrelDef).description;
+  });
 </script>
 
 {#if visible}
@@ -16,7 +36,9 @@
 {/if}
 {@render children()}
 {#if visible && description}
-  <p class="description">{description}</p>
+  {#key description}
+    <p class="description">{description}</p>
+  {/key}
 {/if}
 
 <style>

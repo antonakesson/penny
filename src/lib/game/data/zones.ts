@@ -1,4 +1,4 @@
-import type { MonsterId } from './monstats';
+import type { EncounterId } from './encounters';
 import { weightedPick } from '../util/weighted';
 import { getSignal, getDifficulty } from '../state/map.svelte';
 
@@ -46,18 +46,18 @@ export const ZONES = {
     // kills in a row, since signal dwells above a band edge rather than
     // crossing it once). It's a hardcoded trigger in state/events.svelte.ts
     // instead.
-    monsters: [
+    encounters: [
       { id: 'thornyShrubbery', weight: 6 },
       { id: 'fish', weight: 2 },
       { id: 'boar', weight: 10 },
       { id: 'honeybee', weight: 1 },
       { id: 'badger', weight: 15 },
-    ] as { id: MonsterId; weight: number }[],
+    ] as { id: EncounterId; weight: number }[],
   },
   // DRAFT — name/description/quote are first-pass placeholders per
   // ACT_1_STORYLINE.md ("not locked in yet"), open to a naming/voice pass.
   // Monster pool is the wetland-themed half of the 11 level-2 stubs
-  // (monstats.ts entryNo 5-15); ordered shore-to-shallows-to-drylandwards,
+  // (encounters.ts entryNo 5-15); ordered shore-to-shallows-to-drylandwards,
   // same load-bearing-order convention as zone1.
   zone2: {
     name: 'Rainbow Bog',
@@ -75,7 +75,7 @@ export const ZONES = {
       text: "You don't sink in the Bog. The Bog just gets taller around you.",
       attribution: 'Widow Pruitt, Innkeeper',
     },
-    monsters: [
+    encounters: [
       { id: 'watersnake', weight: 12 },
       { id: 'deceptiveMoundLookingSolidButWasActuallyWetFeet', weight: 4 },
       { id: 'duckJustADuck', weight: 14 },
@@ -83,7 +83,7 @@ export const ZONES = {
       { id: 'blueberry', weight: 5 },
       { id: 'feralGoat', weight: 9 },
       { id: 'fox', weight: 9 },
-    ] as { id: MonsterId; weight: number }[],
+    ] as { id: EncounterId; weight: number }[],
   },
   // DRAFT — same caveats as zone2. Bureaucracy/property-dispute theme,
   // built around the four "ownership satire" stubs already on the books
@@ -103,12 +103,12 @@ export const ZONES = {
       text: 'Possession is nine-tenths of the law. The other tenth is whoever still has the stamp.',
       attribution: 'Marginal note, unsigned ledger',
     },
-    monsters: [
+    encounters: [
       { id: 'guyWhoDefinitelyOwnsThisNow', weight: 10 },
       { id: 'ruffian', weight: 12 },
       { id: 'suspiciouslyOrganizedRatKing', weight: 3 },
       { id: 'theAuditor', weight: 2 },
-    ] as { id: MonsterId; weight: number }[],
+    ] as { id: EncounterId; weight: number }[],
   },
 } as const;
 
@@ -117,9 +117,9 @@ export type ZoneId = keyof typeof ZONES;
 // The roll is the signal itself, straight. Deterministic on purpose: the
 // same seed and distance always produce the same encounter, so the full
 // run is reproducible from a seed, not just its rough curve.
-export function pickEncounter(zoneId: ZoneId): MonsterId {
+export function pickEncounter(zoneId: ZoneId): EncounterId {
   const zone = ZONES[zoneId];
-  return weightedPick(zone.monsters.map((m) => [m.id, m.weight] as const), getSignal());
+  return weightedPick(zone.encounters.map((m) => [m.id, m.weight] as const), getSignal());
 }
 
 // Independent of pickEncounter's roll - reads the difficulty signal, not the

@@ -9,7 +9,7 @@
 // Revisit only once a few more hardcoded events reveal real repetition.
 import { getDistance } from './map.svelte';
 import { rollDistanceChance } from '../util/weighted';
-import type { MonsterId } from '../data/monstats';
+import type { EncounterId } from '../data/encounters';
 
 let firedMask = $state<bigint>(0n);
 
@@ -18,7 +18,7 @@ let firedMask = $state<bigint>(0n);
 // actually killed (see markEventFired), so a roll that never resolves
 // (e.g. a throwaway speculative encounter discarded by hydration) can't
 // permanently burn a one-shot event nobody ever saw.
-export function shouldShowEvent(): MonsterId | undefined {
+export function shouldShowEvent(): EncounterId | undefined {
   const hastilyAbandonedCampFired = (firedMask & 1n) !== 0n;
   if (!hastilyAbandonedCampFired && rollDistanceChance(50, 100, getDistance())) {
     return 'hastilyAbandonedCamp';
