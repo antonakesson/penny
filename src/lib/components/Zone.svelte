@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { getZone } from '../game/game';
+  import { getZone, getDistance } from '../game/game';
 
   let zone = $derived(getZone());
+  let distance = $derived(getDistance());
 </script>
 
 <section class="zone">
-  <h2>{zone.name}</h2>
+  <h2>{zone.name} <span class="distance">({distance})</span></h2>
   <p class="lore">{zone.description}</p>
   {#if zone.quote}
     <blockquote class="quote">
@@ -21,6 +22,11 @@
   }
   h2 {
     margin: 0 0 4px;
+  }
+  .distance {
+    font: 400 15px/1 var(--font-ui);
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
   }
   .lore {
     font-style: italic;
