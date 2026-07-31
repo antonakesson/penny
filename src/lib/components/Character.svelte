@@ -1,10 +1,23 @@
 <script lang="ts">
-  import { getLevelProgress, getDamage, getXpFloatingTexts } from '../game/game';
+  import { getLevelProgress, getDamage, getXpFloatingTexts, getActiveEffects } from '../game/game';
+  import { EFFECTS, type EffectId } from '../game/data/effects';
 
   let progress = $derived(getLevelProgress());
   let damage = $derived(getDamage());
   let xpIntoLevel = $derived(progress.nextLevelXp === null ? 0 : Math.max(0, progress.progress) * (progress.nextLevelXp - progress.currentLevelXp));
   let xpTexts = $derived(getXpFloatingTexts());
+
+  // Crude v0.1 - a text list, not a proper buff bar (see effects_system
+  // memory / FEATURE_effect.md's "Later, optional: buff-bar UI"). Polls its
+  // own interval purely to re-render the countdown - state/effect.svelte.ts
+  // itself never ticks, this is a UI-layer concern only.
+  let activeEffects = $state<{ id: EffectId; remainingMs: number }[]>([]);
+  $effect(() => {
+    const update = () => (activeEffects = getActiveEffects());
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  });
 </script>
 
 <div class="character">
@@ -25,6 +38,14 @@
     <p class="xp-label">{Math.floor(xpIntoLevel)} / {progress.nextLevelXp! - progress.currentLevelXp} XP to next level</p>
   {/if}
   <p class="stat">Base Damage: {damage}</p>
+  {#if activeEffects.length > 0}
+    <div class="effects">
+      <p class="effects-label">Active Effects</p>
+      {#each activeEffects as effect (effect.id)}
+        <p class="effect-row">{EFFECTS[effect.id].title} — {Math.ceil(effect.remainingMs / 1000)}s</p>
+      {/each}
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -101,5 +122,22 @@
     font: 600 14px/1 var(--font-ui);
     color: var(--ink-strong);
     margin: 4px 0 0;
+  }
+  .effects {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 4px;
+  }
+  .effects-label {
+    font: 600 12px/1 var(--font-ui);
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+  .effect-row {
+    font: 600 13px/1.4 var(--font-ui);
+    color: var(--accent-text);
+    margin: 0;
   }
 </style>

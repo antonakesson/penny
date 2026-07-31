@@ -4,7 +4,7 @@ export interface FeatureDef {
 }
 
 // Gated systems that exist in code but stay hidden from the player until
-// unlocked (see items with a matching `action` in data/itemActions.ts), so
+// unlocked (see items with a matching `action` in data/effects.ts), so
 // the game doesn't dump every system on the player at once.
 export const FEATURES = {
   bestiary: {

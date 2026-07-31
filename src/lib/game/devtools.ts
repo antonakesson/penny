@@ -8,9 +8,10 @@ import { getAction } from './state/action.svelte';
 import { addItem, getInventory } from './state/inventory.svelte';
 import { awardXp, getXp } from './state/xp.svelte';
 import { getSeed, getDistance, hydrateMap } from './state/map.svelte';
-import { startSpawnFreeze } from './state/spawnFreeze.svelte';
+import { triggerEffect } from './state/effect.svelte';
 import type { EncounterId } from './data/encounters';
 import type { ItemId } from './data/loot';
+import type { EffectId } from './data/effects';
 
 export function devSpawn(id: EncounterId) {
   spawn(createEncounter(id));
@@ -32,8 +33,8 @@ export function devSetSeed(seed: string) {
   hydrateMap({ seed, distance: getDistance() });
 }
 
-export function devStartSpawnFreeze(kills: number) {
-  startSpawnFreeze(kills);
+export function devTriggerEffect(effectId: EffectId) {
+  triggerEffect(effectId);
 }
 
 export function devDumpState() {
@@ -53,7 +54,7 @@ if (import.meta.env.DEV) {
     awardXp: devAwardXp,
     setDistance: devSetDistance,
     setSeed: devSetSeed,
-    setSpawnFreeze: devStartSpawnFreeze,
+    triggerEffect: devTriggerEffect,
     state: devDumpState,
   };
 }

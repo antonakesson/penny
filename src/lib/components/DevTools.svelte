@@ -4,14 +4,14 @@
     devToolsAddItem,
     devToolsAwardXp,
     devToolsSetDistance,
-    devToolsStartSpawnFreeze,
+    devToolsTriggerEffect,
     devToolsSetSeed,
     getDistance,
     getSeed,
   } from '../game/game';
   import { ENCOUNTERS, type EncounterId } from '../game/data/encounters';
   import { ITEMS, type ItemId } from '../game/data/loot';
-  import { SPAWN_FREEZE_KILLS } from '../game/config';
+  import { EFFECTS } from '../game/data/effects';
 
   const monsterIds = Object.keys(ENCOUNTERS) as EncounterId[];
   const itemIds = Object.keys(ITEMS) as ItemId[];
@@ -73,8 +73,8 @@
   <section>
     <p class="section-label">Spawn freeze</p>
     <div class="row">
-      <button onclick={() => devToolsStartSpawnFreeze(SPAWN_FREEZE_KILLS)}>
-        Start ({SPAWN_FREEZE_KILLS} kills)
+      <button onclick={() => devToolsTriggerEffect('freezeSpawn')}>
+        Trigger ({EFFECTS.freezeSpawn.duration / 1000}s)
       </button>
     </div>
   </section>

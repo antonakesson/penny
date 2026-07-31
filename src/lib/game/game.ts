@@ -5,6 +5,7 @@ import { getEncounter as getEncounterState } from './state/encounter.svelte';
 import { isDiscovered as isDiscoveredState, getMaxDiscoveredEntryNo as getMaxDiscoveredEntryNoState } from './state/bestiary.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getXpFloatingTexts as getXpFloatingTextsState } from './state/xpFloatingText.svelte';
+import { getActiveEffects as getActiveEffectsState } from './state/effect.svelte';
 import { getCurrentZoneId } from './state/zone.svelte';
 import {
   getSeed as getSeedState,
@@ -37,13 +38,14 @@ import {
 } from './save';
 import { ZONES } from './data/zones';
 import type { EncounterId } from './data/encounters';
+import type { EffectId } from './data/effects';
 import {
   devSpawn,
   devAddItem,
   devAwardXp,
   devSetDistance,
   devSetSeed,
-  devStartSpawnFreeze,
+  devTriggerEffect,
   devDumpState,
 } from './devtools';
 
@@ -81,6 +83,10 @@ export function getFloatingTexts() {
 
 export function getXpFloatingTexts() {
   return getXpFloatingTextsState();
+}
+
+export function getActiveEffects() {
+  return getActiveEffectsState();
 }
 
 export function getZone() {
@@ -199,8 +205,8 @@ export function devToolsSetSeed(seed: string) {
   devSetSeed(seed);
 }
 
-export function devToolsStartSpawnFreeze(kills: number) {
-  devStartSpawnFreeze(kills);
+export function devToolsTriggerEffect(effectId: EffectId) {
+  devTriggerEffect(effectId);
 }
 
 export function devToolsDumpState() {

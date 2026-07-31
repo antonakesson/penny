@@ -23,13 +23,6 @@ export const AUTOSAVE_INTERVAL_MS = 10_000;
 // zones.ts's encounter weights.
 export const DISTANCE_STEP = 0.055;
 
-// How many kills a spawn-freeze effect holds distance still for. Distance
-// not advancing means the signal sampled at spawn time doesn't move either,
-// so pickEncounter() deterministically hands back the same monster - no
-// separate "pinned monster id" needed, this just rides the existing
-// determinism.
-export const SPAWN_FREEZE_KILLS = 5;
-
 // Naive placeholder curve: +/-20% hp/xp per level away from a monster's
 // authored base level. Flat and untuned on purpose - a hand-tailored curve
 // (like LEVELS in data/levels.ts) replaces this once scaling is proven out.

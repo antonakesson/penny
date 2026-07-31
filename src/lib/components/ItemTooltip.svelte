@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ITEMS, type ItemDef } from '../game/data/loot';
-  import { ITEM_ACTIONS } from '../game/data/itemActions';
+  import { EFFECTS } from '../game/data/effects';
   import { getTooltip, hideTooltip } from '../ui/tooltip.svelte';
 
   const HALF_WIDTH = 110;
@@ -42,7 +42,7 @@
       <p class="tooltip-flavor">{item.flavor}</p>
     {/if}
     {#if item.action}
-      <p class="tooltip-action">{ITEM_ACTIONS[item.action].description}</p>
+      <p class="tooltip-action">{EFFECTS[item.action.effect].description}</p>
     {/if}
   </div>
 {/if}

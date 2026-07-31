@@ -1,9 +1,20 @@
 import { weightedPick } from '../util/weighted';
-import type { ItemActionId } from './itemActions';
+import type { EffectId } from './effects';
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
-export type ItemDef = { name: string; rarity: Rarity; flavor?: string; action?: ItemActionId };
+export type ItemDef = {
+  name: string;
+  rarity: Rarity;
+  flavor?: string;
+  // consumes lives here, not on EffectDef - it's how *this item* uses the
+  // effect (read-and-discarded vs. held), not a property of the effect
+  // itself. A future non-item source (a camp passively granting a flavor
+  // effect, an onHit debuff) reads the same EffectId with no consumption
+  // concept attached at all.
+  action?: { effect: EffectId; consumes: boolean };
+  passive?: EffectId;
+};
 
 export const ITEMS = {
   tusk: { name: 'Boar Tusk', rarity: 'common' },
@@ -38,13 +49,13 @@ export const ITEMS = {
     name: 'Barely-Used Sketchbook',
     rarity: 'rare',
     flavor: 'One boar in, and already abandoned.',
-    action: 'unlockBestiary',
+    action: { effect: 'unlockBestiary', consumes: true },
   },
   bottledDejaVu: {
     name: 'Bottled Déjà Vu',
     rarity: 'rare',
     flavor: "You've been here before. You're about to be here again.",
-    action: 'freezeSpawn',
+    action: { effect: 'freezeSpawn', consumes: true },
   },
   tuskOfTheUnvanquishedSwineLord: {
     name: 'Tusk of the Unvanquished Swine-Lord, Who Only Ever Stood Here, In This Field, Doing Nothing',
@@ -55,15 +66,14 @@ export const ITEMS = {
   // Dev-only test tool — deliberately absent from every TREASURE pool, so
   // the only way into an inventory is DevTools' "Add item" dropdown (which
   // lists every ITEMS key unconditionally, no separate wiring needed). The
-  // +10 damage isn't an action or an equip slot, just presence: held, not
-  // used - see calculateDamage() in engine.ts, which checks getInventory()
-  // directly rather than adding a whole equipment-modifier layer for a
-  // single debug stat.
+  // +10 damage is a passive effect - held, not used - see getPassiveBonus()
+  // in state/effect.svelte.ts.
   perpetualRequisitionSlip: {
     name: 'Requisition Slip for a Training Weight, Issued Once and Never Signed Back In',
     rarity: 'legendary',
     flavor:
       "The Quartermaster General's Office does not process returns retroactively. As far as the ledger is concerned, whoever holds this slip is still mid-drill on an exercise authorized in a fiscal year nobody can currently locate, and continues to draw the full-swing allowance assigned to active training - not a blessing, a clerical position the department has simply never revisited.",
+    passive: 'devDamage',
   },
 } as const satisfies Record<string, ItemDef>;
 

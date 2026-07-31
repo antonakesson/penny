@@ -1,4 +1,4 @@
-import { ACTION, ENCOUNTER_END_MS, SPAWN_FREEZE_KILLS, INVESTIGATE } from './config';
+import { ACTION, ENCOUNTER_END_MS, INVESTIGATE } from './config';
 import { getEncounter, createEncounter, damageMonster, killMonster, spawn } from './state/encounter.svelte';
 import { advance } from './state/map.svelte';
 import { pickEncounter, pickLevel } from './data/zones';
@@ -6,15 +6,14 @@ import { getCurrentZoneId } from './state/zone.svelte';
 import { shouldShowEvent, markEventFired } from './state/events.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { awardXp, getLevel } from './state/xp.svelte';
-import { addItem, removeItem, getInventory } from './state/inventory.svelte';
+import { addItem, removeItem } from './state/inventory.svelte';
 import { discoverMonster } from './state/bestiary.svelte';
 import { getBestiaryEntry } from './data/bestiary';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
 import { spawnXpFloatingText } from './state/xpFloatingText.svelte';
 import { resolveDropIds, ITEMS, type ItemId, type ItemDef } from './data/loot';
-import { ITEM_ACTIONS, type ItemActionId } from './data/itemActions';
-import { unlockFeature, isFeatureUnlocked } from './state/features.svelte';
-import { startSpawnFreeze, consumeSpawnFreeze } from './state/spawnFreeze.svelte';
+import { isFeatureUnlocked } from './state/features.svelte';
+import { triggerEffect, isEffectActive, getPassiveBonus } from './state/effect.svelte';
 import { assertNever } from './util/assertNever';
 import { playSound } from './audio';
 import type { Encounter, Monster, Investigation, ActionKind } from './types';
@@ -103,13 +102,12 @@ function currentHandler(): ActionHandler | null {
 
 // Base damage is just the character's level for now - no equipment or
 // talent modifiers exist yet to layer on top, except this one dev-only
-// exception: perpetualRequisitionSlip is a presence check, not a
-// consumable or an equip slot - held, not used - see its comment in
-// loot.ts for why. Remove this branch if a real equipment/talent layer
-// ever lands and this deserves to become a proper modifier instead.
+// exception: perpetualRequisitionSlip's passive additiveDamage effect -
+// held, not used - see its comment in loot.ts for why. Remove this branch
+// if a real equipment/talent layer ever lands and this deserves to become
+// a proper modifier instead (see antonakesson/penny#5).
 export function calculateDamage(): number {
-  const devDamageBonus = getInventory().perpetualRequisitionSlip ? 10 : 0;
-  return getLevel() + devDamageBonus;
+  return getLevel() + getPassiveBonus('additiveDamage');
 }
 
 // Real-time-rate based, not a flat per-call amount - INVESTIGATE.dps is an
@@ -206,19 +204,16 @@ export function tick() {
   }
 }
 
-// Priority: a spawn-freeze charge held on this kill forces an exact replay
-// of the same encounter (bridged from resolveKill(), captured at kill time -
-// see replayEncounterId below for why it can't be re-derived here from
-// getSpawnFreezeRemaining() alone); otherwise an eligible event takes over;
-// otherwise the normal weighted zone pick.
+// Priority: an active spawn-freeze forces an exact replay of the same
+// encounter (current is still the just-died encounter here - spawn() hasn't
+// overwritten it yet); otherwise an eligible event takes over; otherwise the
+// normal weighted zone pick.
 function decideNextEncounter(): Encounter {
-  if (replayEncounterId !== null) {
-    const id = replayEncounterId;
-    replayEncounterId = null;
+  if (isEffectActive('freezeSpawn')) {
     // Distance is held still by the same freeze, so the difficulty signal
     // resamples to the same value - re-picking here (rather than reusing a
     // stashed level) rides that determinism instead of duplicating it.
-    return createEncounter(id, pickLevel(getCurrentZoneId()));
+    return createEncounter(getEncounter().id as EncounterId, pickLevel(getCurrentZoneId()));
   }
   const eventEncounterId = shouldShowEvent();
   if (eventEncounterId) return createEncounter(eventEncounterId);
@@ -238,31 +233,11 @@ function awardLoot(dropTableId: readonly string[], xpReward: number) {
 }
 
 export function useItem(itemId: ItemId) {
-  const actionId = (ITEMS[itemId] as ItemDef).action;
-  if (!actionId) return;
-  applyItemAction(actionId);
-  if (ITEM_ACTIONS[actionId].consumes) removeItem(itemId, 1);
+  const action = (ITEMS[itemId] as ItemDef).action;
+  if (!action) return;
+  triggerEffect(action.effect);
+  if (action.consumes) removeItem(itemId, 1);
 }
-
-function applyItemAction(actionId: ItemActionId) {
-  switch (actionId) {
-    case 'unlockBestiary':
-      unlockFeature('bestiary');
-      return;
-    case 'freezeSpawn':
-      startSpawnFreeze(SPAWN_FREEZE_KILLS);
-      return;
-    default:
-      assertNever(actionId);
-  }
-}
-
-// Bridges kill-time -> spawn-time (500ms later, ENCOUNTER_END_MS): must be
-// captured once here, not re-derived from getSpawnFreezeRemaining() at
-// decideNextEncounter() time, since the charge for *this* kill is already
-// consumed by then - a fresh read there would miss the last covered kill
-// in a freeze streak.
-let replayEncounterId: EncounterId | null = null;
 
 // Only the hp-drain kinds resolve through here - RabbidSquirrel gets its own
 // resolveRabbidSquirrelPick() below, since "loot + xp" doesn't fit what a
@@ -270,10 +245,8 @@ let replayEncounterId: EncounterId | null = null;
 function resolveKill(encounter: Monster | Investigation) {
   awardLoot(encounter.dropTableId, encounter.xpReward);
   markEventFired(encounter.id);
-  const wasFrozen = consumeSpawnFreeze();
-  replayEncounterId = wasFrozen ? (encounter.id as EncounterId) : null;
   killMonster();
-  if (!wasFrozen) advance();
+  if (!isEffectActive('freezeSpawn')) advance();
 }
 
 // Placeholder resolution - the real Recruit Pet stages (Bribe/Shoo, pet
