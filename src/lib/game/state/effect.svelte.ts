@@ -1,7 +1,6 @@
 import { EFFECTS, type EffectDef, type EffectId } from '../data/effects';
-import { ITEMS, type ItemId, type ItemDef } from '../data/loot';
-import { getInventory } from './inventory.svelte';
 import { unlockFeature } from './features.svelte';
+import { grantModifier } from './modifier.svelte';
 import { assertNever } from '../util/assertNever';
 
 let activeExpiries = $state<Partial<Record<EffectId, number>>>({});
@@ -25,7 +24,10 @@ export function isEffectActive(effectId: EffectId): boolean {
   return expiresAt !== undefined && Date.now() < expiresAt;
 }
 
-// Feeds a future buff-bar UI.
+// Timed effects only - passive/permanent modifiers are a different display
+// concern (Character.svelte reads those straight off sumModifier() in
+// state/modifier.svelte.ts instead, since they're an aggregated number, not
+// a named, individually-expiring thing).
 export function getActiveEffects(): { id: EffectId; remainingMs: number }[] {
   const now = Date.now();
   return (Object.entries(activeExpiries) as [EffectId, number][])
@@ -40,26 +42,12 @@ function applyInstantEffect(def: EffectDef) {
       return;
     case 'freezeSpawn':
       return; // nothing else to do - presence in activeExpiries IS the effect
-    case 'additiveDamage':
-      return; // passive-only kind, never reached via triggerEffect
+    case 'grantModifier':
+      grantModifier(def.modifier);
+      return;
     default:
       assertNever(def);
   }
-}
-
-// Pure query, no state of its own - lives here so engine.ts has one facade
-// for everything effect-related, not two.
-export function getPassiveBonus(kind: 'additiveDamage'): number {
-  const inv = getInventory();
-  let total = 0;
-  for (const itemId of Object.keys(inv) as ItemId[]) {
-    if ((inv[itemId] ?? 0) <= 0) continue;
-    const passiveId = (ITEMS[itemId] as ItemDef).passive;
-    if (!passiveId) continue;
-    const def = EFFECTS[passiveId];
-    if (def.kind === kind) total += def.amount;
-  }
-  return total;
 }
 
 export function serializeEffects(): Partial<Record<EffectId, number>> {

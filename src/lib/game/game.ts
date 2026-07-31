@@ -6,6 +6,8 @@ import { isDiscovered as isDiscoveredState, getMaxDiscoveredEntryNo as getMaxDis
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getXpFloatingTexts as getXpFloatingTextsState } from './state/xpFloatingText.svelte';
 import { getActiveEffects as getActiveEffectsState } from './state/effect.svelte';
+import { sumModifier as sumModifierState } from './state/modifier.svelte';
+import type { StatId } from './data/modifiers';
 import { getCurrentZoneId } from './state/zone.svelte';
 import {
   getSeed as getSeedState,
@@ -87,6 +89,10 @@ export function getXpFloatingTexts() {
 
 export function getActiveEffects() {
   return getActiveEffectsState();
+}
+
+export function sumModifier(stat: StatId) {
+  return sumModifierState(stat);
 }
 
 export function getZone() {

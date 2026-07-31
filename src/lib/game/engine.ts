@@ -5,7 +5,7 @@ import { pickEncounter, pickLevel } from './data/zones';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { shouldShowEvent, markEventFired } from './state/events.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
-import { awardXp, getLevel } from './state/xp.svelte';
+import { addXp, getLevel } from './state/xp.svelte';
 import { addItem, removeItem } from './state/inventory.svelte';
 import { discoverMonster } from './state/bestiary.svelte';
 import { getBestiaryEntry } from './data/bestiary';
@@ -13,7 +13,8 @@ import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
 import { spawnXpFloatingText } from './state/xpFloatingText.svelte';
 import { resolveDropIds, ITEMS, type ItemId, type ItemDef } from './data/loot';
 import { isFeatureUnlocked } from './state/features.svelte';
-import { triggerEffect, isEffectActive, getPassiveBonus } from './state/effect.svelte';
+import { triggerEffect, isEffectActive } from './state/effect.svelte';
+import { sumModifier } from './state/modifier.svelte';
 import { assertNever } from './util/assertNever';
 import { playSound } from './audio';
 import type { Encounter, Monster, Investigation, ActionKind } from './types';
@@ -100,14 +101,13 @@ function currentHandler(): ActionHandler | null {
   return null;
 }
 
-// Base damage is just the character's level for now - no equipment or
-// talent modifiers exist yet to layer on top, except this one dev-only
-// exception: perpetualRequisitionSlip's passive additiveDamage effect -
-// held, not used - see its comment in loot.ts for why. Remove this branch
-// if a real equipment/talent layer ever lands and this deserves to become
-// a proper modifier instead (see antonakesson/penny#5).
+// engine.ts owns the actual gameplay formula - sumModifier() only knows how
+// to sum contributions tagged with a given StatId, it has no opinion about
+// what "damage" means or that level exists. A future equipment/talent
+// source just becomes a third contributor into the same sumModifier('damage'),
+// nothing here changes.
 export function calculateDamage(): number {
-  return getLevel() + getPassiveBonus('additiveDamage');
+  return getLevel() + sumModifier('damage');
 }
 
 // Real-time-rate based, not a flat per-call amount - INVESTIGATE.dps is an
@@ -221,17 +221,6 @@ function decideNextEncounter(): Encounter {
   return createEncounter(pickEncounter(zoneId), pickLevel(zoneId));
 }
 
-function awardLoot(dropTableId: readonly string[], xpReward: number) {
-  const drops = resolveDropIds(dropTableId);
-  awardXp(xpReward);
-  spawnXpFloatingText(xpReward);
-  playSound(drops.length > 0 ? 'LootDropped' : 'LootEmpty');
-  for (const dropId of drops) {
-    addItem(dropId, 1);
-    spawnLootText(`+1 ${ITEMS[dropId].name}`, ITEMS[dropId].rarity);
-  }
-}
-
 export function useItem(itemId: ItemId) {
   const action = (ITEMS[itemId] as ItemDef).action;
   if (!action) return;
@@ -239,11 +228,26 @@ export function useItem(itemId: ItemId) {
   if (action.consumes) removeItem(itemId, 1);
 }
 
+function awardXp(amount: number) {
+  addXp(amount);
+  spawnXpFloatingText(amount);
+}
+
+function awardLoot(dropTableId: readonly string[]) {
+  const drops = resolveDropIds(dropTableId);
+  playSound(drops.length > 0 ? 'LootDropped' : 'LootEmpty');
+  for (const dropId of drops) {
+    addItem(dropId, 1);
+    spawnLootText(`+1 ${ITEMS[dropId].name}`, ITEMS[dropId].rarity);
+  }
+}
+
 // Only the hp-drain kinds resolve through here - RabbidSquirrel gets its own
 // resolveRabbidSquirrelPick() below, since "loot + xp" doesn't fit what a
 // discrete choice grants.
 function resolveKill(encounter: Monster | Investigation) {
-  awardLoot(encounter.dropTableId, encounter.xpReward);
+  awardXp(encounter.xpReward);
+  awardLoot(encounter.dropTableId);
   markEventFired(encounter.id);
   killMonster();
   if (!isEffectActive('freezeSpawn')) advance();

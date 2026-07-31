@@ -1,5 +1,6 @@
 import { weightedPick } from '../util/weighted';
 import type { EffectId } from './effects';
+import type { Modifier } from './modifiers';
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
@@ -13,7 +14,11 @@ export type ItemDef = {
   // effect, an onHit debuff) reads the same EffectId with no consumption
   // concept attached at all.
   action?: { effect: EffectId; consumes: boolean };
-  passive?: EffectId;
+  // Raw modifiers, not an EffectId - a held bonus is just data (no
+  // trigger, no title of its own), unlike `action` which references a
+  // named, shared, elsewhere-triggerable behavior. Exists exactly while
+  // this item's count > 0 - see sumModifier() in state/modifier.svelte.ts.
+  passive?: readonly Modifier[];
 };
 
 export const ITEMS = {
@@ -57,6 +62,12 @@ export const ITEMS = {
     flavor: "You've been here before. You're about to be here again.",
     action: { effect: 'freezeSpawn', consumes: true },
   },
+  fightingWoodlandCreaturesForDummies: {
+    name: 'Fighting Woodland Creatures for Dummies',
+    rarity: 'rare',
+    flavor: "You didn't fight anything. You read about it very hard.",
+    action: { effect: 'permanentDamageBoost', consumes: true },
+  },
   tuskOfTheUnvanquishedSwineLord: {
     name: 'Tusk of the Unvanquished Swine-Lord, Who Only Ever Stood Here, In This Field, Doing Nothing',
     rarity: 'legendary',
@@ -66,14 +77,14 @@ export const ITEMS = {
   // Dev-only test tool — deliberately absent from every TREASURE pool, so
   // the only way into an inventory is DevTools' "Add item" dropdown (which
   // lists every ITEMS key unconditionally, no separate wiring needed). The
-  // +10 damage is a passive effect - held, not used - see getPassiveBonus()
-  // in state/effect.svelte.ts.
+  // +10 damage is a passive modifier - held, not used - see sumModifier()
+  // in state/modifier.svelte.ts.
   perpetualRequisitionSlip: {
     name: 'Requisition Slip for a Training Weight, Issued Once and Never Signed Back In',
     rarity: 'legendary',
     flavor:
       "The Quartermaster General's Office does not process returns retroactively. As far as the ledger is concerned, whoever holds this slip is still mid-drill on an exercise authorized in a fiscal year nobody can currently locate, and continues to draw the full-swing allowance assigned to active training - not a blessing, a clerical position the department has simply never revisited.",
-    passive: 'devDamage',
+    passive: [{ stat: 'damage', value: 10 }],
   },
 } as const satisfies Record<string, ItemDef>;
 
@@ -101,7 +112,7 @@ const TREASURE: Record<string, DropPool> = {
 
   // Utils
   misc: { eye: 1, unidentifiedHair: 1, knottedTwineRing: 1 },
-  noobTreasure: { tarnishedRing: 4, bottledDejaVu: 1 },
+  noobTreasure: { tarnishedRing: 4, bottledDejaVu: 1, fightingWoodlandCreaturesForDummies: 1 },
   // 1-in-1000 of the tusk roll, not a separate chance — the legendary tusk
   // is the same drop, just an absurdly rare cut of it, not a new category.
   // Was 1-in-100 (~1-in-500 per boar kill, median ~350 boars) - measured

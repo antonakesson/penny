@@ -1,6 +1,9 @@
 <script lang="ts">
-  import { getLevelProgress, getDamage, getXpFloatingTexts, getActiveEffects } from '../game/game';
+  import { getLevelProgress, getDamage, getXpFloatingTexts, getActiveEffects, sumModifier } from '../game/game';
   import { EFFECTS, type EffectId } from '../game/data/effects';
+  import { STAT_LABELS, type StatId } from '../game/data/modifiers';
+
+  const STAT_IDS = Object.keys(STAT_LABELS) as StatId[];
 
   let progress = $derived(getLevelProgress());
   let damage = $derived(getDamage());
@@ -18,6 +21,13 @@
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   });
+
+  // Passive/permanent modifiers, unlike timed effects, are a pure function
+  // of $state (inventory, the permanent-grants list) read synchronously -
+  // no polling needed, $derived already re-runs when either changes.
+  let modifierRows = $derived(
+    STAT_IDS.map((stat) => ({ stat, value: sumModifier(stat) })).filter((row) => row.value !== 0)
+  );
 </script>
 
 <div class="character">
@@ -38,11 +48,14 @@
     <p class="xp-label">{Math.floor(xpIntoLevel)} / {progress.nextLevelXp! - progress.currentLevelXp} XP to next level</p>
   {/if}
   <p class="stat">Base Damage: {damage}</p>
-  {#if activeEffects.length > 0}
+  {#if activeEffects.length > 0 || modifierRows.length > 0}
     <div class="effects">
       <p class="effects-label">Active Effects</p>
       {#each activeEffects as effect (effect.id)}
         <p class="effect-row">{EFFECTS[effect.id].title} — {Math.ceil(effect.remainingMs / 1000)}s</p>
+      {/each}
+      {#each modifierRows as row (row.stat)}
+        <p class="effect-row">{row.value > 0 ? '+' : ''}{row.value} {STAT_LABELS[row.stat]}</p>
       {/each}
     </div>
   {/if}

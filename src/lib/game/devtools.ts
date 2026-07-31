@@ -6,9 +6,10 @@
 import { createEncounter, spawn, getEncounter } from './state/encounter.svelte';
 import { getAction } from './state/action.svelte';
 import { addItem, getInventory } from './state/inventory.svelte';
-import { awardXp, getXp } from './state/xp.svelte';
+import { addXp, getXp } from './state/xp.svelte';
 import { getSeed, getDistance, hydrateMap } from './state/map.svelte';
 import { triggerEffect } from './state/effect.svelte';
+import { serializeModifiers } from './state/modifier.svelte';
 import type { EncounterId } from './data/encounters';
 import type { ItemId } from './data/loot';
 import type { EffectId } from './data/effects';
@@ -21,8 +22,10 @@ export function devAddItem(id: ItemId, qty: number) {
   addItem(id, qty);
 }
 
+// Silent grant, no floating text - dev-only, bypasses the real reward
+// path (engine.ts's awardXp()) on purpose.
 export function devAwardXp(amount: number) {
-  awardXp(amount);
+  addXp(amount);
 }
 
 export function devSetDistance(distance: number) {
@@ -44,6 +47,9 @@ export function devDumpState() {
     inventory: getInventory(),
     xp: getXp(),
     distance: getDistance(),
+    // Passives aren't included - they're not their own state, just a live
+    // scan of inventory x ITEMS[id].passive, already visible above.
+    permanentModifiers: serializeModifiers(),
   };
 }
 

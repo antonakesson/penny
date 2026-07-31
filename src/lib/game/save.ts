@@ -7,9 +7,11 @@ import { serializeMap, hydrateMap, type MapSnapshot } from './state/map.svelte';
 import { serializeUnlockedFeatures, hydrateUnlockedFeatures } from './state/features.svelte';
 import { serializeFiredEvents, hydrateFiredEvents } from './state/events.svelte';
 import { serializeEffects, hydrateEffects } from './state/effect.svelte';
+import { serializeModifiers, hydrateModifiers } from './state/modifier.svelte';
 import { ZONES, type ZoneId } from './data/zones';
 import type { FeatureId } from './data/features';
 import type { EffectId } from './data/effects';
+import type { Modifier } from './data/modifiers';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
@@ -17,7 +19,8 @@ const BACKUP_KEY = 'idle-game:save:backup';
 // v4: EncounterSnapshot became a discriminated union (Monster/Investigation/
 // RabbidSquirrel) instead of one flat shape - see ENCOUNTER_REFACTOR.md.
 // v5: added `effects` (timed-effect expiries, e.g. spawn freeze).
-const SAVE_VERSION = 5;
+// v6: added `modifiers` (permanent stat grants, e.g. a consumed book).
+const SAVE_VERSION = 6;
 
 interface SaveData {
   xp: number;
@@ -29,6 +32,7 @@ interface SaveData {
   unlockedFeatures: FeatureId[];
   firedEventsMask: string;
   effects: Partial<Record<EffectId, number>>;
+  modifiers: Modifier[];
 }
 
 interface SaveEnvelope {
@@ -51,6 +55,7 @@ function buildSnapshot(): SaveEnvelope {
       unlockedFeatures: serializeUnlockedFeatures(),
       firedEventsMask: serializeFiredEvents(),
       effects: serializeEffects(),
+      modifiers: serializeModifiers(),
     },
   };
 }
@@ -71,6 +76,7 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
   if (!Array.isArray(data.unlockedFeatures)) return false;
   if (typeof data.firedEventsMask !== 'string') return false;
   if (!data.effects || typeof data.effects !== 'object') return false;
+  if (!Array.isArray(data.modifiers)) return false;
 
   const map = data.map as Record<string, unknown> | undefined;
   if (!map || typeof map.seed !== 'string' || typeof map.distance !== 'number') return false;
@@ -94,6 +100,7 @@ function applySnapshot(data: SaveData) {
   hydrateUnlockedFeatures(data.unlockedFeatures);
   hydrateFiredEvents(data.firedEventsMask);
   hydrateEffects(data.effects);
+  hydrateModifiers(data.modifiers);
 }
 
 // Set by resetSave() so the pagehide/visibilitychange autosave that fires
