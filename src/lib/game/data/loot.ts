@@ -52,6 +52,19 @@ export const ITEMS = {
     flavor:
       'Wrenched, with some difficulty and a great deal of swearing, from a boar that had — up until this point — never left a three-metre radius of grass. Scholars remain divided on whether this constitutes a quest.',
   },
+  // Dev-only test tool — deliberately absent from every TREASURE pool, so
+  // the only way into an inventory is DevTools' "Add item" dropdown (which
+  // lists every ITEMS key unconditionally, no separate wiring needed). The
+  // +10 damage isn't an action or an equip slot, just presence: held, not
+  // used - see calculateDamage() in engine.ts, which checks getInventory()
+  // directly rather than adding a whole equipment-modifier layer for a
+  // single debug stat.
+  perpetualRequisitionSlip: {
+    name: 'Requisition Slip for a Training Weight, Issued Once and Never Signed Back In',
+    rarity: 'legendary',
+    flavor:
+      "The Quartermaster General's Office does not process returns retroactively. As far as the ledger is concerned, whoever holds this slip is still mid-drill on an exercise authorized in a fiscal year nobody can currently locate, and continues to draw the full-swing allowance assigned to active training - not a blessing, a clerical position the department has simply never revisited.",
+  },
 } as const satisfies Record<string, ItemDef>;
 
 export type ItemId = keyof typeof ITEMS;

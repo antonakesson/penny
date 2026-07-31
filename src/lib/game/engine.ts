@@ -6,7 +6,7 @@ import { getCurrentZoneId } from './state/zone.svelte';
 import { shouldShowEvent, markEventFired } from './state/events.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { awardXp, getLevel } from './state/xp.svelte';
-import { addItem, removeItem } from './state/inventory.svelte';
+import { addItem, removeItem, getInventory } from './state/inventory.svelte';
 import { discoverMonster } from './state/bestiary.svelte';
 import { getBestiaryEntry } from './data/bestiary';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
@@ -102,9 +102,14 @@ function currentHandler(): ActionHandler | null {
 }
 
 // Base damage is just the character's level for now - no equipment or
-// talent modifiers exist yet to layer on top.
+// talent modifiers exist yet to layer on top, except this one dev-only
+// exception: perpetualRequisitionSlip is a presence check, not a
+// consumable or an equip slot - held, not used - see its comment in
+// loot.ts for why. Remove this branch if a real equipment/talent layer
+// ever lands and this deserves to become a proper modifier instead.
 export function calculateDamage(): number {
-  return getLevel();
+  const devDamageBonus = getInventory().perpetualRequisitionSlip ? 10 : 0;
+  return getLevel() + devDamageBonus;
 }
 
 // Real-time-rate based, not a flat per-call amount - INVESTIGATE.dps is an
