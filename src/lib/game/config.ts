@@ -32,3 +32,11 @@ export const INVESTIGATE = {
   // number).
   dps: 4,
 };
+
+export const PET = {
+  damage: 1,
+  // Short swing, not the player's 1.5s ACTION.activeMs - the pet's hit is a
+  // quick jab, only the recovery after it is meant to feel long.
+  activeMs: 300,
+  recoveryMs: 10_000,
+};

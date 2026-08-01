@@ -1,4 +1,6 @@
 import type { EffectId } from './effects';
+import type { ItemId } from './loot';
+import type { FeatureId } from './features';
 
 // Loosely typed like ENCOUNTERS' dropTableId: readonly string[] — node ids
 // aren't cross-checked against DIALOGS' own keys at the type level. Keeping
@@ -10,9 +12,21 @@ import type { EffectId } from './effects';
 // ever bites.
 export type DialogNodeId = string;
 
+// Grown one kind at a time as a real need for it lands, same as EffectDef -
+// not a general predicate engine. Single condition per choice, not an
+// array/AND - add that only once a choice actually needs to combine two.
+export type DialogCondition =
+  | { kind: 'hasItem'; itemId: ItemId; qty?: number } // qty defaults to 1
+  | { kind: 'hasFeature'; feature: FeatureId };
+
 export interface DialogChoice {
   text: string;
   next: DialogNodeId;
+  // Evaluated once when the node renders (see getVisibleDialogChoices() in
+  // engine.ts) - a choice that was visible when the conversation started
+  // this node can still vanish if you re-enter after the underlying state
+  // changes, but it won't flicker mid-node. Absent = always visible.
+  when?: DialogCondition;
 }
 
 // A node with no choices (or an empty array) is a dead end — the
@@ -34,18 +48,64 @@ export interface DialogNode {
 // every reference.
 export const DIALOGS = {
   'squirrel:greet': {
-    text: 'The squirrel sits up on its haunches, clutching something small and fuzzed with mold. It looks at you, then at the thing, then back at you. Will this work?',
+    text: 'It is already staring at you when you notice it — perfectly still, eyes wide, something small and rotten clutched in one paw like leverage. Neither of you moves.',
+    choices: [{ text: 'Hold its gaze.', next: 'squirrel:standoff' }],
+  },
+  'squirrel:standoff': {
+    text: "A long silence. Its tail twitches once, calculating. You cannot tell if it is sizing you up or working up the nerve to bolt — possibly both, possibly at you.",
+    choices: [{ text: 'Do not blink.', next: 'squirrel:offer' }],
+  },
+  'squirrel:offer': {
+    text: 'It breaks the stare first — or wins it, hard to say — and drops the thing at your feet: an acorn, held too long and too hard. It waits, perfectly still, deciding something about you that you were not consulted on.',
     choices: [
       { text: 'Take it.', next: 'squirrel:yes' },
-      { text: "Leave it be.", next: 'squirrel:no' },
+      { text: 'Leave it be.', next: 'squirrel:no' },
     ],
   },
   'squirrel:yes': {
-    text: "The squirrel drops the acorn into your palm and doesn't scamper off. It just watches you, waiting to see what you do next.",
+    text: "You pick it up. The squirrel doesn't relax so much as recalibrate, like you've passed a test whose stakes it hasn't decided yet. It falls in beside you and does not leave — nor, notably, does it stop watching you.",
     effect: 'unlockPet',
   },
   'squirrel:no': {
-    text: 'The squirrel lowers the acorn slowly. It walks away, glancing back every few steps, like it expected better of you.',
+    text: "You leave it where it fell. The squirrel doesn't move for a long moment, then walks off at an unhurried pace that feels less like disappointment than like it's making a note of something.",
+  },
+
+  'genie:root': {
+    text: 'The cork pops on its own. Something steps out of the smoke. "One wish," it says. "Try to make it easy on both of us."',
+    choices: [
+      { text: 'I wish to know what happened to the missing adventurers.', next: 'genie:lore' },
+      { text: 'Who are you?', next: 'genie:whoAreYou' },
+      { text: 'I want an item.', next: 'genie:item' },
+      { text: 'Never mind. Go back in your bottle.', next: 'genie:nevermind' },
+      {
+        text: 'Give a go-get-em nod to your squirrel.',
+        next: 'genie:squirrelNod',
+        when: { kind: 'hasFeature', feature: 'pet' },
+      },
+    ],
+  },
+  'genie:lore': {
+    text: 'The genie\'s smile doesn\'t move, but something behind its eyes does. "They died," it says. "Horribly. Unspeakably. Several different ways, if that helps."',
+    choices: [{ text: 'Fine.', next: 'genie:root' }],
+  },
+  'genie:whoAreYou': {
+    text: '"Doug," the genie says. "Used to be a sheep. Some spell ricocheted off its actual target and caught me instead. Next thing I know, I\'m a genie."',
+    choices: [{ text: 'Fine.', next: 'genie:root' }],
+  },
+  'genie:item': {
+    text: "The genie exhales, unimpressed at how easy that was — and something lands in your hand before you've even finished asking.",
+    effect: 'grantGenieWish',
+  },
+  'genie:nevermind': {
+    text: 'The genie shrugs — not offended, not surprised — and folds itself back into the bottle like it was expecting this all along.',
+  },
+  'genie:squirrelNod': {
+    text: 'The squirrel gestures intently at the genie — a full pantomime, whiskers and all.',
+    choices: [{ text: '...', next: 'genie:granted' }],
+  },
+  'genie:granted': {
+    text: '"Granted!" the genie says. "Take care, fellow travelers. Look out for the—" It vanishes mid-sentence, in a small, tidy poof.',
+    effect: 'squirrelWish',
   },
 } as const satisfies Record<string, DialogNode>;
 

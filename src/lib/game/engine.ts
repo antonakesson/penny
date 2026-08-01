@@ -1,4 +1,4 @@
-import { ACTION, ENCOUNTER_END_MS, INVESTIGATE } from './config';
+import { ACTION, ENCOUNTER_END_MS, INVESTIGATE, PET } from './config';
 import {
   getEncounter,
   createEncounter,
@@ -9,12 +9,13 @@ import {
   hasEncounter,
   pickDialogChoice,
 } from './state/encounter.svelte';
-import { DIALOGS, type DialogNodeId } from './data/dialog';
+import { DIALOGS, type DialogNodeId, type DialogNode, type DialogChoice, type DialogCondition } from './data/dialog';
 import { advance } from './state/map.svelte';
 import { pickEncounter } from './data/zones';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { shouldShowEvent, markEventFired } from './state/events.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
+import { getPet, setPetAttacking, setPetRecovering, setPetIdle } from './state/pet.svelte';
 import { addXp, getLevel } from './state/xp.svelte';
 import { addItem, removeItem, getInventory } from './state/inventory.svelte';
 import { discoverMonster } from './state/bestiary.svelte';
@@ -208,8 +209,40 @@ export function release() {
   if (currentHandler()?.onUp()) applyHit();
 }
 
+// Runs alongside currentHandler()'s tick, never through it - the pet has its
+// own state slice precisely so it keeps swinging while the player is
+// mid-swing, investigating, or idle (see state/pet.svelte.ts). Same
+// attacking (grows) -> recovering (drains) -> idle shape as
+// attackHandler/AttackMeter, just automatic instead of press-driven.
+function petTick() {
+  if (!isFeatureUnlocked('pet')) return;
+  const pet = getPet();
+  const now = Date.now();
+
+  if (pet.status === 'idle') {
+    const encounter = getEncounter();
+    if (encounter.action === 'social' || encounter.status !== 'active') return;
+    setPetAttacking(now);
+    return;
+  }
+
+  if (pet.status === 'attacking') {
+    if (now - (pet.startedAt ?? 0) < PET.activeMs) return;
+    setPetRecovering(now);
+    const encounter = getEncounter();
+    if (encounter.action === 'social' || encounter.status !== 'active') return;
+    spawnFloatingText(`-${PET.damage}`, 'damage');
+    damageMonster(PET.damage);
+    if (encounter.hp <= 0) resolveKill(encounter);
+    return;
+  }
+
+  if (now - (pet.startedAt ?? 0) >= PET.recoveryMs) setPetIdle();
+}
+
 export function tick() {
   if (currentHandler()?.tick()) applyHit();
+  petTick();
 
   const encounter = getEncounter();
   const now = Date.now();
@@ -300,20 +333,52 @@ function resolveKill(encounter: Monster | Investigation) {
   if (!isEffectActive('freezeSpawn')) advance();
 }
 
+function evaluateDialogCondition(condition: DialogCondition): boolean {
+  switch (condition.kind) {
+    case 'hasItem':
+      return (getInventory()[condition.itemId] ?? 0) >= (condition.qty ?? 1);
+    case 'hasFeature':
+      return isFeatureUnlocked(condition.feature);
+    default:
+      return assertNever(condition);
+  }
+}
+
+// Cross-domain read (inventory/feature state against dialog data), same
+// reason it lives here and not in state/encounter.svelte.ts - see
+// architecture_state_ownership. <SocialCard/> calls this instead of reading
+// node.choices directly, so a gated choice is genuinely absent (no index,
+// no keybind) rather than rendered disabled.
+export function getVisibleDialogChoices(node: DialogNode): readonly DialogChoice[] {
+  if (!node.choices) return [];
+  return node.choices.filter((choice) => !choice.when || evaluateDialogCondition(choice.when));
+}
+
 // Triggered by <SocialCard/>'s choice buttons, not applyHit() - Social never
 // enters that path (see currentHandler()). Picking a choice always moves
-// currentNode; only a terminal node (no choices of its own) resolves the
-// encounter, firing its effect (if any) first so it lands before the
-// encounter disappears.
+// currentNode and fires that node's effect (if any) immediately, so it
+// lands as soon as the node is reached. Reaching a terminal node (no
+// choices of its own) does NOT resolve the encounter here - unlike a kill's
+// ENCOUNTER_END_MS flash (tuned for a floating "-N" and an already-empty hp
+// bar), a dialog's last line is real prose the player still needs to read.
+// See dismissDialog() below for the actual resolution.
 export function resolveDialogChoice(next: DialogNodeId) {
   const encounter = getEncounter();
   if (encounter.action !== 'social' || encounter.status !== 'active') return;
   pickDialogChoice(next);
   const node = DIALOGS[next];
   if (node.effect) triggerEffect(node.effect);
-  if (!node.choices || node.choices.length === 0) {
-    markEventFired(encounter.id);
-    killMonster();
-    if (!isEffectActive('freezeSpawn')) advance();
-  }
+}
+
+// Triggered by <SocialCard/>'s "Continue" button once the current node is
+// terminal - the explicit click resolveDialogChoice() used to do
+// automatically the instant a no-choices node was reached.
+export function dismissDialog() {
+  const encounter = getEncounter();
+  if (encounter.action !== 'social' || encounter.status !== 'active') return;
+  const node = DIALOGS[encounter.currentNode];
+  if (node.choices && node.choices.length > 0) return;
+  markEventFired(encounter.id);
+  killMonster();
+  if (!isEffectActive('freezeSpawn')) advance();
 }

@@ -1,6 +1,7 @@
 import { getInventory as getInventoryState } from './state/inventory.svelte';
 import { getXp as getXpState, getLevelProgress as getLevelProgressState } from './state/xp.svelte';
 import { getAction as getActionState } from './state/action.svelte';
+import { getPet as getPetState } from './state/pet.svelte';
 import { getEncounter as getEncounterState } from './state/encounter.svelte';
 import { isDiscovered as isDiscoveredState, getMaxDiscoveredEntryNo as getMaxDiscoveredEntryNoState } from './state/bestiary.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
@@ -30,10 +31,12 @@ import {
   useItem as useItemInternal,
   calculateDamage as calculateDamageInternal,
   resolveDialogChoice as resolveDialogChoiceInternal,
+  dismissDialog as dismissDialogInternal,
   getLevelGap as getLevelGapInternal,
+  getVisibleDialogChoices as getVisibleDialogChoicesInternal,
 } from './engine';
 export type { LevelGap } from './engine';
-import type { DialogNodeId } from './data/dialog';
+import type { DialogNodeId, DialogNode } from './data/dialog';
 import {
   loadSave,
   saveNow as saveNowInternal,
@@ -68,6 +71,10 @@ export function getLevelProgress() {
 
 export function getAction() {
   return getActionState();
+}
+
+export function getPet() {
+  return getPetState();
 }
 
 export function getEncounter() {
@@ -160,6 +167,14 @@ export function useItem(itemId: ItemId) {
 
 export function resolveDialogChoice(next: DialogNodeId) {
   resolveDialogChoiceInternal(next);
+}
+
+export function dismissDialog() {
+  dismissDialogInternal();
+}
+
+export function getVisibleDialogChoices(node: DialogNode) {
+  return getVisibleDialogChoicesInternal(node);
 }
 
 export function tick() {

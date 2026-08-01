@@ -1,11 +1,15 @@
 <script lang="ts">
-  import { getEncounter, resolveDialogChoice } from '../game/game';
+  import { getEncounter, resolveDialogChoice, getVisibleDialogChoices, dismissDialog } from '../game/game';
   import { DIALOGS } from '../game/data/dialog';
   import EncounterCardShell from './EncounterCardShell.svelte';
   import type { Social } from '../game/types';
 
   let encounter = $derived(getEncounter() as Social);
   let node = $derived(DIALOGS[encounter.currentNode]);
+  // Gated choices (see DialogChoice.when) are filtered out here, not just
+  // hidden in the markup - so a gated option gets neither a digit keybind
+  // nor a rendered index for the one after it to shift into.
+  let choices = $derived(getVisibleDialogChoices(node));
 
   // Digit keys 1-9 pick the matching choice, mirroring the click handler
   // below - reads encounter/node live at keypress time rather than at
@@ -15,12 +19,12 @@
   // dialog choice.
   $effect(() => {
     function handleKeydown(event: KeyboardEvent) {
-      if (encounter.status !== 'active' || !node.choices) return;
+      if (encounter.status !== 'active' || choices.length === 0) return;
       const target = event.target;
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
       const index = Number(event.key) - 1;
-      if (!Number.isInteger(index) || index < 0 || index >= node.choices.length) return;
-      resolveDialogChoice(node.choices[index].next);
+      if (!Number.isInteger(index) || index < 0 || index >= choices.length) return;
+      resolveDialogChoice(choices[index].next);
     }
     document.addEventListener('keydown', handleKeydown);
     return () => document.removeEventListener('keydown', handleKeydown);
@@ -31,9 +35,9 @@
   {#key encounter.currentNode}
     <p class="line">{node.text}</p>
   {/key}
-  {#if node.choices && node.choices.length > 0}
+  {#if choices.length > 0}
     <div class="choices">
-      {#each node.choices as choice, i}
+      {#each choices as choice, i}
         <button
           class="choice"
           disabled={encounter.status !== 'active'}
@@ -43,6 +47,12 @@
           {choice.text}
         </button>
       {/each}
+    </div>
+  {:else if !node.choices?.length}
+    <div class="choices">
+      <button class="choice" disabled={encounter.status !== 'active'} onclick={() => dismissDialog()}>
+        Continue.
+      </button>
     </div>
   {/if}
 </EncounterCardShell>

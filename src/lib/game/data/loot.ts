@@ -98,6 +98,23 @@ export const ITEMS = {
     flavor: "You Won't Believe What Happened When One Man Challenged a Badger to Single Combat (Foresters Hate Him).",
     action: { effect: 'permanentDamageBoost', consumes: true },
   },
+  corkedBottle: {
+    name: 'Corked Bottle',
+    rarity: 'epic',
+    flavor: 'Dusty. Corked. Heavier than it looks.',
+    action: { effect: 'summonGenie', consumes: true },
+  },
+  wishAsIs: {
+    name: 'Wish (As-Is)',
+    rarity: 'rare',
+    flavor: 'No refunds. No exchanges. Works as described, allegedly.',
+    passive: [{ stat: 'damage', value: 1 }],
+  },
+  lifetimeAcorns: {
+    name: 'Lifetime Supply of Acorns',
+    rarity: 'rare',
+    flavor: 'The genie did not specify a unit. This was, in retrospect, a mistake.',
+  },
   tuskOfTheUnvanquishedSwineLord: {
     name: 'Tusk of the Unvanquished Swine-Lord, Who Only Ever Stood Here, In This Field, Doing Nothing',
     rarity: 'legendary',
@@ -179,7 +196,7 @@ const TREASURE: Record<string, DropPool> = {
 
   // Utils
   misc: { eye: 1, unidentifiedHair: 1, knottedTwineRing: 1 },
-  noobTreasure: { tarnishedRing: 4, bottledDejaVu: 1, fightingWoodlandCreaturesForDummies: 1 },
+  noobTreasure: { tarnishedRing: 4, bottledDejaVu: 1, fightingWoodlandCreaturesForDummies: 1, corkedBottle: 1 },
   // 1-in-1000 of the tusk roll, not a separate chance — the legendary tusk
   // is the same drop, just an absurdly rare cut of it, not a new category.
   // Was 1-in-100 (~1-in-500 per boar kill, median ~350 boars) - measured

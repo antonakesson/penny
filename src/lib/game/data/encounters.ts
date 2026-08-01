@@ -161,9 +161,16 @@ export const ENCOUNTERS = {
 
   rabbidSquirrel: {
     kind: 'social',
-    name: 'Rabid Squirrel',
+    name: 'Friendly (but possibly rabid) Squirrel',
     level: 1,
     dialogRoot: 'squirrel:greet',
+  },
+
+  genie: {
+    kind: 'social',
+    name: 'Something in the Bottle',
+    level: 1,
+    dialogRoot: 'genie:root',
   },
 } as const satisfies Record<string, EncounterDef>;
 

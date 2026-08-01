@@ -70,6 +70,24 @@ export const EFFECTS = {
     title: 'Eat',
     description: "Best not to ask. +5 XP either way.",
   },
+  summonGenie: {
+    kind: 'launchEncounter',
+    encounterId: 'genie',
+    title: 'Corked Bottle',
+    description: 'Something answers. No refunds.',
+  },
+  grantGenieWish: {
+    kind: 'grantItem',
+    itemId: 'wishAsIs',
+    title: 'Wish Granted',
+    description: 'As advertised. Roughly.',
+  },
+  squirrelWish: {
+    kind: 'grantItem',
+    itemId: 'lifetimeAcorns',
+    title: 'Acorn Wish',
+    description: "The squirrel's, not yours.",
+  },
 } as const satisfies Record<string, EffectDef>;
 
 export type EffectId = keyof typeof EFFECTS;
