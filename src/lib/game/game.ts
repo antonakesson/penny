@@ -30,7 +30,9 @@ import {
   useItem as useItemInternal,
   calculateDamage as calculateDamageInternal,
   resolveDialogChoice as resolveDialogChoiceInternal,
+  getLevelGap as getLevelGapInternal,
 } from './engine';
+export type { LevelGap } from './engine';
 import type { DialogNodeId } from './data/dialog';
 import {
   loadSave,
@@ -146,6 +148,10 @@ export function release() {
 
 export function getDamage() {
   return calculateDamageInternal();
+}
+
+export function getLevelGap(encounterLevel: number) {
+  return getLevelGapInternal(encounterLevel);
 }
 
 export function useItem(itemId: ItemId) {

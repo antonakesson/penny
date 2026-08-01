@@ -7,9 +7,10 @@ import {
 } from '../data/encounters';
 import { pickEncounter } from '../data/zones';
 import { getCurrentZoneId } from './zone.svelte';
+import { getDifficulty } from './map.svelte';
 import { isDiscovered } from './bestiary.svelte';
 import { getBestiaryEntry } from '../data/bestiary';
-import { NAIVE_SCALE_PER_LEVEL, INVESTIGATE } from '../config';
+import { INVESTIGATE } from '../config';
 import { assertNever } from '../util/assertNever';
 import type { Encounter, Monster, Investigation, Social } from '../types';
 import type { DialogNodeId } from '../data/dialog';
@@ -24,10 +25,20 @@ function isNewDiscoveryFor(name: string): boolean {
   return entry !== undefined && !isDiscovered(entry.entryNo);
 }
 
-// Naive step-1 scaling: flat per-level multiplier is a placeholder - see
-// NAIVE_SCALE_PER_LEVEL, replaced by a real curve in step 2.
+// No per-monster-identity scaling - hp/xp start from the def's own
+// honestly-authored numbers. A tougher version of a monster is a separate
+// def/id (e.g. a future mediumBoar) rather than the same id stretched by a
+// formula; see enemy_design_scope / the zones.ts level-removal for why.
+//
+// What DOES still scale live is session intensity: the difficulty signal
+// (0..1, resamples as distance changes) lerped to a 0..2 multiplier, applied
+// on top of the declared base so relative toughness between monsters is
+// preserved. Baked once here at spawn time, not recomputed mid-fight - same
+// "vanishes/drifts within a tick" bug class snapshotToEncounter's comment
+// already warns about for level. Floored at 1 so a low-difficulty roll can
+// never produce a free/0-hp kill.
 function createMonster(id: EncounterId, def: MonsterDef, level: number): Monster {
-  const scale = 1 + NAIVE_SCALE_PER_LEVEL * (level - def.level);
+  const scale = getDifficulty() * 2;
   const maxHp = Math.max(1, Math.round(def.maxHp * scale));
   const xpReward = Math.max(1, Math.round(def.xpReward * scale));
   return {

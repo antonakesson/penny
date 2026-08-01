@@ -23,11 +23,6 @@ export const AUTOSAVE_INTERVAL_MS = 10_000;
 // zones.ts's encounter weights.
 export const DISTANCE_STEP = 0.055;
 
-// Naive placeholder curve: +/-20% hp/xp per level away from a monster's
-// authored base level. Flat and untuned on purpose - a hand-tailored curve
-// (like LEVELS in data/levels.ts) replaces this once scaling is proven out.
-export const NAIVE_SCALE_PER_LEVEL = 0.2;
-
 export const INVESTIGATE = {
   // Only source of drain - no ambient decay, since draining HP the player
   // never touched read as unearned. A real damage-per-second rate while

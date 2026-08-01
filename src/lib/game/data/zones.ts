@@ -1,31 +1,10 @@
 import type { EncounterId } from './encounters';
 import { weightedPick } from '../util/weighted';
-import { getSignal, getDifficulty } from '../state/map.svelte';
+import { getSignal } from '../state/map.svelte';
 
 export const ZONES = {
   zone1: {
     name: 'Whispering Woods',
-    // weight is real estate on the signal axis, not outcome probability -
-    // same subtlety as the monster pool's weights below (both draw from
-    // single-octave noise, bell-shaped around 0.5, rarely near its own
-    // extremes), so a band's width and its actual hit rate are never the
-    // same number. The monster table already leans on this: Honeybee's
-    // weight of 1 sits almost exactly on the bell's density peak and
-    // empirically lands ~8.5% (not the ~2.9% a uniform roll would give
-    // it), while Thorny Shrubbery's weight of 8 sits in a thin tail and
-    // only actually lands ~3.8%. Same principle here: edge levels sit out
-    // in the thin tails and need outsized weight just to catch a normal
-    // share of rolls. [2,1,1,2] (edges double the middle) empirically
-    // lands levels 1/4 at ~11% each and 2/3 at ~36-41% each - a real but
-    // clearly secondary rate for the edges, not a wall. Tune by
-    // resimulating against the actual signal, not by reasoning about the
-    // ratio alone.
-    levels: [
-      { level: 1, weight: 2 },
-      { level: 2, weight: 1 },
-      { level: 3, weight: 1 },
-      { level: 4, weight: 2 },
-    ] as { level: number; weight: number }[],
     description:
       'The trees are evenly distributed. And strangely, equally tall, as if guided by some cost-benefit analysis of structural integrity versus sunlight yield. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',
     quote: {
@@ -62,14 +41,6 @@ export const ZONES = {
   // same load-bearing-order convention as zone1.
   zone2: {
     name: 'Rainbow Bog',
-    // DRAFT — flat placeholder, not tuned against the signal like zone1's
-    // (see zone1's levels comment). Revisit once this zone is actually
-    // playtested; not reachable in-game yet anyway.
-    levels: [
-      { level: 4, weight: 1 },
-      { level: 5, weight: 1 },
-      { level: 6, weight: 1 },
-    ] as { level: number; weight: number }[],
     description:
       'The name predates the bog. Nobody currently employed by any nearby settlement can explain the rainbow part, and several have stopped trying.',
     quote: {
@@ -93,12 +64,6 @@ export const ZONES = {
   // Ordered by seniority: squatter -> enforcer -> organization -> authority.
   zone3: {
     name: 'The Last Ledger',
-    // DRAFT — same flat-placeholder caveat as zone2.
-    levels: [
-      { level: 6, weight: 1 },
-      { level: 7, weight: 1 },
-      { level: 8, weight: 1 },
-    ] as { level: number; weight: number }[],
     description:
       "Somebody kept immaculate records here, right up until they stopped. The books are still open on the desk, mid-entry, as if whoever was writing just meant to step out for a moment.",
     quote: {
@@ -123,14 +88,4 @@ export type ZoneId = keyof typeof ZONES;
 export function pickEncounter(zoneId: ZoneId): EncounterId {
   const zone = ZONES[zoneId];
   return weightedPick(zone.encounters.map((m) => [m.id, m.weight] as const), getSignal());
-}
-
-// Independent of pickEncounter's roll - reads the difficulty signal, not the
-// terrain one, so an encounter's level varies separately from which monster
-// got picked. Same weighted-pick mechanism as pickEncounter, just over a
-// levels table instead of a monster pool - authored weights shape the
-// curve directly instead of relying on the noise signal's own distribution.
-export function pickLevel(zoneId: ZoneId): number {
-  const zone = ZONES[zoneId];
-  return weightedPick(zone.levels.map((l) => [l.level, l.weight] as const), getDifficulty());
 }

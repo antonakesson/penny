@@ -82,49 +82,62 @@ export const ENCOUNTERS = {
     description: 'Not the first of its kind to try to walk on land. The others, notably, did not go back.',
   },
 
-  watersnake: { kind: 'monster', name: 'Watersnake', level: 2, maxHp: 4, xpReward: 2, dropTableId: [] },
-  fox: { kind: 'monster', name: 'Fox', level: 2, maxHp: 5, xpReward: 2, dropTableId: [] },
+  // Zone2/zone3 levels+stats below are a first honest pass, not playtested -
+  // hp/xp were linearly remapped from their old (pre-level-removal)
+  // placeholder numbers into the zone's real hp band, preserving each
+  // monster's original xp/hp ratio (the "rarer is a treat" tuning already
+  // baked into those ratios carries over unchanged). Expect to retune once
+  // these zones are actually played.
+  watersnake: { kind: 'monster', name: 'Watersnake', level: 4, maxHp: 34, xpReward: 17, dropTableId: [] },
+  fox: { kind: 'monster', name: 'Fox', level: 5, maxHp: 36, xpReward: 14, dropTableId: [] },
   // xpReward was 4 (ratio 0.33) - worse than every commoner monster in the
   // pool despite being the third-rarest by weight. Bumped to fit "rarer is
   // a treat" between Blueberry (rarer, ratio 1.0) and Feral Goat/Fox
   // (commoner, ratio 0.4).
-  moose: { kind: 'monster', name: 'Moose', level: 2, maxHp: 12, xpReward: 8, dropTableId: [] },
-  blueberry: { kind: 'monster', name: 'Blueberry', level: 2, maxHp: 6, xpReward: 6, dropTableId: [] },
+  moose: { kind: 'monster', name: 'Moose', level: 6, maxHp: 50, xpReward: 33, dropTableId: [] },
+  blueberry: { kind: 'monster', name: 'Blueberry', level: 5, maxHp: 38, xpReward: 38, dropTableId: [] },
   duckJustADuck: {
     kind: 'monster',
     name: 'Duck. Just a Duck.',
-    level: 2,
-    maxHp: 2,
-    xpReward: 1,
+    level: 4,
+    maxHp: 30,
+    xpReward: 15,
     dropTableId: [],
   },
+  // Ratio 2.33 carried over as-is (rarest in the pool, weight 4) - lands at
+  // 75 xp, well above its zone2 neighbors. That's the "treat" tuning working
+  // as designed, but it's a bigger absolute jump than it was pre-rescale -
+  // worth a second look once this zone is actually played.
   deceptiveMoundLookingSolidButWasActuallyWetFeet: {
     kind: 'monster',
     name: 'Deceptive Mound (Looking Solid But Was Actually Wet Feet)',
-    level: 2,
-    maxHp: 3,
-    xpReward: 7,
+    level: 4,
+    maxHp: 32,
+    xpReward: 75,
     dropTableId: [],
   },
-  feralGoat: { kind: 'monster', name: 'Feral Goat', level: 2, maxHp: 5, xpReward: 2, dropTableId: [] },
-  ruffian: { kind: 'monster', name: 'Ruffian', level: 2, maxHp: 10, xpReward: 4, dropTableId: [] },
+  feralGoat: { kind: 'monster', name: 'Feral Goat', level: 5, maxHp: 36, xpReward: 14, dropTableId: [] },
+  ruffian: { kind: 'monster', name: 'Ruffian', level: 7, maxHp: 55, xpReward: 22, dropTableId: [] },
   suspiciouslyOrganizedRatKing: {
     kind: 'monster',
     name: 'Suspiciously Organized Rat King',
-    level: 2,
-    maxHp: 14,
-    xpReward: 9,
+    level: 8,
+    maxHp: 70,
+    xpReward: 45,
     dropTableId: [],
   },
   guyWhoDefinitelyOwnsThisNow: {
     kind: 'monster',
     name: 'Guy Who Definitely Owns This Now',
-    level: 2,
-    maxHp: 6,
-    xpReward: 3,
+    level: 6,
+    maxHp: 40,
+    xpReward: 20,
     dropTableId: [],
   },
-  theAuditor: { kind: 'monster', name: 'The Auditor', level: 2, maxHp: 9, xpReward: 9, dropTableId: [] },
+  // Tied for top level with Rat King, not above it - both are the zone's
+  // "serious" encounters (organization + authority, top two seniority
+  // rungs), even though Rat King's raw hp edges it out numerically.
+  theAuditor: { kind: 'monster', name: 'The Auditor', level: 8, maxHp: 51, xpReward: 51, dropTableId: [] },
 
   rabbitHole: {
     kind: 'investigation',

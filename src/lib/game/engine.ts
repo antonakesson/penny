@@ -11,7 +11,7 @@ import {
 } from './state/encounter.svelte';
 import { DIALOGS, type DialogNodeId } from './data/dialog';
 import { advance } from './state/map.svelte';
-import { pickEncounter, pickLevel } from './data/zones';
+import { pickEncounter } from './data/zones';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { shouldShowEvent, markEventFired } from './state/events.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
@@ -118,6 +118,23 @@ function currentHandler(): ActionHandler | null {
 // nothing here changes.
 export function calculateDamage(): number {
   return getLevel() + sumModifier('damage');
+}
+
+// Trivial/Easy/Even/Deadly, WoW-con-color style. Cross-domain by nature
+// (player level vs an encounter's own level) so it lives here, not in
+// xp.svelte or encounter.svelte - one place computing it instead of the UI
+// (color) and a future outlevel xp penalty each growing their own copy of
+// the same bucketing and drifting apart. Takes the level as a plain number
+// rather than reading getEncounter() itself, since callers (e.g.
+// EncounterCardShell) already receive it via props.
+export type LevelGap = 'trivial' | 'easy' | 'even' | 'deadly';
+
+export function getLevelGap(encounterLevel: number): LevelGap {
+  const gap = encounterLevel - getLevel();
+  if (gap <= -3) return 'trivial';
+  if (gap < 0) return 'easy';
+  if (gap <= 1) return 'even';
+  return 'deadly';
 }
 
 // Real-time-rate based, not a flat per-call amount - INVESTIGATE.dps is an
@@ -230,15 +247,14 @@ export function tick() {
 // already been dropped from the queue by the time this runs.
 function decideNextEncounter(diedId: EncounterId): Encounter {
   if (isEffectActive('freezeSpawn')) {
-    // Distance is held still by the same freeze, so the difficulty signal
-    // resamples to the same value - re-picking here (rather than reusing a
-    // stashed level) rides that determinism instead of duplicating it.
-    return createEncounter(diedId, pickLevel(getCurrentZoneId()));
+    // Same id always resolves to the same authored level/stats now (no more
+    // zone-driven level roll to replay), so this is trivially a repeat.
+    return createEncounter(diedId);
   }
   const eventEncounterId = shouldShowEvent();
   if (eventEncounterId) return createEncounter(eventEncounterId);
   const zoneId = getCurrentZoneId();
-  return createEncounter(pickEncounter(zoneId), pickLevel(zoneId));
+  return createEncounter(pickEncounter(zoneId));
 }
 
 export function useItem(itemId: ItemId) {
