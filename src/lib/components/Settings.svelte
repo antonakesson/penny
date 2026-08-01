@@ -56,7 +56,7 @@
     <button class="danger" onclick={handleReset}>Reset progress</button>
   </section>
   <div class="version">
-    <Chip text="Version 0.2-alpha" />
+    <Chip text="Version 0.3-alpha" />
   </div>
 </div>
 
