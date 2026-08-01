@@ -4,7 +4,7 @@
   import type { Encounter } from '../game/types';
 
   // Shell only - the .encounter/.header/.name/.level chrome shared by every
-  // card kind (monster/investigation/rabbidSquirrel). Kind-specific body
+  // card kind (monster/investigation/social). Kind-specific body
   // (hp bar, resolve button, whatever the next kind needs) is the children
   // snippet; only Investigation lacks a level to show.
   let { encounter, children }: { encounter: Encounter; children: Snippet } = $props();

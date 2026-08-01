@@ -5,6 +5,7 @@ export const PANES = {
   character: { label: 'Character' },
   inventory: { label: 'Inventory' },
   bestiary: { label: 'Bestiary' },
+  pet: { label: 'Pet' },
   settings: { label: 'Settings' },
   devtools: { label: 'Dev Tools' },
 } as const;
@@ -15,6 +16,7 @@ export type PaneId = keyof typeof PANES;
 // earned, so launch stays uncluttered (inventory + settings only).
 const PANE_GATE: Partial<Record<PaneId, FeatureId>> = {
   bestiary: 'bestiary',
+  pet: 'pet',
 };
 
 export function isPaneVisible(paneId: PaneId): boolean {

@@ -25,6 +25,12 @@ export const EFFECTS = {
     title: 'Bestiary',
     description: 'Unlocks the Bestiary.',
   },
+  unlockPet: {
+    kind: 'unlockFeature',
+    feature: 'pet',
+    title: 'Pet',
+    description: 'Unlocks the Pet pane.',
+  },
   // Freezing distance means the signal map.svelte.ts samples at spawn time
   // doesn't move either, so pickEncounter() deterministically hands back
   // the same monster - no separate "pinned monster id" needed, this just

@@ -65,7 +65,36 @@ export const ITEMS = {
   fightingWoodlandCreaturesForDummies: {
     name: 'Fighting Woodland Creatures for Dummies',
     rarity: 'rare',
-    flavor: "You didn't fight anything. You read about it very hard.",
+    flavor:
+      'Less a guide, more a very detailed daydream. The author has illustrated himself defeating a badger in fourteen increasingly implausible outfits.',
+    action: { effect: 'permanentDamageBoost', consumes: true },
+  },
+  // Same generic title, wildly inconsistent actual contents — the joke being
+  // that plenty of people apparently tried to write THE definitive guide to
+  // fighting woodland creatures, and none of them agree, or are remotely
+  // qualified. Only the entry above is listed in noobTreasure; these three
+  // are written but deliberately unhooked from every TREASURE pool for now
+  // (same pattern as perpetualRequisitionSlip below) - reachable only via
+  // DevTools' "Add item" dropdown. Candidates for a future dedicated pool
+  // that rolls among all four "editions" instead of always handing out the
+  // same one.
+  fightingWoodlandCreaturesForDummiesTreatise: {
+    name: 'Fighting Woodland Creatures for Dummies',
+    rarity: 'rare',
+    flavor:
+      'Four hundred rigorously footnoted pages. Chapter Eleven concerns what to do if the badger has unionized. It is not the joke chapter it sounds like.',
+    action: { effect: 'permanentDamageBoost', consumes: true },
+  },
+  fightingWoodlandCreaturesForDummiesScholar: {
+    name: 'Fighting Woodland Creatures for Dummies',
+    rarity: 'rare',
+    flavor: 'Written by a man who has never once set foot outside his reading room, with the complete confidence of someone who has.',
+    action: { effect: 'permanentDamageBoost', consumes: true },
+  },
+  fightingWoodlandCreaturesForDummiesClickbait: {
+    name: 'Fighting Woodland Creatures for Dummies',
+    rarity: 'rare',
+    flavor: "You Won't Believe What Happened When One Man Challenged a Badger to Single Combat (Foresters Hate Him).",
     action: { effect: 'permanentDamageBoost', consumes: true },
   },
   tuskOfTheUnvanquishedSwineLord: {
@@ -106,6 +135,22 @@ export const ITEMS = {
 } as const satisfies Record<string, ItemDef>;
 
 export type ItemId = keyof typeof ITEMS;
+
+// Sparse - most items have no cap at all (unbounded stacking; notably NOT
+// tuskOfTheUnvanquishedSwineLord - a second one is funnier, not a bug, and
+// honors the ~1-in-5000 grind behind the first). What "unique" means here
+// is a specific narrative object (a specific missing cat's owner's letter,
+// a specific crudely-carved ring) - most legendary items still stack fine.
+// Checked inside resolvePool() below, not post-hoc in engine.ts - a capped
+// item gets excluded from the roll itself, not rolled-then-denied, so a
+// guaranteed pool (letterDrops has no 'nothing') rerolls among what's left
+// instead of occasionally handing back nothing at all.
+export const ITEM_CAP: Partial<Record<ItemId, number>> = {
+  letterMissingCat: 1,
+  letterGoatSituation: 1,
+  letterTollNotice: 1,
+  knottedTwineRing: 1,
+};
 
 export const RARITY_ORDER: readonly Rarity[] = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
 
@@ -153,23 +198,30 @@ function isItemId(key: string): key is ItemId {
   return key in ITEMS;
 }
 
-function resolvePool(poolId: string, depth: number): ItemId[] {
+// isAtCap is supplied by the caller (engine.ts), not read here - loot.ts
+// stays state-blind (see architecture_state_ownership: cross-domain
+// composition lives only in engine.ts). Capped-out items are excluded
+// before the weighted pick, not filtered after it - see ITEM_CAP's comment
+// on why a guaranteed pool needs the exclusion to happen pre-roll.
+function resolvePool(poolId: string, depth: number, isAtCap: (id: ItemId) => boolean): ItemId[] {
   if (depth >= MAX_TREASURE_DEPTH) return [];
   const pool = TREASURE[poolId];
   if (!pool) return [];
   const picks = PICKS[poolId] ?? 1;
   const drops: ItemId[] = [];
   for (let i = 0; i < picks; i++) {
-    const key = weightedPick(Object.entries(pool));
+    const available = Object.entries(pool).filter(([key]) => !isItemId(key) || !isAtCap(key));
+    if (available.length === 0) continue; // everything left in this pool is capped out
+    const key = weightedPick(available);
     if (key === 'nothing') continue;
     if (isItemId(key)) drops.push(key);
-    else drops.push(...resolvePool(key, depth + 1));
+    else drops.push(...resolvePool(key, depth + 1, isAtCap));
   }
   return drops;
 }
 
 // One independent resolve per pool id — a monster with the same pool listed
 // twice gets two separate chances, not a guaranteed pair.
-export function resolveDropIds(dropTableIds: readonly string[]): ItemId[] {
-  return dropTableIds.flatMap((poolId) => resolvePool(poolId, 0));
+export function resolveDropIds(dropTableIds: readonly string[], isAtCap: (id: ItemId) => boolean): ItemId[] {
+  return dropTableIds.flatMap((poolId) => resolvePool(poolId, 0, isAtCap));
 }

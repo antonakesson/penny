@@ -11,6 +11,10 @@ export const FEATURES = {
     title: 'Bestiary Unlocked',
     message: "Not your journal. Not quite empty, either — one page in, then nothing. You start filling in the rest.",
   },
+  pet: {
+    title: 'Pet Unlocked',
+    message: 'It followed you back. Whether that was your idea or its own is still unclear.',
+  },
 } as const satisfies Record<string, FeatureDef>;
 
 export type FeatureId = keyof typeof FEATURES;

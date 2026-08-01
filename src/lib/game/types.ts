@@ -1,4 +1,5 @@
 import type { Rarity } from './data/loot';
+import type { DialogNodeId } from './data/dialog';
 
 interface EncounterBase {
   instanceId: number; // UI-transition key only (hp-fill transition reset) — not meaningful data
@@ -38,21 +39,22 @@ export interface Investigation extends EncounterBase {
 }
 
 // Discrete, click-to-resolve — no ActionState mutex (see ActionKind). Has
-// `level` — recruiting the squirrel is expected to scale like a real
-// encounter, unlike Investigation. Real fields beyond that (stage, options,
-// cost, outcome) land with the Rabid Squirrel follow-up; this variant exists
-// to prove the sealed union / registry / <Encounter/> dispatch handles a
-// non-hp-drain kind end-to-end, behind a deliberately simple placeholder UI.
-export interface RabbidSquirrel extends EncounterBase {
-  action: 'rabbidSquirrel';
+// `level` — a social encounter is expected to scale like a real encounter,
+// unlike Investigation. `dialogRoot` is the def's static entry node (never
+// mutates); `currentNode` is where the conversation actually is right now,
+// advanced one pick at a time via pickDialogChoice() in encounter.svelte.ts.
+export interface Social extends EncounterBase {
+  action: 'social';
   level: number;
+  dialogRoot: DialogNodeId;
+  currentNode: DialogNodeId;
 }
 
-export type Encounter = Monster | Investigation | RabbidSquirrel;
+export type Encounter = Monster | Investigation | Social;
 
 // Only the hp-drain kinds share the timing mutex below — attack and
 // investigate are mutually exclusive activities on the same "self" occupant.
-// RabbidSquirrel's discrete click-to-pick skips it entirely (see
+// Social's discrete click-to-pick skips it entirely (see
 // ENCOUNTER_REFACTOR.md decision 1).
 export type ActionKind = 'attack' | 'investigate';
 

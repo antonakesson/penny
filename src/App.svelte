@@ -2,9 +2,11 @@
   import Zone from './lib/components/Zone.svelte';
   import SignalTrace from './lib/components/SignalTrace.svelte';
   import Encounter from './lib/components/Encounter.svelte';
+  import ActivePet from './lib/components/ActivePet.svelte';
   import Character from './lib/components/Character.svelte';
   import Inventory from './lib/components/Inventory.svelte';
   import Bestiary from './lib/components/Bestiary.svelte';
+  import Pet from './lib/components/Pet.svelte';
   import Settings from './lib/components/Settings.svelte';
   import DevTools from './lib/components/DevTools.svelte';
   import Nav from './lib/components/Nav.svelte';
@@ -87,6 +89,7 @@
     <Zone />
     <SignalTrace />
     <Encounter />
+    <ActivePet />
   </main>
   <Pane paneId="character" label="Character">
     <Character />
@@ -97,6 +100,11 @@
   {#if isPaneVisible('bestiary')}
     <Pane paneId="bestiary" label="Bestiary">
       <Bestiary />
+    </Pane>
+  {/if}
+  {#if isPaneVisible('pet')}
+    <Pane paneId="pet" label="Pet">
+      <Pet />
     </Pane>
   {/if}
   <Pane paneId="settings" label="Settings">

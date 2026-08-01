@@ -1,17 +1,18 @@
 import { ACTION, ENCOUNTER_END_MS, INVESTIGATE } from './config';
-import { getEncounter, createEncounter, damageMonster, killMonster, spawn } from './state/encounter.svelte';
+import { getEncounter, createEncounter, damageMonster, killMonster, spawn, pickDialogChoice } from './state/encounter.svelte';
+import { DIALOGS, type DialogNodeId } from './data/dialog';
 import { advance } from './state/map.svelte';
 import { pickEncounter, pickLevel } from './data/zones';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { shouldShowEvent, markEventFired } from './state/events.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { addXp, getLevel } from './state/xp.svelte';
-import { addItem, removeItem } from './state/inventory.svelte';
+import { addItem, removeItem, getInventory } from './state/inventory.svelte';
 import { discoverMonster } from './state/bestiary.svelte';
 import { getBestiaryEntry } from './data/bestiary';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
 import { spawnXpFloatingText } from './state/xpFloatingText.svelte';
-import { resolveDropIds, ITEMS, type ItemId, type ItemDef } from './data/loot';
+import { resolveDropIds, ITEMS, ITEM_CAP, type ItemId, type ItemDef } from './data/loot';
 import { isFeatureUnlocked } from './state/features.svelte';
 import { triggerEffect, isEffectActive } from './state/effect.svelte';
 import { sumModifier } from './state/modifier.svelte';
@@ -90,10 +91,10 @@ const investigateHandler: ActionHandler = {
   },
 };
 
-// null for any kind that doesn't use the ActionState mutex at all -
-// RabbidSquirrel's discrete click-to-pick, for one (see ENCOUNTER_REFACTOR.md
-// decision 1). Its card calls the resolve function directly instead of going
-// through press()/release()/tick().
+// null for any kind that doesn't use the ActionState mutex at all - Social's
+// discrete click-to-pick, for one (see ENCOUNTER_REFACTOR.md decision 1).
+// Its card calls the resolve function directly instead of going through
+// press()/release()/tick().
 function currentHandler(): ActionHandler | null {
   const action = getEncounter().action;
   if (action === 'attack') return attackHandler;
@@ -154,10 +155,10 @@ function damageForKind(kind: ActionKind): number {
 
 function applyHit() {
   const encounter = getEncounter();
-  // RabbidSquirrel never reaches here - currentHandler() returns null for
-  // it, so nothing ever calls applyHit() while it's current. Narrows the
-  // rest of this function to the hp-drain kinds.
-  if (encounter.action === 'rabbidSquirrel') return;
+  // Social never reaches here - currentHandler() returns null for it, so
+  // nothing ever calls applyHit() while it's current. Narrows the rest of
+  // this function to the hp-drain kinds.
+  if (encounter.action === 'social') return;
   // A dead monster can't be hit again. Attack never hit this case because
   // resolving a swing always leaves ActionState in 'cooldown', which its
   // own tick() guard already blocks - but investigate's continuous hold
@@ -233,8 +234,13 @@ function awardXp(amount: number) {
   spawnXpFloatingText(amount);
 }
 
+function isAtItemCap(itemId: ItemId): boolean {
+  const cap = ITEM_CAP[itemId];
+  return cap !== undefined && (getInventory()[itemId] ?? 0) >= cap;
+}
+
 function awardLoot(dropTableId: readonly string[]) {
-  const drops = resolveDropIds(dropTableId);
+  const drops = resolveDropIds(dropTableId, isAtItemCap);
   playSound(drops.length > 0 ? 'LootDropped' : 'LootEmpty');
   for (const dropId of drops) {
     addItem(dropId, 1);
@@ -242,9 +248,9 @@ function awardLoot(dropTableId: readonly string[]) {
   }
 }
 
-// Only the hp-drain kinds resolve through here - RabbidSquirrel gets its own
-// resolveRabbidSquirrelPick() below, since "loot + xp" doesn't fit what a
-// discrete choice grants.
+// Only the hp-drain kinds resolve through here - Social gets its own
+// resolveDialogChoice() below, since "loot + xp" doesn't fit what a
+// conversation grants (that's what a node's own `effect` is for).
 function resolveKill(encounter: Monster | Investigation) {
   awardXp(encounter.xpReward);
   awardLoot(encounter.dropTableId);
@@ -253,14 +259,20 @@ function resolveKill(encounter: Monster | Investigation) {
   if (!isEffectActive('freezeSpawn')) advance();
 }
 
-// Placeholder resolution - the real Recruit Pet stages (Bribe/Shoo, pet
-// grant, decline) are a follow-up; this just proves a non-hp-drain kind can
-// resolve outside the attack/investigate path at all. Triggered by
-// <RabbidSquirrelCard/>'s button, not by applyHit() - RabbidSquirrel never
-// enters that path (see currentHandler()).
-export function resolveRabbidSquirrelPick() {
+// Triggered by <SocialCard/>'s choice buttons, not applyHit() - Social never
+// enters that path (see currentHandler()). Picking a choice always moves
+// currentNode; only a terminal node (no choices of its own) resolves the
+// encounter, firing its effect (if any) first so it lands before the
+// encounter disappears.
+export function resolveDialogChoice(next: DialogNodeId) {
   const encounter = getEncounter();
-  if (encounter.action !== 'rabbidSquirrel' || encounter.status !== 'active') return;
-  killMonster();
-  advance();
+  if (encounter.action !== 'social' || encounter.status !== 'active') return;
+  pickDialogChoice(next);
+  const node = DIALOGS[next];
+  if (node.effect) triggerEffect(node.effect);
+  if (!node.choices || node.choices.length === 0) {
+    markEventFired(encounter.id);
+    killMonster();
+    if (!isEffectActive('freezeSpawn')) advance();
+  }
 }

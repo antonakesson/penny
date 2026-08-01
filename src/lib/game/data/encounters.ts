@@ -4,6 +4,7 @@
 // id sources over this same table, so whether an id is one-shot vs.
 // repeatable, or zone-pickable vs. event-only, stays a content decision
 // (an id simply not listed in a given zone's pool), never a type constraint.
+import type { DialogNodeId } from './dialog';
 
 export interface MonsterDef {
   kind: 'monster';
@@ -27,17 +28,17 @@ export interface InvestigationDef {
   descriptions?: readonly string[];
 }
 
-// Placeholder shape only — real fields (stage, options, cost, outcome) land
-// with the Rabid Squirrel follow-up. Exists to prove the sealed union /
-// registry / <Encounter/> dispatch handles a non-hp-drain kind end-to-end.
-export interface RabbidSquirrelDef {
-  kind: 'rabbidSquirrel';
+// dialogRoot points into data/dialog.ts's DIALOGS table — the entry node a
+// fresh Social encounter starts its conversation at.
+export interface SocialDef {
+  kind: 'social';
   name: string;
   level: number;
+  dialogRoot: DialogNodeId;
   description?: string;
 }
 
-export type EncounterDef = MonsterDef | InvestigationDef | RabbidSquirrelDef;
+export type EncounterDef = MonsterDef | InvestigationDef | SocialDef;
 
 export const ENCOUNTERS = {
   boar: {
@@ -145,14 +146,11 @@ export const ENCOUNTERS = {
     ],
   },
 
-  // Throwaway placeholder — not listed in any zone pool or event trigger.
-  // Only reachable via Dev Tools' spawn selector, to prove the plumbing
-  // (registry -> createEncounter() -> <RabbidSquirrelCard/>) end-to-end
-  // before the real Recruit Pet stages are built.
   rabbidSquirrel: {
-    kind: 'rabbidSquirrel',
+    kind: 'social',
     name: 'Rabid Squirrel',
     level: 1,
+    dialogRoot: 'squirrel:greet',
   },
 } as const satisfies Record<string, EncounterDef>;
 

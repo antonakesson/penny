@@ -29,8 +29,9 @@ import {
   tick as tickInternal,
   useItem as useItemInternal,
   calculateDamage as calculateDamageInternal,
-  resolveRabbidSquirrelPick as resolveRabbidSquirrelPickInternal,
+  resolveDialogChoice as resolveDialogChoiceInternal,
 } from './engine';
+import type { DialogNodeId } from './data/dialog';
 import {
   loadSave,
   saveNow as saveNowInternal,
@@ -151,8 +152,8 @@ export function useItem(itemId: ItemId) {
   useItemInternal(itemId);
 }
 
-export function resolveRabbidSquirrelPick() {
-  resolveRabbidSquirrelPickInternal();
+export function resolveDialogChoice(next: DialogNodeId) {
+  resolveDialogChoiceInternal(next);
 }
 
 export function tick() {

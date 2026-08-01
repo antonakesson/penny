@@ -2,8 +2,8 @@ import type { ENCOUNTERS } from './encounters';
 
 // The pokedex, not a mirror of encounters.ts — a curated subset. Only what's
 // listed here gets a stamped entryNo and gets discovery-tracked at all,
-// which is why one-shot story beats (hastilyAbandonedCamp) and unfinished
-// placeholders (rabbidSquirrel) simply have no row: they aren't a species to
+// which is why one-shot story beats (hastilyAbandonedCamp) and social
+// encounters (rabbidSquirrel) simply have no row: they aren't a species to
 // log. Matched to its ENCOUNTERS def by name, not id, so this list stays
 // free to reorder/annotate without touching combat data.
 //

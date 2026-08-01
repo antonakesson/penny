@@ -3,7 +3,7 @@ import {
   type EncounterId,
   type MonsterDef,
   type InvestigationDef,
-  type RabbidSquirrelDef,
+  type SocialDef,
 } from '../data/encounters';
 import { pickEncounter } from '../data/zones';
 import { getCurrentZoneId } from './zone.svelte';
@@ -11,7 +11,8 @@ import { isDiscovered } from './bestiary.svelte';
 import { getBestiaryEntry } from '../data/bestiary';
 import { NAIVE_SCALE_PER_LEVEL, INVESTIGATE } from '../config';
 import { assertNever } from '../util/assertNever';
-import type { Encounter, Monster, Investigation, RabbidSquirrel } from '../types';
+import type { Encounter, Monster, Investigation, Social } from '../types';
+import type { DialogNodeId } from '../data/dialog';
 
 let nextInstanceId = 1;
 
@@ -66,13 +67,15 @@ function createInvestigation(id: EncounterId, def: InvestigationDef): Investigat
   };
 }
 
-function createRabbidSquirrel(id: EncounterId, def: RabbidSquirrelDef, level: number): RabbidSquirrel {
+function createSocial(id: EncounterId, def: SocialDef, level: number): Social {
   return {
     instanceId: nextInstanceId++,
     id,
     name: def.name,
-    action: 'rabbidSquirrel',
+    action: 'social',
     level,
+    dialogRoot: def.dialogRoot,
+    currentNode: def.dialogRoot,
     status: 'active',
     diedAt: null,
     isNewDiscovery: isNewDiscoveryFor(def.name),
@@ -92,8 +95,8 @@ export function createEncounter(id: EncounterId, level?: number): Encounter {
       return createMonster(id, def, level ?? def.level);
     case 'investigation':
       return createInvestigation(id, def);
-    case 'rabbidSquirrel':
-      return createRabbidSquirrel(id, def, level ?? def.level);
+    case 'social':
+      return createSocial(id, def, level ?? def.level);
     default:
       return assertNever(def);
   }
@@ -115,12 +118,20 @@ export function getEncounter(): Encounter {
 
 // Only meaningful for hp-drain kinds - callers only ever reach this after
 // currentHandler()'s attack/investigate path resolves a hit, which never
-// happens for a rabbidSquirrel encounter (see engine.ts), but the guard
-// keeps this module's own invariant self-evident rather than relying on the
-// caller.
+// happens for a social encounter (see engine.ts), but the guard keeps this
+// module's own invariant self-evident rather than relying on the caller.
 export function damageMonster(amount: number) {
-  if (current.action === 'rabbidSquirrel') return;
+  if (current.action === 'social') return;
   current.hp = Math.max(0, current.hp - amount);
+}
+
+// The one place `currentNode` mutates - single-writer, same rule every
+// other slice in this module follows. Guarded on 'social' the same way
+// damageMonster() guards on the hp-drain kinds; engine.ts's
+// resolveDialogChoice() is the only caller.
+export function pickDialogChoice(next: DialogNodeId) {
+  if (current.action !== 'social') return;
+  current.currentNode = next;
 }
 
 // Base Encounter behavior, not per-kind - status/diedAt live on every
@@ -159,12 +170,17 @@ interface InvestigationSnapshot extends EncounterSnapshotBase {
   xpReward: number;
 }
 
-interface RabbidSquirrelSnapshot extends EncounterSnapshotBase {
-  action: 'rabbidSquirrel';
+interface SocialSnapshot extends EncounterSnapshotBase {
+  action: 'social';
   level: number;
+  // dialogRoot isn't persisted - it's def-derived and createEncounter()
+  // reconstructs it fresh. currentNode is the one field that actually
+  // drifts from spawn-time, same reasoning as Monster's level (see
+  // hydrateEncounter()'s comment below).
+  currentNode: DialogNodeId;
 }
 
-export type EncounterSnapshot = MonsterSnapshot | InvestigationSnapshot | RabbidSquirrelSnapshot;
+export type EncounterSnapshot = MonsterSnapshot | InvestigationSnapshot | SocialSnapshot;
 
 export function serializeEncounter(): EncounterSnapshot {
   const base: EncounterSnapshotBase = {
@@ -185,8 +201,8 @@ export function serializeEncounter(): EncounterSnapshot {
       };
     case 'investigate':
       return { ...base, action: 'investigate', hp: current.hp, maxHp: current.maxHp, xpReward: current.xpReward };
-    case 'rabbidSquirrel':
-      return { ...base, action: 'rabbidSquirrel', level: current.level };
+    case 'social':
+      return { ...base, action: 'social', level: current.level, currentNode: current.currentNode };
     default:
       return assertNever(current);
   }
@@ -228,10 +244,11 @@ export function hydrateEncounter(snapshot: EncounterSnapshot) {
         isNewDiscovery: snapshot.isNewDiscovery,
       };
       return;
-    case 'rabbidSquirrel':
+    case 'social':
       current = {
-        ...(createEncounter(id, snapshot.level) as RabbidSquirrel),
+        ...(createEncounter(id, snapshot.level) as Social),
         level: snapshot.level,
+        currentNode: snapshot.currentNode,
         status: snapshot.status,
         diedAt: snapshot.diedAt,
         isNewDiscovery: snapshot.isNewDiscovery,

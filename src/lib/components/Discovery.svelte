@@ -7,7 +7,7 @@
     type EncounterId,
     type MonsterDef,
     type InvestigationDef,
-    type RabbidSquirrelDef,
+    type SocialDef,
   } from '../game/data/encounters';
   import type { Encounter } from '../game/types';
 
@@ -32,7 +32,7 @@
       const index = Math.min(beats.length - 1, Math.floor(progress * beats.length));
       return beats[index];
     }
-    return (ENCOUNTERS[monster.id as EncounterId] as MonsterDef | RabbidSquirrelDef).description;
+    return (ENCOUNTERS[monster.id as EncounterId] as MonsterDef | SocialDef).description;
   });
 </script>
 
