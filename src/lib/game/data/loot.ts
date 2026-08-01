@@ -74,6 +74,23 @@ export const ITEMS = {
     flavor:
       'Wrenched, with some difficulty and a great deal of swearing, from a boar that had — up until this point — never left a three-metre radius of grass. Scholars remain divided on whether this constitutes a quest.',
   },
+  letterMissingCat: {
+    name: 'Undelivered Letter',
+    rarity: 'common',
+    flavor:
+      "Gwendolyn's cat has been missing since last Monday. If seen, do not approach — he bites. Also, if seen, please tell him we're not mad.",
+  },
+  letterGoatSituation: {
+    name: 'Undelivered Letter',
+    rarity: 'common',
+    flavor: "Dearest Cousin — the goat situation has NOT improved. I don't want to talk about it further in writing. Come get your goat.",
+  },
+  letterTollNotice: {
+    name: 'Notice',
+    rarity: 'common',
+    flavor:
+      "NOTICE: Toll bridge fee has increased to two (2) coppers — or other arrangements — effective immediately, due to 'ongoing structural feelings.' No refunds.",
+  },
   // Dev-only test tool — deliberately absent from every TREASURE pool, so
   // the only way into an inventory is DevTools' "Add item" dropdown (which
   // lists every ITEMS key unconditionally, no separate wiring needed). The
@@ -109,6 +126,10 @@ const TREASURE: Record<string, DropPool> = {
   // noobTreasure, pulled once the camp existed so the Bestiary unlock reads
   // as "you found the camp" rather than "you got lucky killing a boar."
   hastilyAbandonedCampDrops: { barelyUsedSketchbook: 1 },
+  // No 'nothing' entry — the rabbit hole always yields a letter (the joke is
+  // that it's huge unnecessary intel, not that it's rare). Equal weights: no
+  // one letter is "the" reveal.
+  letterDrops: { letterMissingCat: 1, letterGoatSituation: 1, letterTollNotice: 1 },
 
   // Utils
   misc: { eye: 1, unidentifiedHair: 1, knottedTwineRing: 1 },

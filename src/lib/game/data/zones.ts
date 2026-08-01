@@ -52,6 +52,7 @@ export const ZONES = {
       { id: 'boar', weight: 10 },
       { id: 'honeybee', weight: 1 },
       { id: 'badger', weight: 15 },
+      { id: 'rabbitHole', weight: 3 },
     ] as { id: EncounterId; weight: number }[],
   },
   // DRAFT — name/description/quote are first-pass placeholders per
@@ -83,6 +84,7 @@ export const ZONES = {
       { id: 'blueberry', weight: 5 },
       { id: 'feralGoat', weight: 9 },
       { id: 'fox', weight: 9 },
+      { id: 'rabbitHole', weight: 3 },
     ] as { id: EncounterId; weight: number }[],
   },
   // DRAFT — same caveats as zone2. Bureaucracy/property-dispute theme,
@@ -108,6 +110,7 @@ export const ZONES = {
       { id: 'ruffian', weight: 12 },
       { id: 'suspiciouslyOrganizedRatKing', weight: 3 },
       { id: 'theAuditor', weight: 2 },
+      { id: 'rabbitHole', weight: 3 },
     ] as { id: EncounterId; weight: number }[],
   },
 } as const;

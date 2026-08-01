@@ -125,6 +125,14 @@ export const ENCOUNTERS = {
   },
   theAuditor: { kind: 'monster', name: 'The Auditor', level: 2, maxHp: 9, xpReward: 9, dropTableId: [] },
 
+  rabbitHole: {
+    kind: 'investigation',
+    name: 'Rabbit Hole',
+    durationMs: 5_000,
+    xpReward: 4,
+    dropTableId: ['letterDrops'],
+  },
+
   hastilyAbandonedCamp: {
     kind: 'investigation',
     name: 'Hastily Abandoned Camp',
