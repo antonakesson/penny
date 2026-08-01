@@ -64,6 +64,12 @@ export const EFFECTS = {
     title: 'Well-Read',
     description: 'Permanently +1 damage.',
   },
+  eatChicken: {
+    kind: 'grantXp',
+    amount: 5,
+    title: 'Eat',
+    description: "Best not to ask. +5 XP either way.",
+  },
 } as const satisfies Record<string, EffectDef>;
 
 export type EffectId = keyof typeof EFFECTS;

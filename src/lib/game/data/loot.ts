@@ -47,6 +47,7 @@ export const ITEMS = {
     name: '"Chicken"',
     rarity: 'common',
     flavor: 'Best not to ask.',
+    action: { effect: 'eatChicken', consumes: true },
   },
   thorn: { name: 'Thorn', rarity: 'common', flavor: 'Not worth the epidermal inconvenience.' },
   twig: { name: 'Twig', rarity: 'common', flavor: 'You really could have just walked around it.' },

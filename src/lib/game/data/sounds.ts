@@ -15,6 +15,7 @@ export type SoundId = keyof typeof SOUNDS;
 export const SOUND_INTENTS = {
   LootDropped: 'coin',
   LootEmpty: 'woop',
+  ItemUsed: 'coin',
 } as const satisfies Record<string, SoundId>;
 
 export type SoundIntent = keyof typeof SOUND_INTENTS;

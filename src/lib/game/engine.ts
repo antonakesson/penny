@@ -244,6 +244,12 @@ function decideNextEncounter(diedId: EncounterId): Encounter {
 export function useItem(itemId: ItemId) {
   const action = (ITEMS[itemId] as ItemDef).action;
   if (!action) return;
+  // Fires before triggerEffect() - immediate feedback that the click
+  // registered at all, independent of what the effect actually does (a
+  // launchEncounter interrupt is already its own obvious payoff, but
+  // grantXp/grantItem/grantModifier have no inherent visual beat of their
+  // own without this).
+  playSound('ItemUsed');
   triggerEffect(action.effect);
   if (action.consumes) removeItem(itemId, 1);
 }
