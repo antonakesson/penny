@@ -20,13 +20,16 @@ const BACKUP_KEY = 'idle-game:save:backup';
 // RabbidSquirrel) instead of one flat shape - see ENCOUNTER_REFACTOR.md.
 // v5: added `effects` (timed-effect expiries, e.g. spawn freeze).
 // v6: added `modifiers` (permanent stat grants, e.g. a consumed book).
-const SAVE_VERSION = 6;
+// v7: `encounter` became an array (the active encounter plus anything
+// paused behind it, e.g. a fight a genie interrupted) instead of one flat
+// snapshot - see state/encounter.svelte.ts.
+const SAVE_VERSION = 7;
 
 interface SaveData {
   xp: number;
   inventory: Inventory;
   zone: ZoneId;
-  encounter?: EncounterSnapshot;
+  encounter?: EncounterSnapshot[];
   discoveredMonstersMask: string;
   map: MapSnapshot;
   unlockedFeatures: FeatureId[];
@@ -81,12 +84,14 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
   const map = data.map as Record<string, unknown> | undefined;
   if (!map || typeof map.seed !== 'string' || typeof map.distance !== 'number') return false;
 
-  const encounter = data.encounter as Record<string, unknown> | undefined;
+  const encounter = data.encounter;
   return (
     encounter === undefined ||
-    (typeof encounter.id === 'string' &&
-      typeof encounter.action === 'string' &&
-      typeof encounter.isNewDiscovery === 'boolean')
+    (Array.isArray(encounter) &&
+      encounter.every((e) => {
+        const entry = e as Record<string, unknown>;
+        return typeof entry.id === 'string' && typeof entry.action === 'string' && typeof entry.isNewDiscovery === 'boolean';
+      }))
   );
 }
 

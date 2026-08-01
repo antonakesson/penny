@@ -102,6 +102,19 @@ export function createEncounter(id: EncounterId, level?: number): Encounter {
   }
 }
 
+// Array, not a single slot - front (current[0]) is the one and only active
+// encounter today, exactly like the old single-slot model. Anything behind
+// the front is paused, not queued: it was active, got cut in front of (e.g.
+// a genie interrupting a fight), and resumes exactly where it left off once
+// whatever's in front of it resolves. This is deliberately partial
+// future-proofing (see architecture_state_ownership /
+// launch_encounter_queue memory) - a Social always resolves alone at the
+// front, since only the front is ever active; nothing here yet supports N
+// simultaneously-active monsters/AoE, that's a real future rewrite (mutex,
+// damage resolution, UI), not something this array shape tries to solve
+// today. The state stays honest about what's actually paused even though
+// the UI only ever renders the front.
+//
 // Throwaway initial value - almost always immediately replaced by
 // hydrateEncounter() on load. Deliberately just a plain zone pick, never
 // event-aware: this runs before any save is hydrated (distance/firedMask
@@ -110,10 +123,41 @@ export function createEncounter(id: EncounterId, level?: number): Encounter {
 // worse, burn a one-shot event on an instance nobody ever sees. Real "what's
 // next" decisions belong entirely to engine.ts's decideNextEncounter() -
 // this module no longer knows events exist.
-let current = $state<Encounter>(createEncounter(pickEncounter(getCurrentZoneId())));
+let current = $state<Encounter[]>([createEncounter(pickEncounter(getCurrentZoneId()))]);
 
 export function getEncounter(): Encounter {
-  return current;
+  return current[0];
+}
+
+// Whatever's paused behind the active front - e.g. the boss a player was
+// mid-fight against before a genie cut in. UI-only peek, nothing reads this
+// to decide game logic.
+export function getPausedEncounters(): readonly Encounter[] {
+  return current.slice(1);
+}
+
+export function hasEncounter(): boolean {
+  return current.length > 0;
+}
+
+// Cuts to the front - the previously-active encounter (if any) isn't lost,
+// it's shifted back to index 1 and picks up again once this one resolves.
+// Same operation covers both real interrupts (an item's launchEncounter
+// effect, mid-fight) and the empty-array case (engine.ts's tick(), nothing
+// was active at all) - unshift into an empty array is just push, so there's
+// no special-casing needed for "nothing to preempt."
+export function interruptEncounter(encounter: Encounter) {
+  current.unshift(encounter);
+}
+
+// Drops the front - called once the active encounter has fully resolved
+// (death animation elapsed / dialog reached a terminal node). Whatever was
+// paused behind it becomes the new front automatically, revealed exactly as
+// it was left (hp, status, dialog node); if nothing was behind it, the array
+// is left empty and it's the caller's job (engine.ts) to interruptEncounter()
+// a freshly-decided one.
+export function dropEncounter() {
+  current.shift();
 }
 
 // Only meaningful for hp-drain kinds - callers only ever reach this after
@@ -121,8 +165,9 @@ export function getEncounter(): Encounter {
 // happens for a social encounter (see engine.ts), but the guard keeps this
 // module's own invariant self-evident rather than relying on the caller.
 export function damageMonster(amount: number) {
-  if (current.action === 'social') return;
-  current.hp = Math.max(0, current.hp - amount);
+  const encounter = current[0];
+  if (encounter.action === 'social') return;
+  encounter.hp = Math.max(0, encounter.hp - amount);
 }
 
 // The one place `currentNode` mutates - single-writer, same rule every
@@ -130,22 +175,24 @@ export function damageMonster(amount: number) {
 // damageMonster() guards on the hp-drain kinds; engine.ts's
 // resolveDialogChoice() is the only caller.
 export function pickDialogChoice(next: DialogNodeId) {
-  if (current.action !== 'social') return;
-  current.currentNode = next;
+  const encounter = current[0];
+  if (encounter.action !== 'social') return;
+  encounter.currentNode = next;
 }
 
 // Base Encounter behavior, not per-kind - status/diedAt live on every
 // variant, so this applies uniformly regardless of what's currently active.
 export function killMonster() {
-  current.status = 'dead';
-  current.diedAt = Date.now();
+  current[0].status = 'dead';
+  current[0].diedAt = Date.now();
 }
 
-// Dumb setter - engine.ts decides which Encounter comes next and hands it
-// here. This module just holds and mutates the current encounter, it
-// doesn't choose it.
+// Force-replaces the entire queue with a single encounter - not the normal
+// flow (see queueEncounter/dropEncounter), this is a hard reset. Only
+// DevTools uses it today, to jump straight to an arbitrary encounter for
+// testing without waiting out whatever's currently active or queued.
 export function spawn(encounter: Encounter) {
-  current = encounter;
+  current = [encounter];
 }
 
 interface EncounterSnapshotBase {
@@ -182,30 +229,43 @@ interface SocialSnapshot extends EncounterSnapshotBase {
 
 export type EncounterSnapshot = MonsterSnapshot | InvestigationSnapshot | SocialSnapshot;
 
-export function serializeEncounter(): EncounterSnapshot {
+function encounterToSnapshot(encounter: Encounter): EncounterSnapshot {
   const base: EncounterSnapshotBase = {
-    id: current.id,
-    status: current.status,
-    diedAt: current.diedAt,
-    isNewDiscovery: current.isNewDiscovery,
+    id: encounter.id,
+    status: encounter.status,
+    diedAt: encounter.diedAt,
+    isNewDiscovery: encounter.isNewDiscovery,
   };
-  switch (current.action) {
+  switch (encounter.action) {
     case 'attack':
       return {
         ...base,
         action: 'attack',
-        level: current.level,
-        hp: current.hp,
-        maxHp: current.maxHp,
-        xpReward: current.xpReward,
+        level: encounter.level,
+        hp: encounter.hp,
+        maxHp: encounter.maxHp,
+        xpReward: encounter.xpReward,
       };
     case 'investigate':
-      return { ...base, action: 'investigate', hp: current.hp, maxHp: current.maxHp, xpReward: current.xpReward };
+      return {
+        ...base,
+        action: 'investigate',
+        hp: encounter.hp,
+        maxHp: encounter.maxHp,
+        xpReward: encounter.xpReward,
+      };
     case 'social':
-      return { ...base, action: 'social', level: current.level, currentNode: current.currentNode };
+      return { ...base, action: 'social', level: encounter.level, currentNode: encounter.currentNode };
     default:
-      return assertNever(current);
+      return assertNever(encounter);
   }
+}
+
+// Whole queue, front to back - a queued genie behind the active fight is
+// real state, not a UI illusion, so it survives a reload the same way the
+// active encounter does (see the array's own comment above).
+export function serializeEncounter(): EncounterSnapshot[] {
+  return current.map(encounterToSnapshot);
 }
 
 // createEncounter() would recompute level/maxHp/xpReward/isNewDiscovery from
@@ -218,11 +278,11 @@ export function serializeEncounter(): EncounterSnapshot {
 // live play. Reconstruct via createEncounter() for the def-derived fields
 // (name/dropTableId/etc.), then overlay every spawn-time-dependent field
 // with the persisted value instead of trusting a fresh recompute.
-export function hydrateEncounter(snapshot: EncounterSnapshot) {
+function snapshotToEncounter(snapshot: EncounterSnapshot): Encounter {
   const id = snapshot.id as EncounterId;
   switch (snapshot.action) {
     case 'attack':
-      current = {
+      return {
         ...(createEncounter(id, snapshot.level) as Monster),
         level: snapshot.level,
         hp: snapshot.hp,
@@ -232,9 +292,8 @@ export function hydrateEncounter(snapshot: EncounterSnapshot) {
         diedAt: snapshot.diedAt,
         isNewDiscovery: snapshot.isNewDiscovery,
       };
-      return;
     case 'investigate':
-      current = {
+      return {
         ...(createEncounter(id) as Investigation),
         hp: snapshot.hp,
         maxHp: snapshot.maxHp,
@@ -243,9 +302,8 @@ export function hydrateEncounter(snapshot: EncounterSnapshot) {
         diedAt: snapshot.diedAt,
         isNewDiscovery: snapshot.isNewDiscovery,
       };
-      return;
     case 'social':
-      current = {
+      return {
         ...(createEncounter(id, snapshot.level) as Social),
         level: snapshot.level,
         currentNode: snapshot.currentNode,
@@ -253,8 +311,11 @@ export function hydrateEncounter(snapshot: EncounterSnapshot) {
         diedAt: snapshot.diedAt,
         isNewDiscovery: snapshot.isNewDiscovery,
       };
-      return;
     default:
-      assertNever(snapshot);
+      return assertNever(snapshot);
   }
+}
+
+export function hydrateEncounter(snapshots: EncounterSnapshot[]) {
+  current = snapshots.map(snapshotToEncounter);
 }

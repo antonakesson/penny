@@ -11,10 +11,11 @@
   } from '../game/game';
   import { ENCOUNTERS, type EncounterId } from '../game/data/encounters';
   import { ITEMS, type ItemId } from '../game/data/loot';
-  import { EFFECTS } from '../game/data/effects';
+  import { EFFECTS, type EffectId } from '../game/data/effects';
 
   const monsterIds = Object.keys(ENCOUNTERS) as EncounterId[];
   const itemIds = Object.keys(ITEMS) as ItemId[];
+  const effectIds = Object.keys(EFFECTS) as EffectId[];
 
   let selectedMonster = $state<EncounterId>(monsterIds[0]);
   let selectedItem = $state<ItemId>(itemIds[0]);
@@ -22,6 +23,7 @@
   let xpAmount = $state(100);
   let distanceInput = $state(getDistance());
   let seedInput = $state(getSeed());
+  let selectedEffect = $state<EffectId>(effectIds[0]);
 </script>
 
 <div class="devtools">
@@ -71,11 +73,14 @@
   </section>
 
   <section>
-    <p class="section-label">Spawn freeze</p>
+    <p class="section-label">Effects</p>
     <div class="row">
-      <button onclick={() => devToolsTriggerEffect('freezeSpawn')}>
-        Trigger ({EFFECTS.freezeSpawn.duration / 1000}s)
-      </button>
+      <select bind:value={selectedEffect} aria-label="Effect to trigger">
+        {#each effectIds as id (id)}
+          <option value={id}>{EFFECTS[id].title}</option>
+        {/each}
+      </select>
+      <button onclick={() => devToolsTriggerEffect(selectedEffect)}>Trigger</button>
     </div>
   </section>
 </div>

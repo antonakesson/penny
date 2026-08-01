@@ -1,6 +1,10 @@
 import { EFFECTS, type EffectDef, type EffectId } from '../data/effects';
 import { unlockFeature } from './features.svelte';
 import { grantModifier } from './modifier.svelte';
+import { createEncounter, interruptEncounter } from './encounter.svelte';
+import { setActionIdle } from './action.svelte';
+import { addItem } from './inventory.svelte';
+import { addXp } from './xp.svelte';
 import { assertNever } from '../util/assertNever';
 
 let activeExpiries = $state<Partial<Record<EffectId, number>>>({});
@@ -44,6 +48,25 @@ function applyInstantEffect(def: EffectDef) {
       return; // nothing else to do - presence in activeExpiries IS the effect
     case 'grantModifier':
       grantModifier(def.modifier);
+      return;
+    case 'launchEncounter':
+      // Cuts in immediately, doesn't wait a turn - obvious haptics on item
+      // use beats a delayed payoff that reads as bugged. Whatever was
+      // active is paused, not lost (see interruptEncounter()). Mutex reset
+      // mirrors tick()'s own death-transition reset in engine.ts - without
+      // it a mid-swing cooldown against the paused encounter would bleed
+      // into the interrupting one, which never even uses the mutex if it's
+      // a Social. Level omitted - createEncounter() defaults to the def's
+      // own authored level, no zone/distance scaling for an effect-launched
+      // encounter (see EffectDef's comment).
+      setActionIdle();
+      interruptEncounter(createEncounter(def.encounterId));
+      return;
+    case 'grantItem':
+      addItem(def.itemId, 1);
+      return;
+    case 'grantXp':
+      addXp(def.amount);
       return;
     default:
       assertNever(def);

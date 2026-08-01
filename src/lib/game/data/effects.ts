@@ -1,5 +1,7 @@
 import type { FeatureId } from './features';
 import type { Modifier } from './modifiers';
+import type { EncounterId } from './encounters';
+import type { ItemId } from './loot';
 
 interface EffectBase {
   title: string;
@@ -16,6 +18,21 @@ export type EffectDef = EffectBase &
     // item, e.g. a consumed book. state/modifier.svelte.ts owns the
     // persisted total this adds to.
     | { kind: 'grantModifier'; modifier: Modifier }
+    // Cuts in front of whatever's currently active - see
+    // interruptEncounter() in state/encounter.svelte.ts. Immediate, not
+    // queued: obvious feedback on item use matters more than politely
+    // waiting a turn. Doesn't destroy progress either - a fight mid-grind
+    // (an hour-long boss) is paused, not killed, and resumes exactly where
+    // it was once this resolves. level is always the def's own authored
+    // level - an effect-launched encounter (a genie, a story beat) isn't
+    // zone-distance scaled the way a normal spawn is.
+    | { kind: 'launchEncounter'; encounterId: EncounterId }
+    // Straight inventory grant, no roll - for a specific, named reward
+    // outside the kill-loot path (resolveDropIds/TREASURE in loot.ts).
+    // Doesn't respect ITEM_CAP - if you want a curated *random* reward that
+    // does, route it through a TREASURE pool + awardLoot() instead.
+    | { kind: 'grantItem'; itemId: ItemId }
+    | { kind: 'grantXp'; amount: number }
   );
 
 export const EFFECTS = {

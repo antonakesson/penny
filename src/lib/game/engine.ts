@@ -1,5 +1,14 @@
 import { ACTION, ENCOUNTER_END_MS, INVESTIGATE } from './config';
-import { getEncounter, createEncounter, damageMonster, killMonster, spawn, pickDialogChoice } from './state/encounter.svelte';
+import {
+  getEncounter,
+  createEncounter,
+  damageMonster,
+  killMonster,
+  interruptEncounter,
+  dropEncounter,
+  hasEncounter,
+  pickDialogChoice,
+} from './state/encounter.svelte';
 import { DIALOGS, type DialogNodeId } from './data/dialog';
 import { advance } from './state/map.svelte';
 import { pickEncounter, pickLevel } from './data/zones';
@@ -201,20 +210,30 @@ export function tick() {
     // otherwise a stale cooldown/active status can bleed across the
     // respawn boundary into a differently-kinded encounter.
     setActionIdle();
-    spawn(decideNextEncounter());
+    // Drop the encounter that just finished. If something was paused
+    // behind it (e.g. the fight a genie interrupted), that's the new front
+    // for free, revealed exactly as it was left - no decision needed, it
+    // was already decided/live. Only decide something fresh if nothing's
+    // left at all.
+    dropEncounter();
+    if (!hasEncounter()) interruptEncounter(decideNextEncounter(encounter.id as EncounterId));
   }
 }
 
-// Priority: an active spawn-freeze forces an exact replay of the same
-// encounter (current is still the just-died encounter here - spawn() hasn't
-// overwritten it yet); otherwise an eligible event takes over; otherwise the
-// normal weighted zone pick.
-function decideNextEncounter(): Encounter {
+// Priority: an active spawn-freeze forces an exact replay of the encounter
+// that just died; otherwise an eligible event takes over; otherwise the
+// normal weighted zone pick. Only consulted when nothing's left at all -
+// see tick() above - so a paused encounter (e.g. what a genie interrupted)
+// always resumes rather than a live freeze re-triggering over it. diedId is
+// passed explicitly
+// rather than read via getEncounter() because the dying encounter has
+// already been dropped from the queue by the time this runs.
+function decideNextEncounter(diedId: EncounterId): Encounter {
   if (isEffectActive('freezeSpawn')) {
     // Distance is held still by the same freeze, so the difficulty signal
     // resamples to the same value - re-picking here (rather than reusing a
     // stashed level) rides that determinism instead of duplicating it.
-    return createEncounter(getEncounter().id as EncounterId, pickLevel(getCurrentZoneId()));
+    return createEncounter(diedId, pickLevel(getCurrentZoneId()));
   }
   const eventEncounterId = shouldShowEvent();
   if (eventEncounterId) return createEncounter(eventEncounterId);
