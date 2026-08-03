@@ -43,18 +43,9 @@ export type EffectDef = EffectBase &
     | { kind: 'grantXp'; amount: number }
   );
 
-// Hand-written, not `keyof typeof EFFECTS` - EffectDef.grantItem needs
-// ItemId (loot.ts), and ItemDef.action needs EffectId right back, so
-// deriving both from their own object's inferred keys is a genuine
-// mutual-recursion TS can't resolve ("referenced directly or indirectly in
-// its own type annotation"). Same family of problem as DialogNodeId's
-// comment in data/dialog.ts, different fix: ItemId stays auto-derived
-// (loot.ts's list grows constantly, hand-syncing it would rot fast);
-// EffectId is the one that gets hand-written instead, since EFFECTS grows
-// far more rarely (see effects_system memory) - breaks the cycle at the
-// cheaper side. EFFECTS below is still typed against this exhaustively
-// (missing/extra keys both error), just sourced from this union instead of
-// the reverse.
+// Hand-written, not `keyof typeof EFFECTS`: EffectDef.grantItem needs ItemId
+// and ItemDef.action needs EffectId back, so deriving both from each other
+// is a TS mutual-recursion error.
 export type EffectId =
   | 'unlockJournal'
   | 'unlockPet'

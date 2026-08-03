@@ -11,13 +11,8 @@
 
   let { monster, children }: { monster: Encounter; children: Snippet } = $props();
 
-  // The encounter's own flavor text - shown every time it's live. Used to
-  // sit alongside a Bestiary "Entry No." discovery chip here too; that
-  // mechanic's been pulled (see data/journal.ts) and this component is
-  // pending a rename/repurpose once the Journal has its own UI home.
-  // Investigation kinds walk through a beats array as progress advances
-  // instead of showing one static blurb for the whole hold - see
-  // InvestigationDef.descriptions.
+  // Investigation kinds walk through a beats array as progress advances,
+  // instead of one static blurb for the whole hold.
   let description = $derived.by(() => {
     if (monster.action === 'investigate') {
       const beats = (ENCOUNTERS[monster.id as EncounterId] as InvestigationDef).descriptions;

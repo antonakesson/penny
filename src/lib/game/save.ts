@@ -17,14 +17,7 @@ import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-// v0: pre-release baseline. Still alpha, no save worth preserving across
-// shape changes yet, so the version history resets here instead of
-// accumulating an ever-growing changelog comment. No migrations -
-// SAVE_VERSION bumps are breaking; a save from a different version is
-// discarded outright rather than shimmed forward.
-// v1: added `journalFlagsMask` (opaque "this has happened" bits, see
-// state/journalFlags.svelte.ts) and `journalEntries` (the diary log, see
-// state/journal.svelte.ts).
+// No migrations - a save from a different version is discarded outright.
 const SAVE_VERSION = 1;
 
 interface SaveData {
@@ -119,11 +112,9 @@ function applySnapshot(data: SaveData) {
   hydrateEntries(data.journalEntries);
 }
 
-// isValidEnvelope only checks shape (types, key presence) - it can't catch
-// something like an encounter `action` string that isn't a real EncounterId,
-// which only blows up once a hydrate function actually switches on it (e.g.
-// assertNever in encounter.svelte.ts). This is the last line of defense for
-// that case, so a save file can be well-typed but still semantically bogus.
+// isValidEnvelope only checks shape - a save can be well-typed but still
+// semantically bogus (e.g. an `action` string that isn't a real
+// EncounterId), which only blows up once a hydrate function switches on it.
 function applySnapshotSafely(data: SaveData): boolean {
   try {
     applySnapshot(data);
@@ -144,8 +135,7 @@ export function saveNow() {
     if (existing) localStorage.setItem(BACKUP_KEY, existing);
     localStorage.setItem(SAVE_KEY, JSON.stringify(buildSnapshot()));
   } catch {
-    // Storage full/unavailable (private browsing, quota) — skip silently,
-    // the next autosave tick will just try again.
+    // Storage full/unavailable - skip silently, next tick tries again.
   }
 }
 
@@ -161,10 +151,8 @@ function readEnvelope(key: string): SaveEnvelope | null {
   }
 }
 
-// Loads the save, falling back to the rolling backup if the primary slot is
-// missing, corrupt, or throws during hydrate. No offline catch-up — there's
-// no idle mechanic yet to justify progress while away; see the pet/companion
-// system planned for that.
+// Falls back to the rolling backup if the primary slot is missing, corrupt,
+// or throws during hydrate.
 export function loadSave(): boolean {
   let attempted = false;
   for (const key of [SAVE_KEY, BACKUP_KEY]) {
@@ -179,13 +167,8 @@ export function loadSave(): boolean {
     }
   }
   if (attempted) {
-    // Every shape-valid slot still threw during hydrate - earlier slices in
-    // applySnapshot may already be partially mutated from those attempts, so
-    // the only guaranteed way back to a known-good baseline is a fresh
-    // module load, same as resetSave()'s clear-and-reload. Suppress first,
-    // same reason as resetSave(): the reload's own pagehide-triggered
-    // saveNow() would otherwise persist that partially-mutated state right
-    // back into the slots we just cleared.
+    // Every slot threw during hydrate - state may be partially mutated, so
+    // a fresh module load is the only way back to known-good.
     suppressAutosave = true;
     location.reload();
   }
@@ -196,17 +179,15 @@ export function exportSave(): string {
   return btoa(JSON.stringify(buildSnapshot()));
 }
 
-// Clears both save slots and reloads to a fresh game. Sets suppressAutosave
-// first — otherwise the reload's own pagehide-triggered saveNow() would
-// serialize the still-live (unreset) in-memory state right back over the
-// clear, same race that makes clearing localStorage by hand "not take."
 export function resetSave() {
+  // Suppress first - otherwise the reload's own pagehide saveNow() would
+  // persist the still-live in-memory state right back over the clear.
   suppressAutosave = true;
   try {
     localStorage.removeItem(SAVE_KEY);
     localStorage.removeItem(BACKUP_KEY);
   } catch {
-    // Storage unavailable — nothing to clear either way.
+    // Storage unavailable - nothing to clear either way.
   }
   location.reload();
 }
@@ -221,11 +202,8 @@ export function importSave(encoded: string): boolean {
   if (!isValidEnvelope(parsed)) return false;
 
   if (!applySnapshotSafely(parsed.data)) {
-    // Hydrate threw partway through - don't leave the running game sitting
-    // on a half-mutated state. Nothing was written to storage yet, so
-    // reloading falls back to whatever save/backup existed before this
-    // import attempt. Suppress autosave first so the reload's pagehide
-    // doesn't persist the half-mutated in-memory state over that save.
+    // Hydrate threw partway through - reload falls back to the prior save
+    // rather than leaving the game on a half-mutated state.
     suppressAutosave = true;
     location.reload();
     return false;

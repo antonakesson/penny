@@ -6,11 +6,6 @@ export function getXp(): number {
   return xp;
 }
 
-// Pure mutator, same naming family as inventory.svelte.ts's addItem() -
-// the "award + show feedback" bundling lives in engine.ts's awardXp(),
-// not here (same reason awardLoot() composes addItem()+spawnLootText() in
-// engine.ts rather than inventory.svelte.ts reaching into floatingText's
-// domain itself).
 export function addXp(amount: number) {
   xp += amount;
 }

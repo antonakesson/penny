@@ -1,9 +1,5 @@
-// The diary half of the journal system (see journal_system memory) -
-// chronological, authored, append-only. Just storage: looking up whether an
-// id has any authored content and picking the right variant is cross-domain
-// composition (reads flag/inventory/feature state against journalEntries.ts
-// data), so that logic lives in engine.ts's logJournalEntry(), same reason
-// evaluateDialogCondition lives there and not in a state slice.
+// Chronological, authored, append-only storage. Lookup/composition logic
+// lives in engine.ts, not here - this module only holds entries.
 export interface JournalEntry {
   id: string;
   text: string;

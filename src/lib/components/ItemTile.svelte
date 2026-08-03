@@ -11,10 +11,9 @@
     showTooltip(id, tileEl.getBoundingClientRect());
   }
 
-  // stopPropagation, not just relying on the .pane exclusion in App.svelte's
-  // document click handler — using an item can remove its tile from the DOM
-  // synchronously, and a detached target's .closest('.pane') check fails,
-  // which would let the click fall through and register as an attack.
+  // Using an item can remove its tile synchronously, so a detached target's
+  // .closest('.pane') check in App.svelte would fail - stopPropagation
+  // stops the click falling through and registering as an attack.
   function activate(event: MouseEvent | KeyboardEvent) {
     event.stopPropagation();
     if (item.action) useItem(id);

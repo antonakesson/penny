@@ -8,9 +8,6 @@
 
   let tooltip = $derived(getTooltip());
   let item = $derived(tooltip ? (ITEMS[tooltip.itemId] as ItemDef) : null);
-  // Derived straight off ITEM_CAP, not a separate authored flag - "unique"
-  // here means the same thing the cap does (can never exceed one), so
-  // there's exactly one source of truth for it.
   let isUnique = $derived(tooltip ? ITEM_CAP[tooltip.itemId] === 1 : false);
 
   let top = $derived(tooltip ? tooltip.rect.bottom + MARGIN : 0);
@@ -23,9 +20,8 @@
       : 0
   );
 
-  // The pane that hosts the item scrolls internally; once it moves, the
-  // captured bounding rect is stale, so drop the tooltip rather than have
-  // it float over the wrong item.
+  // The captured bounding rect goes stale once the host pane scrolls -
+  // drop the tooltip rather than let it float over the wrong item.
   $effect(() => {
     if (!tooltip) return;
     window.addEventListener('scroll', hideTooltip, { capture: true });
@@ -104,11 +100,6 @@
     margin: 8px 0 0;
   }
 
-  /* Legendary: same glow as the Style Codex item-card mockup. The Codex's
-     own "runs off the tooltip" gag (name set nowrap/overflow-visible) reads
-     fine in an isolated mockup but breaks for real in this fixed-position
-     tooltip next to other panes — a long legendary name just runs straight
-     through neighboring UI instead of spilling harmlessly. Wraps instead. */
   .tooltip.legendary {
     border-color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent), 0 2px 12px var(--shadow);

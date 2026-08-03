@@ -1,8 +1,5 @@
-// Dev-only debug tools - both a window.__dev console API and the backing
-// functions DevTools.svelte uses. Gated by import.meta.env.DEV, a
-// compile-time constant Vite replaces with `false` in production builds,
-// so dead-code elimination strips this whole module's effects (including
-// the window assignment) out of the shipped bundle entirely.
+// Dev-only debug tools - window.__dev console API + DevTools.svelte's
+// backing functions. Gated by import.meta.env.DEV, stripped from prod.
 import { createEncounter, spawn, getEncounter } from './state/encounter.svelte';
 import { getAction } from './state/action.svelte';
 import { addItem, getInventory } from './state/inventory.svelte';
@@ -23,8 +20,7 @@ export function devAddItem(id: ItemId, qty: number) {
   addItem(id, qty);
 }
 
-// Silent grant, no floating text - dev-only, bypasses the real reward
-// path (engine.ts's awardXp()) on purpose.
+// Bypasses engine.ts's awardXp() - silent grant, no floating text.
 export function devAwardXp(amount: number) {
   addXp(amount);
 }
@@ -48,8 +44,6 @@ export function devDumpState() {
     inventory: getInventory(),
     xp: getXp(),
     distance: getDistance(),
-    // Passives aren't included - they're not their own state, just a live
-    // scan of inventory x ITEMS[id].passive, already visible above.
     permanentModifiers: serializeModifiers(),
     flags: getAllFlags(),
   };

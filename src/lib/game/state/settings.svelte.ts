@@ -1,6 +1,5 @@
-// Device/browser preferences, not game progress — kept out of save.ts's
-// versioned snapshot so resetting your save doesn't also flip your sound
-// off, and importing a friend's save doesn't import their mute state.
+// Device preference, kept out of save.ts's snapshot - resetting your save
+// shouldn't also flip your sound off.
 const SOUND_ENABLED_KEY = 'idle-game:settings:soundEnabled';
 
 function readSoundEnabled(): boolean {

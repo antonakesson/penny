@@ -1,12 +1,6 @@
 // Own state slice, not folded into ActionState - the pet attacks
-// concurrently with whatever the player is doing (mid-swing, investigating,
-// idle), so it can't share the player's mutex. See
-// architecture_state_ownership: this is the "genuinely concurrent occupant"
-// case that mutex was explicitly scoped to exclude.
-//
-// Shape mirrors ActionState (status + startedAt) on purpose - same
-// attacking/recovering animation grammar as the player's own meter, just
-// automatic instead of press-driven.
+// concurrently with whatever the player is doing, so it can't share the
+// player's mutex.
 interface PetState {
   status: 'idle' | 'attacking' | 'recovering';
   startedAt: number | null;

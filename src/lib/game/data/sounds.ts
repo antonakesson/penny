@@ -8,10 +8,7 @@ export const SOUNDS = {
 
 export type SoundId = keyof typeof SOUNDS;
 
-// The moddable layer: call sites name a game intent, this table decides
-// which file actually plays. Swapping a sound - or later giving
-// PlayerDiedSpectacularly its own omegawoop - means editing this map, not
-// any call site.
+// Call sites name a game intent; this table decides which file plays.
 export const SOUND_INTENTS = {
   LootDropped: 'coin',
   LootEmpty: 'woop',

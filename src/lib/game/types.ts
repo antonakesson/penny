@@ -19,11 +19,8 @@ export interface Monster extends EncounterBase {
   dropTableId: readonly string[];
 }
 
-// hp-drain, continuous-hold resolution — same resolution mechanism and
-// runtime shape as Monster (hp/dps stay intact), but its own real fields:
-// no `level` (meaningless for a one-shot investigation); `maxHp` is derived
-// at construction time from an honestly authored duration, not authored
-// directly as a guessed hp number.
+// hp-drain, continuous-hold resolution. No `level` - meaningless for a
+// one-shot investigation.
 export interface Investigation extends EncounterBase {
   action: 'investigate';
   hp: number;
@@ -32,11 +29,9 @@ export interface Investigation extends EncounterBase {
   dropTableId: readonly string[];
 }
 
-// Discrete, click-to-resolve — no ActionState mutex (see ActionKind). Has
-// `level` — a social encounter is expected to scale like a real encounter,
-// unlike Investigation. `dialogRoot` is the def's static entry node (never
-// mutates); `currentNode` is where the conversation actually is right now,
-// advanced one pick at a time via pickDialogChoice() in encounter.svelte.ts.
+// Discrete, click-to-resolve - no ActionState mutex. `dialogRoot` is the
+// def's static entry node; `currentNode` is where the conversation actually
+// is, advanced via pickDialogChoice() in encounter.svelte.ts.
 export interface Social extends EncounterBase {
   action: 'social';
   level: number;
@@ -46,16 +41,12 @@ export interface Social extends EncounterBase {
 
 export type Encounter = Monster | Investigation | Social;
 
-// Only the hp-drain kinds share the timing mutex below — attack and
-// investigate are mutually exclusive activities on the same "self" occupant.
-// Social's discrete click-to-pick skips it entirely (see
-// ENCOUNTER_REFACTOR.md decision 1).
+// Only the hp-drain kinds use this mutex - Social's click-to-pick skips it.
 export type ActionKind = 'attack' | 'investigate';
 
 export interface ActionState {
   // Meaningless while status is 'idle' - whichever kind's onDown() fires
-  // next stamps it fresh. Both attack and investigate share this one
-  // mutex since only one is ever in progress at a time.
+  // next stamps it fresh.
   kind: ActionKind;
   status: 'idle' | 'active' | 'cooldown';
   startedAt: number | null;

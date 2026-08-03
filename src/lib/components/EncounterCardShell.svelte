@@ -4,16 +4,9 @@
   import { getLevelGap } from '../game/game';
   import type { Encounter } from '../game/types';
 
-  // Shell only - the .encounter/.header/.name/.level chrome shared by every
-  // card kind (monster/investigation/social). Kind-specific body
-  // (hp bar, resolve button, whatever the next kind needs) is the children
-  // snippet; only Investigation lacks a level to show.
   let { encounter, children }: { encounter: Encounter; children: Snippet } = $props();
 
-  // WoW-con-color read on the level number - gap bucketing itself lives in
-  // engine.ts (getLevelGap) so this component only owns the color mapping.
-  // Investigation has no `level` field at all, so this narrows once here
-  // rather than at each of the two render sites below.
+  // Investigation has no `level` field - narrowed once here.
   let level = $derived(encounter.action !== 'investigate' ? encounter.level : null);
   let levelGap = $derived(level !== null ? getLevelGap(level) : null);
 </script>
@@ -59,9 +52,7 @@
     color: var(--ink-faint);
     white-space: nowrap;
   }
-  /* Reuses the existing rarity/wax palette instead of inventing new colors -
-     trivial/easy/even/deadly map onto the same muted-gray/green/gold/red
-     already used for common/uncommon/accent/wax elsewhere. */
+  /* Reuses the rarity/wax palette instead of inventing new colors. */
   .level.trivial {
     color: var(--rarity-common);
   }

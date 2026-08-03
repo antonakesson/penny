@@ -100,18 +100,9 @@ export function createEncounter(id: EncounterId, level?: number): Encounter {
   }
 }
 
-// Array, not a single slot - front (current[0]) is the one and only active
-// encounter today, exactly like the old single-slot model. Anything behind
-// the front is paused, not queued: it was active, got cut in front of (e.g.
-// a genie interrupting a fight), and resumes exactly where it left off once
-// whatever's in front of it resolves. This is deliberately partial
-// future-proofing (see architecture_state_ownership /
-// launch_encounter_queue memory) - a Social always resolves alone at the
-// front, since only the front is ever active; nothing here yet supports N
-// simultaneously-active monsters/AoE, that's a real future rewrite (mutex,
-// damage resolution, UI), not something this array shape tries to solve
-// today. The state stays honest about what's actually paused even though
-// the UI only ever renders the front.
+// Array, not a single slot: front (current[0]) is the only active encounter.
+// Anything behind it is paused, not queued - it resumes where it left off
+// once whatever's in front resolves.
 //
 // Throwaway initial value - almost always immediately replaced by
 // hydrateEncounter() on load. Deliberately just a plain zone pick, never

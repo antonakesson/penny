@@ -6,8 +6,7 @@
   let open = $derived(getActivePane() === paneId);
   let pinned = $derived(isPinned(paneId));
   // Offset by 1 so a pinned pane's flex order never ties with combat's
-  // (unset, defaults to 0) — ties resolve by source order anyway, but this
-  // keeps it unambiguous as more panes are added.
+  // (unset, defaults to 0).
   let dockOrder = $derived(getPinOrder(paneId) + 1);
 </script>
 
@@ -91,8 +90,7 @@
     .pane.open {
       transform: translateX(0);
     }
-    /* Pinned overrides open/closed entirely — it docks as a static flex
-       column and steals space, regardless of the transient overlay state. */
+    /* Pinned overrides open/closed entirely - docks as a static flex column. */
     .pane.pinned {
       position: static;
       transform: none !important;

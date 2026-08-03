@@ -11,20 +11,10 @@ export const ZONES = {
       text: "If you don't count the people who don't come back, the forest is 100% safe.",
       attribution: 'Cobb Thistlewood, Ranger / Coroner',
     },
-    // Ordered low-to-high signal: cumulative weight position is what maps
-    // a roll to a habitat band (see pickEncounter below), so array order is
-    // load-bearing, not incidental. Thorny Shrubbery and Fish share the wet
-    // valley floor - the path runs alongside a lake there - below Boar's
-    // foraging ground; Honeybee stays the narrow boar/badger transition
-    // marker; Badger holds the high ground. Fish's weight of 2 is carved
-    // out of Thorny Shrubbery's (was 8, now 6), not added on top, so the
-    // wet-end band's total width is unchanged.
-    // hastilyAbandonedCamp is NOT here — one-shot discoveries don't belong
-    // in a continuously-resampled terrain table (a threshold generous
-    // enough to hit reliably is also generous enough to repeat several
-    // kills in a row, since signal dwells above a band edge rather than
-    // crossing it once). It's a hardcoded trigger in state/events.svelte.ts
-    // instead.
+    // Order is load-bearing - cumulative weight position maps a roll to a
+    // habitat band (see pickEncounter below), low-to-high signal.
+    // One-shot discoveries (hastilyAbandonedCamp) don't belong here - see
+    // state/events.svelte.ts for those instead.
     encounters: [
       { id: 'thornyShrubbery', weight: 6 },
       { id: 'fish', weight: 2 },
@@ -34,11 +24,7 @@ export const ZONES = {
       { id: 'rabbitHole', weight: 3 },
     ] as { id: EncounterId; weight: number }[],
   },
-  // DRAFT — name/description/quote are first-pass placeholders per
-  // ACT_1_STORYLINE.md ("not locked in yet"), open to a naming/voice pass.
-  // Monster pool is the wetland-themed half of the 11 level-2 stubs;
-  // ordered shore-to-shallows-to-drylandwards, same load-bearing-order
-  // convention as zone1.
+  // DRAFT - name/description/quote are placeholders, not locked in.
   zone2: {
     name: 'Rainbow Bog',
     description:
@@ -58,10 +44,7 @@ export const ZONES = {
       { id: 'rabbitHole', weight: 3 },
     ] as { id: EncounterId; weight: number }[],
   },
-  // DRAFT — same caveats as zone2. Bureaucracy/property-dispute theme,
-  // built around the four "ownership satire" stubs already on the books
-  // (Ruffian, Rat King, Guy Who Definitely Owns This Now, The Auditor).
-  // Ordered by seniority: squatter -> enforcer -> organization -> authority.
+  // DRAFT - same caveats as zone2.
   zone3: {
     name: 'The Last Ledger',
     description:
@@ -82,9 +65,7 @@ export const ZONES = {
 
 export type ZoneId = keyof typeof ZONES;
 
-// The roll is the signal itself, straight. Deterministic on purpose: the
-// same seed and distance always produce the same encounter, so the full
-// run is reproducible from a seed, not just its rough curve.
+// Deterministic - same seed and distance always produce the same encounter.
 export function pickEncounter(zoneId: ZoneId): EncounterId {
   const zone = ZONES[zoneId];
   return weightedPick(zone.encounters.map((m) => [m.id, m.weight] as const), getSignal());

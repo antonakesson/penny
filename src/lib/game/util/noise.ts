@@ -12,8 +12,7 @@ export function hashSeed(seed: string): number {
 }
 
 // Deterministic pseudo-random gradient in [-1, 1] for an integer lattice
-// point, mixed with the numeric seed — an integer hash (murmur3-style
-// finalizer), no permutation table or external noise lib needed.
+// point, mixed with the numeric seed.
 function latticeGradient(i: number, seed: number): number {
   let h = (Math.imul(i, 0x27220a95) ^ seed) | 0;
   h = Math.imul(h ^ (h >>> 15), 0x85ebca6b);
@@ -30,10 +29,8 @@ function lerp(a: number, b: number, t: number): number {
   return a + t * (b - a);
 }
 
-// 1D gradient noise's natural amplitude tops out around ±0.5, not ±1 —
-// measured empirically across several seeds. Without this, normalized
-// elevation clusters near 0.5 and rarely approaches 0 or 1. Scaled up and
-// clamped so the full 0..1 range is actually reachable.
+// Raw amplitude tops out around ±0.5, not ±1 - scaled up and clamped so
+// the full 0..1 range is reachable.
 const AMPLITUDE_SCALE = 2;
 
 // Hand-rolled 1D gradient (Perlin-style) noise: smooth and continuous

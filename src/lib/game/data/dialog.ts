@@ -1,43 +1,30 @@
 import type { EffectId } from './effects';
 import type { Condition } from './condition';
 
-// Loosely typed like ENCOUNTERS' dropTableId: readonly string[] — node ids
-// aren't cross-checked against DIALOGS' own keys at the type level. Keeping
-// DialogNodeId as keyof typeof DIALOGS would make DIALOGS's own type
+// Plain string, not keyof typeof DIALOGS - that would make DIALOGS
 // self-referential (a node's `next` pointing at a sibling key of the object
-// it's declared inside), which TS can't express without pain far out of
-// proportion to what this buys. Authoring mistakes (typo'd `next`) surface
-// at runtime instead of compile time — acceptable for now, revisit if it
-// ever bites.
+// it's declared inside), which TS can't express. Typo'd `next` surfaces at
+// runtime, not compile time.
 export type DialogNodeId = string;
 
 export interface DialogChoice {
   text: string;
   next: DialogNodeId;
-  // Evaluated once when the node renders (see getVisibleDialogChoices() in
-  // engine.ts) - a choice that was visible when the conversation started
-  // this node can still vanish if you re-enter after the underlying state
-  // changes, but it won't flicker mid-node. Absent = always visible.
+  // Evaluated once when the node renders - won't flicker mid-node even if
+  // the underlying state changes. Absent = always visible.
   when?: Condition;
 }
 
-// A node with no choices (or an empty array) is a dead end — the
-// conversation ends there. `effect` fires (via triggerEffect(), same table
-// an item's action binding reads from — see EFFECTS) the moment this node is
-// reached, whether or not it's also terminal.
+// No choices = dead end, conversation ends there. `effect` fires the
+// moment this node is reached, whether or not it's also terminal.
 export interface DialogNode {
   text: string;
   choices?: readonly DialogChoice[];
   effect?: EffectId;
 }
 
-// Flat table, one namespace for every dialog in the game — same shape as
-// ENCOUNTERS/EFFECTS. Collisions are still caught: TS errors (ts1117) on
-// duplicate keys within a single object literal, so the only real job left
-// is picking unique ids. Convention: prefix every node with its dialog's
-// name (`squirrel:greet`) rather than nesting per-dialog objects — nesting
-// buys nothing extra here and costs an indent level + a `.nodes.` hop on
-// every reference.
+// Flat table - node ids prefixed with their dialog's name (`squirrel:greet`)
+// rather than nesting per-dialog objects.
 export const DIALOGS = {
   'squirrel:greet': {
     text: 'It is already staring at you when you notice it — perfectly still, eyes wide, something small and rotten clutched in one paw like leverage. Neither of you moves.',
@@ -99,14 +86,48 @@ export const DIALOGS = {
     text: '"Granted!" the genie says. "Take care, fellow travelers. Look out for the—" It vanishes mid-sentence, in a small, tidy poof.',
     effect: 'squirrelWish',
   },
+
+  'outhouse:root': {
+    text: 'The outhouse door is shut, bolt turned to OCCUPIED — laminated, as if this exact situation has come up before and someone finally did something about it. Something inside is very deliberately making no sound at all.',
+    choices: [
+      { text: 'Knock.', next: 'outhouse:knock' },
+      { text: 'Wait.', next: 'outhouse:wait' },
+      { text: 'The lamination is not legally binding.', next: 'outhouse:enter' },
+    ],
+  },
+  'outhouse:knock': {
+    text: '"Occupied," says a voice. A pause, then, unprompted: "There is a queue." There is not, audibly, a queue. There has never, audibly, been a queue.',
+    choices: [
+      { text: 'Wait.', next: 'outhouse:wait' },
+      { text: 'The lamination is not legally binding.', next: 'outhouse:enter' },
+    ],
+  },
+  'outhouse:wait': {
+    text: 'You join the queue that does not exist, notionally first in line for it. Minutes pass with the settled confidence of someone who has budgeted for this. You did not budget for this.',
+    choices: [
+      { text: 'A little longer.', next: 'outhouse:waitLonger' },
+      { text: 'You cannot wait a little longer.', next: 'outhouse:accident' },
+    ],
+  },
+  'outhouse:waitLonger': {
+    text: 'You are still queued. The sign has not turned, has not been asked to turn, and gives every indication that turning is somebody else\'s department.',
+    choices: [
+      { text: 'One more minute.', next: 'outhouse:accident' },
+      { text: 'Enough of this.', next: 'outhouse:enter' },
+    ],
+  },
+  'outhouse:accident': {
+    text: 'The queue was never going to call your number. You stop waiting for it. Best not to elaborate further.',
+  },
+  'outhouse:enter': {
+    text: 'The lamination, it turns out, was never load-bearing. The occupant has Strong Opinions, several beginning with "someone is going to hear about this." None of them slow you down. Somebody is, in fact, about to write a letter. It will not reach you either.',
+  },
 } as const satisfies Record<string, DialogNode>;
 
 export type DialogId = keyof typeof DIALOGS;
 
-// DialogNodeId is deliberately wider than DialogId (see above), so indexing
-// DIALOGS by one hits "no index signature" - this is the one place that
-// swallows the cast, so every caller (engine.ts, SocialCard.svelte) stays
-// plain and type-checked on the way in and out.
+// DialogNodeId is wider than DialogId, so indexing DIALOGS by one hits "no
+// index signature" - this is the one place that swallows the cast.
 export function getDialogNode(id: DialogNodeId): DialogNode {
   return (DIALOGS as Record<string, DialogNode>)[id];
 }

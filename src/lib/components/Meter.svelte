@@ -1,13 +1,8 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  // Shell only - label row and bar chrome, nothing about the fill's
-  // direction/color/animation. Callers own that via the fill snippet, since
-  // it's the one part that's genuinely different per meter (width vs height
-  // fill, color-swap on cooldown, pulse-on-hold, instant-reset-per-instance).
-  // No margin/max-width here on purpose - every caller already owns its own
-  // outer spacing (.attack-meter, .investigation-meter, .hp-row), so this
-  // drops in without disturbing it.
+  // Shell only - label row and bar chrome. Fill direction/color/animation
+  // is entirely the caller's via the fill snippet.
   let { label, secondary, fill }: { label?: string; secondary?: Snippet; fill: Snippet } = $props();
 </script>
 

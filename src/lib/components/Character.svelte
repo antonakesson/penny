@@ -10,10 +10,8 @@
   let xpIntoLevel = $derived(progress.nextLevelXp === null ? 0 : Math.max(0, progress.progress) * (progress.nextLevelXp - progress.currentLevelXp));
   let xpTexts = $derived(getXpFloatingTexts());
 
-  // Crude v0.1 - a text list, not a proper buff bar (see effects_system
-  // memory / FEATURE_effect.md's "Later, optional: buff-bar UI"). Polls its
-  // own interval purely to re-render the countdown - state/effect.svelte.ts
-  // itself never ticks, this is a UI-layer concern only.
+  // Polls purely to re-render the countdown - state/effect.svelte.ts itself
+  // never ticks.
   let activeEffects = $state<{ id: EffectId; remainingMs: number }[]>([]);
   $effect(() => {
     const update = () => (activeEffects = getActiveEffects());
@@ -22,9 +20,6 @@
     return () => clearInterval(id);
   });
 
-  // Passive/permanent modifiers, unlike timed effects, are a pure function
-  // of $state (inventory, the permanent-grants list) read synchronously -
-  // no polling needed, $derived already re-runs when either changes.
   let modifierRows = $derived(
     STAT_IDS.map((stat) => ({ stat, value: sumModifier(stat) })).filter((row) => row.value !== 0)
   );

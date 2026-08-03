@@ -1,6 +1,5 @@
-// Separate from floatingText.svelte.ts on purpose - that layer is anchored
-// over the monster (mounted once, in Encounter.svelte); this one is anchored
-// over the Character pane's XP bar, a different spot in the tree entirely.
+// Separate from floatingText.svelte.ts - anchored over the Character pane's
+// XP bar, not the monster.
 const LIFETIME_MS = 1800;
 
 export interface XpFloatingTextEntry {

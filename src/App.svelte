@@ -30,8 +30,8 @@
   let confirmRequest = $derived(getConfirmRequest());
   let featureAnnouncement = $derived(getPendingFeatureAnnouncement());
 
-  // Runs synchronously during component init, before first render — any
-  // saved state is hydrated before the player sees a frame of fresh state.
+  // Runs before first render, so saved state hydrates before the player
+  // sees a frame of fresh state.
   initGame();
 
   $effect(() => {
@@ -39,8 +39,7 @@
     return () => clearInterval(id);
   });
 
-  // Autosave: a steady interval plus the two events that actually precede
-  // data loss — the tab going to background and the page unloading.
+  // Steady interval plus the two events that precede actual data loss.
   $effect(() => {
     const id = setInterval(saveNow, AUTOSAVE_INTERVAL_MS);
     function handleVisibilityChange() {
@@ -55,12 +54,8 @@
     };
   });
 
-  // The whole page is the action surface — anywhere that isn't a real
-  // control (a button, or the inventory pane) presses/releases the current
-  // encounter's action. Forcing a small target for the core loop's only
-  // input is the thing we're deliberately avoiding. Which activity actually
-  // happens (swing vs. hold-drain) is decided inside engine.ts by the
-  // current encounter's kind, not here.
+  // The whole page is the action surface - anywhere that isn't a real
+  // control presses/releases the current encounter's action.
   $effect(() => {
     function handlePointerDown(event: PointerEvent) {
       const target = event.target;

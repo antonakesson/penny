@@ -7,9 +7,8 @@
 
   let investigation = $derived(getEncounter() as Investigation);
   let pct = $derived(Math.round((investigation.hp / investigation.maxHp) * 100));
-  // hp/maxHp stay the runtime mechanism (see ENCOUNTER_REFACTOR.md decision
-  // 3 - dps-based, engine.ts untouched), but this is a timer, not a health
-  // bar - show seconds remaining, not a fraction labeled HP.
+  // hp/maxHp are the runtime mechanism, but this reads as a timer - show
+  // seconds remaining, not a fraction labeled HP.
   let secondsLeft = $derived(Math.ceil(investigation.hp / INVESTIGATE.dps));
 </script>
 

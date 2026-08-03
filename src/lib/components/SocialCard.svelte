@@ -6,17 +6,12 @@
 
   let encounter = $derived(getEncounter() as Social);
   let node = $derived(getDialogNode(encounter.currentNode));
-  // Gated choices (see DialogChoice.when) are filtered out here, not just
-  // hidden in the markup - so a gated option gets neither a digit keybind
-  // nor a rendered index for the one after it to shift into.
+  // Gated choices are filtered out here, not just hidden - so a gated
+  // option gets neither a digit keybind nor a rendered index.
   let choices = $derived(getVisibleDialogChoices(node));
 
-  // Digit keys 1-9 pick the matching choice, mirroring the click handler
-  // below - reads encounter/node live at keypress time rather than at
-  // effect-setup time, so this doesn't need to re-register as the
-  // conversation advances. Ignored while a text input has focus (DevTools'
-  // seed/qty fields, etc.) so typing a digit there doesn't also fire a
-  // dialog choice.
+  // Ignored while a text input has focus, so typing a digit elsewhere
+  // (DevTools' fields) doesn't also fire a dialog choice.
   $effect(() => {
     function handleKeydown(event: KeyboardEvent) {
       if (encounter.status !== 'active' || choices.length === 0) return;

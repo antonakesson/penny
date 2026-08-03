@@ -1,14 +1,8 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  // Shell only - backdrop/dialog chrome and the Escape/backdrop-click
-  // dismiss wiring shared by every dialog. Title/body/actions are the
-  // caller's own markup via the children snippet.
-  //
-  // dismissOnEnter defaults off: a single-action notice (Feature Unlocked)
-  // can safely bind Enter to its one dismiss action, but a multi-action
-  // dialog with a destructive confirm (Reset save) must not let Enter
-  // double as an accidental confirm.
+  // dismissOnEnter defaults off - a multi-action dialog with a destructive
+  // confirm (Reset save) must not let Enter double as an accidental confirm.
   let {
     labelledby,
     closeLabel = 'Dismiss',

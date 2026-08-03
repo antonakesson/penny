@@ -12,17 +12,14 @@ export const PANES = {
 
 export type PaneId = keyof typeof PANES;
 
-// Panes gated behind a feature unlock — absent from the nav entirely until
-// earned, so launch stays uncluttered (inventory + settings only).
+// Panes gated behind a feature unlock - absent from the nav until earned.
 const PANE_GATE: Partial<Record<PaneId, FeatureId>> = {
   journal: 'journal',
   pet: 'pet',
 };
 
 export function isPaneVisible(paneId: PaneId): boolean {
-  // Special-cased rather than folded into PANE_GATE's feature-unlock
-  // mechanism - this is an environment gate (stripped from prod builds
-  // entirely via import.meta.env.DEV), not a progression unlock.
+  // Environment gate, not a progression unlock - stripped from prod builds.
   if (paneId === 'devtools') return import.meta.env.DEV;
   const gate = PANE_GATE[paneId];
   return gate === undefined || isFeatureUnlocked(gate);
@@ -53,9 +50,8 @@ function savePinned(pinned: PaneId[]) {
 }
 
 let activePane = $state<PaneId | null>(null);
-// Order here doubles as desktop dock order — first pinned sits leftmost,
-// next pane pins in next to it. A UI layout preference, not game state, so
-// it's kept out of save.ts and unaffected by resetSave().
+// Order doubles as dock order. UI preference, not game state - kept out of
+// save.ts.
 let pinnedPanes = $state<PaneId[]>(loadPinned());
 
 export function getActivePane(): PaneId | null {

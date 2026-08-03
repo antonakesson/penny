@@ -1,13 +1,10 @@
 import type { FeatureId } from '../data/features';
 
-// Permanent once earned — unlocking reads "the item dropped at least once",
-// not "the item is currently held," so selling/losing it later can't
-// re-lock the feature.
+// Permanent once earned - losing the item later can't re-lock the feature.
 let unlockedFeatures = $state<FeatureId[]>([]);
 
-// Single slot, not a queue — mirrors ui/confirmDialog.svelte.ts's pattern.
-// A second unlock landing before the first is dismissed just overwrites it;
-// fine while only one feature exists to unlock.
+// Single slot, not a queue - a second unlock before the first is dismissed
+// just overwrites it.
 let pendingAnnouncement = $state<FeatureId | null>(null);
 
 export function isFeatureUnlocked(id: FeatureId): boolean {
