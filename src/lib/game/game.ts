@@ -26,18 +26,22 @@ import { FEATURES, type FeatureId } from './data/features';
 import { isSoundEnabled as isSoundEnabledState, setSoundEnabled as setSoundEnabledState } from './state/settings.svelte';
 import type { ItemId } from './data/loot';
 import {
-  press as pressInternal,
-  release as releaseInternal,
   tick as tickInternal,
   useItem as useItemInternal,
-  calculateDamage as calculateDamageInternal,
-  resolveDialogChoice as resolveDialogChoiceInternal,
-  dismissDialog as dismissDialogInternal,
   getLevelGap as getLevelGapInternal,
-  getVisibleDialogChoices as getVisibleDialogChoicesInternal,
-  getDialogSayLines as getDialogSayLinesInternal,
 } from './engine';
 export type { LevelGap } from './engine';
+import {
+  press as pressInternal,
+  release as releaseInternal,
+  calculateDamage as calculateDamageInternal,
+} from './combatEngine';
+import {
+  resolveDialogChoice as resolveDialogChoiceInternal,
+  dismissDialog as dismissDialogInternal,
+  getVisibleDialogChoices as getVisibleDialogChoicesInternal,
+  getDialogSayLines as getDialogSayLinesInternal,
+} from './dialogEngine';
 import type { DialogNodeId, DialogNode } from './data/dialog';
 import {
   loadSave,
