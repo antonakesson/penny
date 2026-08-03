@@ -7,12 +7,6 @@ interface EncounterBase {
   name: string;
   status: 'active' | 'dead';
   diedAt: number | null;
-  // Snapshot at spawn time, not derived live from bestiary state — the
-  // Bestiary marks this monster discovered almost immediately (well before
-  // it's dead), so if this read the live flag instead, the "first time
-  // you meet it" label would vanish out from under the player within a
-  // tick of appearing.
-  isNewDiscovery: boolean;
 }
 
 // hp-drain, discrete-swing resolution.

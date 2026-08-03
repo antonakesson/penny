@@ -4,7 +4,7 @@ import type { FeatureId } from '../game/data/features';
 export const PANES = {
   character: { label: 'Character' },
   inventory: { label: 'Inventory' },
-  bestiary: { label: 'Bestiary' },
+  journal: { label: 'Journal' },
   pet: { label: 'Pet' },
   settings: { label: 'Settings' },
   devtools: { label: 'Dev Tools' },
@@ -15,7 +15,7 @@ export type PaneId = keyof typeof PANES;
 // Panes gated behind a feature unlock — absent from the nav entirely until
 // earned, so launch stays uncluttered (inventory + settings only).
 const PANE_GATE: Partial<Record<PaneId, FeatureId>> = {
-  bestiary: 'bestiary',
+  journal: 'journal',
   pet: 'pet',
 };
 

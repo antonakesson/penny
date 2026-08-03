@@ -5,6 +5,7 @@ import { createEncounter, interruptEncounter } from './encounter.svelte';
 import { setActionIdle } from './action.svelte';
 import { addItem } from './inventory.svelte';
 import { addXp } from './xp.svelte';
+import { hasFlag } from './journalFlags.svelte';
 import { assertNever } from '../util/assertNever';
 
 let activeExpiries = $state<Partial<Record<EffectId, number>>>({});
@@ -14,6 +15,9 @@ let activeExpiries = $state<Partial<Record<EffectId, number>>>({});
 // same way once a real example exists.
 export function triggerEffect(effectId: EffectId) {
   const def: EffectDef = EFFECTS[effectId];
+  // Plain flag read, same tier as isFeatureUnlocked being read straight from
+  // UI components - not composition, so no need to route through engine.ts.
+  if (def.guardFlag && hasFlag(def.guardFlag)) return;
   if ('duration' in def) {
     activeExpiries[effectId] = Date.now() + def.duration;
   }

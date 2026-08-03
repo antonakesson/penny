@@ -3,10 +3,11 @@ import { getXp as getXpState, getLevelProgress as getLevelProgressState } from '
 import { getAction as getActionState } from './state/action.svelte';
 import { getPet as getPetState } from './state/pet.svelte';
 import { getEncounter as getEncounterState } from './state/encounter.svelte';
-import { isDiscovered as isDiscoveredState, getMaxDiscoveredEntryNo as getMaxDiscoveredEntryNoState } from './state/bestiary.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
 import { getXpFloatingTexts as getXpFloatingTextsState } from './state/xpFloatingText.svelte';
 import { getActiveEffects as getActiveEffectsState } from './state/effect.svelte';
+import { getEntries as getJournalEntriesState } from './state/journal.svelte';
+import { getAllFlags as getAllFlagsState } from './state/journalFlags.svelte';
 import { sumModifier as sumModifierState } from './state/modifier.svelte';
 import type { StatId } from './data/modifiers';
 import { getCurrentZoneId } from './state/zone.svelte';
@@ -81,14 +82,6 @@ export function getEncounter() {
   return getEncounterState();
 }
 
-export function isMonsterDiscovered(entryNo: number) {
-  return isDiscoveredState(entryNo);
-}
-
-export function getMaxDiscoveredEntryNo() {
-  return getMaxDiscoveredEntryNoState();
-}
-
 export function getFloatingTexts() {
   return getFloatingTextsState();
 }
@@ -99,6 +92,14 @@ export function getXpFloatingTexts() {
 
 export function getActiveEffects() {
   return getActiveEffectsState();
+}
+
+export function getJournalEntries() {
+  return getJournalEntriesState();
+}
+
+export function getFlags() {
+  return getAllFlagsState();
 }
 
 export function sumModifier(stat: StatId) {
@@ -127,13 +128,6 @@ export function getDifficultyAt(distance: number) {
 
 export function isFeatureUnlocked(id: FeatureId) {
   return isFeatureUnlockedState(id);
-}
-
-// Combines encounter state (is this the monster's first-ever encounter)
-// with feature-unlock state (has the player unlocked the Bestiary yet) -
-// the discovery reveal must never show ahead of the unlock itself.
-export function isDiscoveryVisible(isNewDiscovery: boolean) {
-  return isNewDiscovery && isFeatureUnlockedState('bestiary');
 }
 
 export function getPendingFeatureAnnouncement() {

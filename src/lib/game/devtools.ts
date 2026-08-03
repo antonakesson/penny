@@ -10,6 +10,7 @@ import { addXp, getXp } from './state/xp.svelte';
 import { getSeed, getDistance, hydrateMap } from './state/map.svelte';
 import { triggerEffect } from './state/effect.svelte';
 import { serializeModifiers } from './state/modifier.svelte';
+import { getAllFlags } from './state/journalFlags.svelte';
 import type { EncounterId } from './data/encounters';
 import type { ItemId } from './data/loot';
 import type { EffectId } from './data/effects';
@@ -50,6 +51,7 @@ export function devDumpState() {
     // Passives aren't included - they're not their own state, just a live
     // scan of inventory x ITEMS[id].passive, already visible above.
     permanentModifiers: serializeModifiers(),
+    flags: getAllFlags(),
   };
 }
 

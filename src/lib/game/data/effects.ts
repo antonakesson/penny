@@ -2,10 +2,18 @@ import type { FeatureId } from './features';
 import type { Modifier } from './modifiers';
 import type { EncounterId } from './encounters';
 import type { ItemId } from './loot';
+import type { FlagId } from './journalFlags';
 
 interface EffectBase {
   title: string;
   description: string;
+  // Plain read off journalFlags, checked directly in triggerEffect() - not
+  // routed through engine.ts's Condition/evaluateCondition (that's for
+  // composed multi-kind gates; this is just "has this already happened,
+  // ever" for a single flag). Once true, the effect no-ops entirely -
+  // "only ever fires once" for things like a genie that shouldn't grant a
+  // second wish, not a per-use toggle.
+  guardFlag?: FlagId;
 }
 
 export type EffectDef = EffectBase &
@@ -35,12 +43,34 @@ export type EffectDef = EffectBase &
     | { kind: 'grantXp'; amount: number }
   );
 
-export const EFFECTS = {
-  unlockBestiary: {
+// Hand-written, not `keyof typeof EFFECTS` - EffectDef.grantItem needs
+// ItemId (loot.ts), and ItemDef.action needs EffectId right back, so
+// deriving both from their own object's inferred keys is a genuine
+// mutual-recursion TS can't resolve ("referenced directly or indirectly in
+// its own type annotation"). Same family of problem as DialogNodeId's
+// comment in data/dialog.ts, different fix: ItemId stays auto-derived
+// (loot.ts's list grows constantly, hand-syncing it would rot fast);
+// EffectId is the one that gets hand-written instead, since EFFECTS grows
+// far more rarely (see effects_system memory) - breaks the cycle at the
+// cheaper side. EFFECTS below is still typed against this exhaustively
+// (missing/extra keys both error), just sourced from this union instead of
+// the reverse.
+export type EffectId =
+  | 'unlockJournal'
+  | 'unlockPet'
+  | 'freezeSpawn'
+  | 'permanentDamageBoost'
+  | 'eatChicken'
+  | 'summonGenie'
+  | 'grantGenieWish'
+  | 'squirrelWish';
+
+export const EFFECTS: Record<EffectId, EffectDef> = {
+  unlockJournal: {
     kind: 'unlockFeature',
-    feature: 'bestiary',
-    title: 'Bestiary',
-    description: 'Unlocks the Bestiary.',
+    feature: 'journal',
+    title: 'Journal',
+    description: 'Unlocks the Journal.',
   },
   unlockPet: {
     kind: 'unlockFeature',
@@ -73,6 +103,7 @@ export const EFFECTS = {
   summonGenie: {
     kind: 'launchEncounter',
     encounterId: 'genie',
+    guardFlag: 'genieWishGranted',
     title: 'Corked Bottle',
     description: 'Something answers. No refunds.',
   },
@@ -88,6 +119,4 @@ export const EFFECTS = {
     title: 'Acorn Wish',
     description: "The squirrel's, not yours.",
   },
-} as const satisfies Record<string, EffectDef>;
-
-export type EffectId = keyof typeof EFFECTS;
+};

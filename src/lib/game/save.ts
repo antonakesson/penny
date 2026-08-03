@@ -2,12 +2,13 @@ import { getXp, hydrateXp } from './state/xp.svelte';
 import { getInventory, hydrateInventory } from './state/inventory.svelte';
 import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
 import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './state/encounter.svelte';
-import { serializeDiscoveredMonsters, hydrateDiscoveredMonsters } from './state/bestiary.svelte';
 import { serializeMap, hydrateMap, type MapSnapshot } from './state/map.svelte';
 import { serializeUnlockedFeatures, hydrateUnlockedFeatures } from './state/features.svelte';
 import { serializeFiredEvents, hydrateFiredEvents } from './state/events.svelte';
 import { serializeEffects, hydrateEffects } from './state/effect.svelte';
 import { serializeModifiers, hydrateModifiers } from './state/modifier.svelte';
+import { serializeFlags, hydrateFlags } from './state/journalFlags.svelte';
+import { serializeEntries, hydrateEntries, type JournalEntry } from './state/journal.svelte';
 import { ZONES, type ZoneId } from './data/zones';
 import type { FeatureId } from './data/features';
 import type { EffectId } from './data/effects';
@@ -16,26 +17,28 @@ import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
-// v4: EncounterSnapshot became a discriminated union (Monster/Investigation/
-// RabbidSquirrel) instead of one flat shape - see ENCOUNTER_REFACTOR.md.
-// v5: added `effects` (timed-effect expiries, e.g. spawn freeze).
-// v6: added `modifiers` (permanent stat grants, e.g. a consumed book).
-// v7: `encounter` became an array (the active encounter plus anything
-// paused behind it, e.g. a fight a genie interrupted) instead of one flat
-// snapshot - see state/encounter.svelte.ts.
-const SAVE_VERSION = 7;
+// v0: pre-release baseline. Still alpha, no save worth preserving across
+// shape changes yet, so the version history resets here instead of
+// accumulating an ever-growing changelog comment. No migrations -
+// SAVE_VERSION bumps are breaking; a save from a different version is
+// discarded outright rather than shimmed forward.
+// v1: added `journalFlagsMask` (opaque "this has happened" bits, see
+// state/journalFlags.svelte.ts) and `journalEntries` (the diary log, see
+// state/journal.svelte.ts).
+const SAVE_VERSION = 1;
 
 interface SaveData {
   xp: number;
   inventory: Inventory;
   zone: ZoneId;
   encounter?: EncounterSnapshot[];
-  discoveredMonstersMask: string;
   map: MapSnapshot;
   unlockedFeatures: FeatureId[];
   firedEventsMask: string;
   effects: Partial<Record<EffectId, number>>;
   modifiers: Modifier[];
+  journalFlagsMask: string;
+  journalEntries: JournalEntry[];
 }
 
 interface SaveEnvelope {
@@ -53,18 +56,17 @@ function buildSnapshot(): SaveEnvelope {
       inventory: { ...getInventory() },
       zone: getCurrentZoneId(),
       encounter: serializeEncounter(),
-      discoveredMonstersMask: serializeDiscoveredMonsters(),
       map: serializeMap(),
       unlockedFeatures: serializeUnlockedFeatures(),
       firedEventsMask: serializeFiredEvents(),
       effects: serializeEffects(),
       modifiers: serializeModifiers(),
+      journalFlagsMask: serializeFlags(),
+      journalEntries: serializeEntries(),
     },
   };
 }
 
-// No migrations — SAVE_VERSION bumps are breaking. A save from a different
-// version is discarded outright rather than shimmed forward.
 function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
   if (!raw || typeof raw !== 'object') return false;
   const env = raw as Record<string, unknown>;
@@ -75,11 +77,19 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
   if (typeof data.xp !== 'number') return false;
   if (!data.inventory || typeof data.inventory !== 'object') return false;
   if (typeof data.zone !== 'string' || !(data.zone in ZONES)) return false;
-  if (typeof data.discoveredMonstersMask !== 'string') return false;
   if (!Array.isArray(data.unlockedFeatures)) return false;
   if (typeof data.firedEventsMask !== 'string') return false;
   if (!data.effects || typeof data.effects !== 'object') return false;
   if (!Array.isArray(data.modifiers)) return false;
+  if (typeof data.journalFlagsMask !== 'string') return false;
+  if (
+    !Array.isArray(data.journalEntries) ||
+    !data.journalEntries.every((e) => {
+      const entry = e as Record<string, unknown>;
+      return typeof entry.id === 'string' && typeof entry.text === 'string';
+    })
+  )
+    return false;
 
   const map = data.map as Record<string, unknown> | undefined;
   if (!map || typeof map.seed !== 'string' || typeof map.distance !== 'number') return false;
@@ -90,7 +100,7 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
     (Array.isArray(encounter) &&
       encounter.every((e) => {
         const entry = e as Record<string, unknown>;
-        return typeof entry.id === 'string' && typeof entry.action === 'string' && typeof entry.isNewDiscovery === 'boolean';
+        return typeof entry.id === 'string' && typeof entry.action === 'string';
       }))
   );
 }
@@ -99,13 +109,28 @@ function applySnapshot(data: SaveData) {
   hydrateXp(data.xp);
   hydrateInventory(data.inventory);
   hydrateZone(data.zone);
-  hydrateDiscoveredMonsters(data.discoveredMonstersMask);
   if (data.encounter) hydrateEncounter(data.encounter);
   hydrateMap(data.map);
   hydrateUnlockedFeatures(data.unlockedFeatures);
   hydrateFiredEvents(data.firedEventsMask);
   hydrateEffects(data.effects);
   hydrateModifiers(data.modifiers);
+  hydrateFlags(data.journalFlagsMask);
+  hydrateEntries(data.journalEntries);
+}
+
+// isValidEnvelope only checks shape (types, key presence) - it can't catch
+// something like an encounter `action` string that isn't a real EncounterId,
+// which only blows up once a hydrate function actually switches on it (e.g.
+// assertNever in encounter.svelte.ts). This is the last line of defense for
+// that case, so a save file can be well-typed but still semantically bogus.
+function applySnapshotSafely(data: SaveData): boolean {
+  try {
+    applySnapshot(data);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // Set by resetSave() so the pagehide/visibilitychange autosave that fires
@@ -137,15 +162,34 @@ function readEnvelope(key: string): SaveEnvelope | null {
 }
 
 // Loads the save, falling back to the rolling backup if the primary slot is
-// missing or corrupt. No offline catch-up — there's no idle mechanic yet to
-// justify progress while away; see the pet/companion system planned
-// for that.
+// missing, corrupt, or throws during hydrate. No offline catch-up — there's
+// no idle mechanic yet to justify progress while away; see the pet/companion
+// system planned for that.
 export function loadSave(): boolean {
-  const envelope = readEnvelope(SAVE_KEY) ?? readEnvelope(BACKUP_KEY);
-  if (!envelope) return false;
-
-  applySnapshot(envelope.data);
-  return true;
+  let attempted = false;
+  for (const key of [SAVE_KEY, BACKUP_KEY]) {
+    const envelope = readEnvelope(key);
+    if (!envelope) continue;
+    if (applySnapshotSafely(envelope.data)) return true;
+    attempted = true;
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // Storage unavailable - nothing to clear either way.
+    }
+  }
+  if (attempted) {
+    // Every shape-valid slot still threw during hydrate - earlier slices in
+    // applySnapshot may already be partially mutated from those attempts, so
+    // the only guaranteed way back to a known-good baseline is a fresh
+    // module load, same as resetSave()'s clear-and-reload. Suppress first,
+    // same reason as resetSave(): the reload's own pagehide-triggered
+    // saveNow() would otherwise persist that partially-mutated state right
+    // back into the slots we just cleared.
+    suppressAutosave = true;
+    location.reload();
+  }
+  return false;
 }
 
 export function exportSave(): string {
@@ -168,13 +212,24 @@ export function resetSave() {
 }
 
 export function importSave(encoded: string): boolean {
+  let parsed: unknown;
   try {
-    const parsed: unknown = JSON.parse(atob(encoded.trim()));
-    if (!isValidEnvelope(parsed)) return false;
-    applySnapshot(parsed.data);
-    saveNow();
-    return true;
+    parsed = JSON.parse(atob(encoded.trim()));
   } catch {
     return false;
   }
+  if (!isValidEnvelope(parsed)) return false;
+
+  if (!applySnapshotSafely(parsed.data)) {
+    // Hydrate threw partway through - don't leave the running game sitting
+    // on a half-mutated state. Nothing was written to storage yet, so
+    // reloading falls back to whatever save/backup existed before this
+    // import attempt. Suppress autosave first so the reload's pagehide
+    // doesn't persist the half-mutated in-memory state over that save.
+    suppressAutosave = true;
+    location.reload();
+    return false;
+  }
+  saveNow();
+  return true;
 }

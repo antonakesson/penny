@@ -8,6 +8,7 @@
     devToolsSetSeed,
     getDistance,
     getSeed,
+    getFlags,
   } from '../game/game';
   import { ENCOUNTERS, type EncounterId } from '../game/data/encounters';
   import { ITEMS, type ItemId } from '../game/data/loot';
@@ -24,6 +25,7 @@
   let distanceInput = $state(getDistance());
   let seedInput = $state(getSeed());
   let selectedEffect = $state<EffectId>(effectIds[0]);
+  let flags = $derived(Object.entries(getFlags()));
 </script>
 
 <div class="devtools">
@@ -83,6 +85,15 @@
       <button onclick={() => devToolsTriggerEffect(selectedEffect)}>Trigger</button>
     </div>
   </section>
+
+  <section>
+    <p class="section-label">Flags</p>
+    <ul class="flags">
+      {#each flags as [id, value] (id)}
+        <li class:flag-set={value}>{id}: {value}</li>
+      {/each}
+    </ul>
+  </section>
 </div>
 
 <style>
@@ -123,5 +134,18 @@
   button {
     white-space: nowrap;
     cursor: pointer;
+  }
+  .flags {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font: 500 12px/1.4 var(--font-mono);
+    color: var(--ink-faint);
+  }
+  .flags li.flag-set {
+    color: var(--ink);
   }
 </style>

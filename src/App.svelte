@@ -5,7 +5,7 @@
   import ActivePet from './lib/components/ActivePet.svelte';
   import Character from './lib/components/Character.svelte';
   import Inventory from './lib/components/Inventory.svelte';
-  import Bestiary from './lib/components/Bestiary.svelte';
+  import Journal from './lib/components/Journal.svelte';
   import Pet from './lib/components/Pet.svelte';
   import Settings from './lib/components/Settings.svelte';
   import DevTools from './lib/components/DevTools.svelte';
@@ -97,9 +97,9 @@
   <Pane paneId="inventory" label="Inventory">
     <Inventory />
   </Pane>
-  {#if isPaneVisible('bestiary')}
-    <Pane paneId="bestiary" label="Bestiary">
-      <Bestiary />
+  {#if isPaneVisible('journal')}
+    <Pane paneId="journal" label="Journal">
+      <Journal />
     </Pane>
   {/if}
   {#if isPaneVisible('pet')}

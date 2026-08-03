@@ -1,6 +1,5 @@
 import type { EffectId } from './effects';
-import type { ItemId } from './loot';
-import type { FeatureId } from './features';
+import type { Condition } from './condition';
 
 // Loosely typed like ENCOUNTERS' dropTableId: readonly string[] — node ids
 // aren't cross-checked against DIALOGS' own keys at the type level. Keeping
@@ -12,13 +11,6 @@ import type { FeatureId } from './features';
 // ever bites.
 export type DialogNodeId = string;
 
-// Grown one kind at a time as a real need for it lands, same as EffectDef -
-// not a general predicate engine. Single condition per choice, not an
-// array/AND - add that only once a choice actually needs to combine two.
-export type DialogCondition =
-  | { kind: 'hasItem'; itemId: ItemId; qty?: number } // qty defaults to 1
-  | { kind: 'hasFeature'; feature: FeatureId };
-
 export interface DialogChoice {
   text: string;
   next: DialogNodeId;
@@ -26,7 +18,7 @@ export interface DialogChoice {
   // engine.ts) - a choice that was visible when the conversation started
   // this node can still vanish if you re-enter after the underlying state
   // changes, but it won't flicker mid-node. Absent = always visible.
-  when?: DialogCondition;
+  when?: Condition;
 }
 
 // A node with no choices (or an empty array) is a dead end — the
@@ -110,3 +102,11 @@ export const DIALOGS = {
 } as const satisfies Record<string, DialogNode>;
 
 export type DialogId = keyof typeof DIALOGS;
+
+// DialogNodeId is deliberately wider than DialogId (see above), so indexing
+// DIALOGS by one hits "no index signature" - this is the one place that
+// swallows the cast, so every caller (engine.ts, SocialCard.svelte) stays
+// plain and type-checked on the way in and out.
+export function getDialogNode(id: DialogNodeId): DialogNode {
+  return (DIALOGS as Record<string, DialogNode>)[id];
+}

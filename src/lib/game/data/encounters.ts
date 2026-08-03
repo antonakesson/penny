@@ -147,16 +147,17 @@ export const ENCOUNTERS = {
     dropTableId: ['letterDrops'],
   },
 
+  // Stubbed down from a fuller 75s/two-beat writeup - that version leaned on
+  // Bestiary-specific lore (a notebook's "one finished page") that doesn't
+  // fit the Journal model it's been replaced by. Cheap placeholder for now;
+  // revisit once the Journal's own voice/shape is settled.
   hastilyAbandonedCamp: {
     kind: 'investigation',
     name: 'Hastily Abandoned Camp',
-    durationMs: 75_000,
-    xpReward: 100,
+    durationMs: 10_000,
+    xpReward: 15,
     dropTableId: ['hastilyAbandonedCampDrops'],
-    descriptions: [
-      "The embers are still warm. A pot of stew sits half-eaten over the coals. Whoever left didn't mean to — not with a small, very cherished notebook still tucked under the bedroll.",
-      'The notebook falls open to its only finished page — a boar, sketched with more care than anything else in this camp. The rest of the pages are still waiting.',
-    ],
+    descriptions: ['The embers are still warm. Whoever left here didn’t mean to.'],
   },
 
   rabbidSquirrel: {

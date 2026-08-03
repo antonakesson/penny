@@ -12,14 +12,17 @@
 
   // WoW-con-color read on the level number - gap bucketing itself lives in
   // engine.ts (getLevelGap) so this component only owns the color mapping.
-  let levelGap = $derived(encounter.action !== 'investigate' ? getLevelGap(encounter.level) : null);
+  // Investigation has no `level` field at all, so this narrows once here
+  // rather than at each of the two render sites below.
+  let level = $derived(encounter.action !== 'investigate' ? encounter.level : null);
+  let levelGap = $derived(level !== null ? getLevelGap(level) : null);
 </script>
 
 <section class="encounter" class:done={encounter.status === 'dead'}>
   <Discovery monster={encounter}>
     <div class="header">
       <h3 class="name">{encounter.name}</h3>
-      {#if levelGap}<span class="level {levelGap}">Lv. {encounter.level}</span>{/if}
+      {#if levelGap}<span class="level {levelGap}">Lv. {level}</span>{/if}
     </div>
   </Discovery>
   {@render children()}

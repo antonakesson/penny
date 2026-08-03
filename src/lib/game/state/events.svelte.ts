@@ -1,6 +1,6 @@
 // Opaque on purpose: fired state is a bitmask, not named ids, so the save
-// file never leaks which one-shot story beats exist or have fired (see
-// bestiary.svelte.ts's discoveredMask for the same trick). Deliberately
+// file never leaks which one-shot story beats exist or have fired.
+// Deliberately
 // hardcoded rather than a declarative condition schema for now — two
 // events (both a single ramped distance check) still isn't enough to
 // justify generalizing, and a "DSL" here would need compound boolean

@@ -36,9 +36,9 @@ export const ZONES = {
   },
   // DRAFT — name/description/quote are first-pass placeholders per
   // ACT_1_STORYLINE.md ("not locked in yet"), open to a naming/voice pass.
-  // Monster pool is the wetland-themed half of the 11 level-2 stubs
-  // (bestiary.ts entryNo 6-16); ordered shore-to-shallows-to-drylandwards,
-  // same load-bearing-order convention as zone1.
+  // Monster pool is the wetland-themed half of the 11 level-2 stubs;
+  // ordered shore-to-shallows-to-drylandwards, same load-bearing-order
+  // convention as zone1.
   zone2: {
     name: 'Rainbow Bog',
     description:

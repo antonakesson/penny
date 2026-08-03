@@ -8,22 +8,12 @@ import {
 import { pickEncounter } from '../data/zones';
 import { getCurrentZoneId } from './zone.svelte';
 import { getDifficulty } from './map.svelte';
-import { isDiscovered } from './bestiary.svelte';
-import { getBestiaryEntry } from '../data/bestiary';
 import { INVESTIGATE } from '../config';
 import { assertNever } from '../util/assertNever';
 import type { Encounter, Monster, Investigation, Social } from '../types';
 import type { DialogNodeId } from '../data/dialog';
 
 let nextInstanceId = 1;
-
-// Only bestiary-listed encounters get discovery-tracked at all - a one-shot
-// event or unfinished placeholder with no BestiaryEntry has nothing to
-// "discover", so it never gets the reveal treatment.
-function isNewDiscoveryFor(name: string): boolean {
-  const entry = getBestiaryEntry(name);
-  return entry !== undefined && !isDiscovered(entry.entryNo);
-}
 
 // No per-monster-identity scaling - hp/xp start from the def's own
 // honestly-authored numbers. A tougher version of a monster is a separate
@@ -53,7 +43,6 @@ function createMonster(id: EncounterId, def: MonsterDef, level: number): Monster
     dropTableId: def.dropTableId,
     status: 'active',
     diedAt: null,
-    isNewDiscovery: isNewDiscoveryFor(def.name),
   };
 }
 
@@ -74,7 +63,6 @@ function createInvestigation(id: EncounterId, def: InvestigationDef): Investigat
     dropTableId: def.dropTableId,
     status: 'active',
     diedAt: null,
-    isNewDiscovery: isNewDiscoveryFor(def.name),
   };
 }
 
@@ -89,7 +77,6 @@ function createSocial(id: EncounterId, def: SocialDef, level: number): Social {
     currentNode: def.dialogRoot,
     status: 'active',
     diedAt: null,
-    isNewDiscovery: isNewDiscoveryFor(def.name),
   };
 }
 
@@ -210,7 +197,6 @@ interface EncounterSnapshotBase {
   id: string;
   status: Encounter['status'];
   diedAt: number | null;
-  isNewDiscovery: boolean;
 }
 
 interface MonsterSnapshot extends EncounterSnapshotBase {
@@ -245,7 +231,6 @@ function encounterToSnapshot(encounter: Encounter): EncounterSnapshot {
     id: encounter.id,
     status: encounter.status,
     diedAt: encounter.diedAt,
-    isNewDiscovery: encounter.isNewDiscovery,
   };
   switch (encounter.action) {
     case 'attack':
@@ -279,14 +264,13 @@ export function serializeEncounter(): EncounterSnapshot[] {
   return current.map(encounterToSnapshot);
 }
 
-// createEncounter() would recompute level/maxHp/xpReward/isNewDiscovery from
-// current live state instead of what was true at spawn time - level would
-// re-roll from wherever distance/difficulty sit *now* (could easily differ
-// from the roll at spawn), and isNewDiscovery would read the bestiary mask
-// which, by reload time, already says "discovered" (marked almost
-// immediately on spawn, well before persistence). Both are the same
-// "vanishes/drifts within a tick" bug, just reached via reload instead of
-// live play. Reconstruct via createEncounter() for the def-derived fields
+// createEncounter() would recompute level/maxHp/xpReward from current live
+// state instead of what was true at spawn time - level would re-roll from
+// wherever distance/difficulty sit *now*, which could easily differ from
+// the roll at spawn. That's the same "vanishes/drifts within a tick" bug
+// class snapshotToEncounter exists to avoid elsewhere, just reached via
+// reload instead of live play. Reconstruct via createEncounter() for the
+// def-derived fields
 // (name/dropTableId/etc.), then overlay every spawn-time-dependent field
 // with the persisted value instead of trusting a fresh recompute.
 function snapshotToEncounter(snapshot: EncounterSnapshot): Encounter {
@@ -301,7 +285,6 @@ function snapshotToEncounter(snapshot: EncounterSnapshot): Encounter {
         xpReward: snapshot.xpReward,
         status: snapshot.status,
         diedAt: snapshot.diedAt,
-        isNewDiscovery: snapshot.isNewDiscovery,
       };
     case 'investigate':
       return {
@@ -311,7 +294,6 @@ function snapshotToEncounter(snapshot: EncounterSnapshot): Encounter {
         xpReward: snapshot.xpReward,
         status: snapshot.status,
         diedAt: snapshot.diedAt,
-        isNewDiscovery: snapshot.isNewDiscovery,
       };
     case 'social':
       return {
@@ -320,7 +302,6 @@ function snapshotToEncounter(snapshot: EncounterSnapshot): Encounter {
         currentNode: snapshot.currentNode,
         status: snapshot.status,
         diedAt: snapshot.diedAt,
-        isNewDiscovery: snapshot.isNewDiscovery,
       };
     default:
       return assertNever(snapshot);

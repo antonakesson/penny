@@ -9,7 +9,8 @@ import {
   hasEncounter,
   pickDialogChoice,
 } from './state/encounter.svelte';
-import { DIALOGS, type DialogNodeId, type DialogNode, type DialogChoice, type DialogCondition } from './data/dialog';
+import { getDialogNode, type DialogNodeId, type DialogNode, type DialogChoice } from './data/dialog';
+import { evaluateCondition } from './condition';
 import { advance } from './state/map.svelte';
 import { pickEncounter } from './data/zones';
 import { getCurrentZoneId } from './state/zone.svelte';
@@ -18,8 +19,6 @@ import { getAction, setActionActive, setActionCooldown, setActionIdle } from './
 import { getPet, setPetAttacking, setPetRecovering, setPetIdle } from './state/pet.svelte';
 import { addXp, getLevel } from './state/xp.svelte';
 import { addItem, removeItem, getInventory } from './state/inventory.svelte';
-import { discoverMonster } from './state/bestiary.svelte';
-import { getBestiaryEntry } from './data/bestiary';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
 import { spawnXpFloatingText } from './state/xpFloatingText.svelte';
 import { resolveDropIds, ITEMS, ITEM_CAP, type ItemId, type ItemDef } from './data/loot';
@@ -30,6 +29,7 @@ import { assertNever } from './util/assertNever';
 import { playSound } from './audio';
 import type { Encounter, Monster, Investigation, ActionKind } from './types';
 import type { EncounterId } from './data/encounters';
+import * as journal from './journal';
 
 // Attack and investigate are mutually exclusive activities on the same
 // "self" occupant - they share one ActionState mutex (kind-tagged) rather
@@ -246,14 +246,6 @@ export function tick() {
 
   const encounter = getEncounter();
   const now = Date.now();
-  // Discovery is logged as soon as the monster is on screen, not on kill —
-  // a no-op past the first tick it's seen, since discoverMonster just sets
-  // a bit. Gated on the Bestiary unlock itself: there's no journal to log
-  // into before that, so nothing should get marked seen ahead of it. Only
-  // bestiary-listed encounters have anything to log — one-shot events and
-  // placeholders just aren't species in the pokedex.
-  const bestiaryEntry = getBestiaryEntry(encounter.name);
-  if (bestiaryEntry && isFeatureUnlocked('bestiary')) discoverMonster(bestiaryEntry.entryNo);
 
   if (encounter.status === 'dead' && encounter.diedAt !== null && now - encounter.diedAt >= ENCOUNTER_END_MS) {
     // Reset the shared mutex before the next encounter's kind takes over -
@@ -266,7 +258,11 @@ export function tick() {
     // was already decided/live. Only decide something fresh if nothing's
     // left at all.
     dropEncounter();
-    if (!hasEncounter()) interruptEncounter(decideNextEncounter(encounter.id as EncounterId));
+    if (!hasEncounter()) {
+      const next = decideNextEncounter(encounter.id as EncounterId);
+      journal.encounterSpawned(next.id);
+      interruptEncounter(next);
+    }
   }
 }
 
@@ -299,8 +295,16 @@ export function useItem(itemId: ItemId) {
   // grantXp/grantItem/grantModifier have no inherent visual beat of their
   // own without this).
   playSound('ItemUsed');
+  // effect.svelte.ts's launchEncounter case calls interruptEncounter()
+  // directly rather than routing back through engine.ts, so this is the
+  // only place that can notice a launched encounter to log it - comparing
+  // instanceId (bumped on every createEncounter(), including a repeat of
+  // the same id) is how it's detected rather than an explicit return value.
+  const before = getEncounter().instanceId;
   triggerEffect(action.effect);
   if (action.consumes) removeItem(itemId, 1);
+  const after = getEncounter();
+  if (after.instanceId !== before) journal.encounterSpawned(after.id);
 }
 
 function awardXp(amount: number) {
@@ -319,6 +323,7 @@ function awardLoot(dropTableId: readonly string[]) {
   for (const dropId of drops) {
     addItem(dropId, 1);
     spawnLootText(`+1 ${ITEMS[dropId].name}`, ITEMS[dropId].rarity);
+    journal.itemDropped(dropId);
   }
 }
 
@@ -329,29 +334,19 @@ function resolveKill(encounter: Monster | Investigation) {
   awardXp(encounter.xpReward);
   awardLoot(encounter.dropTableId);
   markEventFired(encounter.id);
+  journal.encounterCompleted(encounter.id);
   killMonster();
   if (!isEffectActive('freezeSpawn')) advance();
 }
 
-function evaluateDialogCondition(condition: DialogCondition): boolean {
-  switch (condition.kind) {
-    case 'hasItem':
-      return (getInventory()[condition.itemId] ?? 0) >= (condition.qty ?? 1);
-    case 'hasFeature':
-      return isFeatureUnlocked(condition.feature);
-    default:
-      return assertNever(condition);
-  }
-}
-
-// Cross-domain read (inventory/feature state against dialog data), same
-// reason it lives here and not in state/encounter.svelte.ts - see
-// architecture_state_ownership. <SocialCard/> calls this instead of reading
-// node.choices directly, so a gated choice is genuinely absent (no index,
-// no keybind) rather than rendered disabled.
+// <SocialCard/> calls this instead of reading node.choices directly, so a
+// gated choice is genuinely absent (no index, no keybind) rather than
+// rendered disabled. evaluateCondition lives in ./condition, not here - it's
+// a pure cross-domain read (no writes), shared with journal.ts's entry
+// gating so both read off one evaluator instead of growing their own copy.
 export function getVisibleDialogChoices(node: DialogNode): readonly DialogChoice[] {
   if (!node.choices) return [];
-  return node.choices.filter((choice) => !choice.when || evaluateDialogCondition(choice.when));
+  return node.choices.filter((choice) => !choice.when || evaluateCondition(choice.when));
 }
 
 // Triggered by <SocialCard/>'s choice buttons, not applyHit() - Social never
@@ -366,17 +361,32 @@ export function resolveDialogChoice(next: DialogNodeId) {
   const encounter = getEncounter();
   if (encounter.action !== 'social' || encounter.status !== 'active') return;
   pickDialogChoice(next);
-  const node = DIALOGS[next];
+  const node = getDialogNode(next);
   if (node.effect) triggerEffect(node.effect);
+  // Logged/flagged before pickDialogChoice's effects can compound - a
+  // variant or gate reading this same flag still sees "not yet granted" for
+  // this event, not the one after it. FLAG_TRIGGERS (see journal.ts) maps
+  // both terminal "a wish got granted" nodes (an item here, or the
+  // squirrel's own wish via genie:granted) to the same flag - one wish
+  // total, whichever route grants it, not just the item path; otherwise
+  // picking the squirrel-nod route first would never flip it and the
+  // genie's guardFlag (see effects.ts's summonGenie) would let it be
+  // summoned again.
+  journal.dialogNode(next);
 }
 
 // Triggered by <SocialCard/>'s "Continue" button once the current node is
 // terminal - the explicit click resolveDialogChoice() used to do
-// automatically the instant a no-choices node was reached.
+// automatically the instant a no-choices node was reached. No
+// journal.encounterCompleted(encounter.id) here unlike resolveKill() - a kill has one
+// clear noteworthy beat (the death), but a conversation's ending is already
+// narrated by whichever node it stopped on (each already logged its own
+// entry, if any, via resolveDialogChoice). Logging the bare encounter id
+// again here would just double up whatever its start already wrote.
 export function dismissDialog() {
   const encounter = getEncounter();
   if (encounter.action !== 'social' || encounter.status !== 'active') return;
-  const node = DIALOGS[encounter.currentNode];
+  const node = getDialogNode(encounter.currentNode);
   if (node.choices && node.choices.length > 0) return;
   markEventFired(encounter.id);
   killMonster();

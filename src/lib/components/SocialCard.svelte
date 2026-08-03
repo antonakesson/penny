@@ -1,11 +1,11 @@
 <script lang="ts">
   import { getEncounter, resolveDialogChoice, getVisibleDialogChoices, dismissDialog } from '../game/game';
-  import { DIALOGS } from '../game/data/dialog';
+  import { getDialogNode } from '../game/data/dialog';
   import EncounterCardShell from './EncounterCardShell.svelte';
   import type { Social } from '../game/types';
 
   let encounter = $derived(getEncounter() as Social);
-  let node = $derived(DIALOGS[encounter.currentNode]);
+  let node = $derived(getDialogNode(encounter.currentNode));
   // Gated choices (see DialogChoice.when) are filtered out here, not just
   // hidden in the markup - so a gated option gets neither a digit keybind
   // nor a rendered index for the one after it to shift into.

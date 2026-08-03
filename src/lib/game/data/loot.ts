@@ -1,6 +1,8 @@
 import { weightedPick } from '../util/weighted';
 import type { EffectId } from './effects';
 import type { Modifier } from './modifiers';
+import type { FlagId } from './journalFlags';
+import { hasFlag } from '../state/journalFlags.svelte';
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
@@ -55,7 +57,7 @@ export const ITEMS = {
     name: 'Barely-Used Sketchbook',
     rarity: 'rare',
     flavor: 'One boar in, and already abandoned.',
-    action: { effect: 'unlockBestiary', consumes: true },
+    action: { effect: 'unlockJournal', consumes: true },
   },
   bottledDejaVu: {
     name: 'Bottled Déjà Vu',
@@ -103,6 +105,14 @@ export const ITEMS = {
     rarity: 'epic',
     flavor: 'Dusty. Corked. Heavier than it looks.',
     action: { effect: 'summonGenie', consumes: true },
+  },
+  // What corkedBottle silently becomes once ITEM_SUBSTITUTIONS' genieBottleFound
+  // flag is set - one genie, ever, so every roll after the first is just a
+  // bottle. No action - popping this one was never going to do anything.
+  emptyCorkedBottle: {
+    name: 'Corked Bottle',
+    rarity: 'common',
+    flavor: "Corked, same as the last one. Whatever was in that one, it wasn't in here.",
   },
   wishAsIs: {
     name: 'Wish (As-Is)',
@@ -170,6 +180,23 @@ export const ITEM_CAP: Partial<Record<ItemId, number>> = {
   knottedTwineRing: 1,
 };
 
+// A one-time-ever drop that silently becomes a different (usually inert)
+// item on every roll after the flag's already set - the roll's odds don't
+// change, only what the winning slot resolves to, so this is a plain
+// post-resolution rewrite (see substitute() below), not a pre-roll
+// exclusion like ITEM_CAP above. Reads journalFlags' hasFlag() directly -
+// a flag is a cheap global read, same tier isFeatureUnlocked already gets
+// read at from outside engine.ts, unlike ITEM_CAP's isAtCap, which stays an
+// injected callback because it's reading live inventory state instead.
+export const ITEM_SUBSTITUTIONS: Partial<Record<ItemId, { flag: FlagId; fallback: ItemId }>> = {
+  corkedBottle: { flag: 'genieBottleFound', fallback: 'emptyCorkedBottle' },
+};
+
+function substitute(id: ItemId): ItemId {
+  const sub = ITEM_SUBSTITUTIONS[id];
+  return sub && hasFlag(sub.flag) ? sub.fallback : id;
+}
+
 export const RARITY_ORDER: readonly Rarity[] = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
 
 type DropPool = Record<string, number>;
@@ -186,7 +213,7 @@ const TREASURE: Record<string, DropPool> = {
   fishDrops: { nothing: 15, fishScale: 4, chicken: 6, misc: 2, noobTreasure: 1, rustyHook: 1 },
   // No 'nothing' entry — the camp is a guaranteed find, not a roll. Sole
   // source of barelyUsedSketchbook; it used to also trickle out of
-  // noobTreasure, pulled once the camp existed so the Bestiary unlock reads
+  // noobTreasure, pulled once the camp existed so the Journal unlock reads
   // as "you found the camp" rather than "you got lucky killing a boar."
   hastilyAbandonedCampDrops: { barelyUsedSketchbook: 1 },
   // No 'nothing' entry — the rabbit hole always yields a letter (the joke is
@@ -239,7 +266,9 @@ function resolvePool(poolId: string, depth: number, isAtCap: (id: ItemId) => boo
 }
 
 // One independent resolve per pool id — a monster with the same pool listed
-// twice gets two separate chances, not a guaranteed pair.
+// twice gets two separate chances, not a guaranteed pair. substitute() runs
+// last, over the final resolved ids - it never affects what gets rolled or
+// its odds, only what a winning corkedBottle roll actually turns into.
 export function resolveDropIds(dropTableIds: readonly string[], isAtCap: (id: ItemId) => boolean): ItemId[] {
-  return dropTableIds.flatMap((poolId) => resolvePool(poolId, 0, isAtCap));
+  return dropTableIds.flatMap((poolId) => resolvePool(poolId, 0, isAtCap)).map(substitute);
 }
