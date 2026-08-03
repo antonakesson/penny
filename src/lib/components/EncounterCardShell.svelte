@@ -3,18 +3,21 @@
   import Discovery from './Discovery.svelte';
   import { getLevelGap } from '../game/game';
   import type { Encounter } from '../game/types';
+  import { ENCOUNTER_ICONS } from '../game/data/icons';
+  import type { EncounterId } from '../game/data/encounters';
 
   let { encounter, children }: { encounter: Encounter; children: Snippet } = $props();
 
   // Investigation has no `level` field - narrowed once here.
   let level = $derived(encounter.action !== 'investigate' ? encounter.level : null);
   let levelGap = $derived(level !== null ? getLevelGap(level) : null);
+  let icon = $derived(ENCOUNTER_ICONS[encounter.id as EncounterId]);
 </script>
 
 <section class="encounter" class:done={encounter.status === 'dead'}>
   <Discovery monster={encounter}>
     <div class="header">
-      <h3 class="name">{encounter.name}</h3>
+      <h3 class="name">{#if icon}<span class="icon">{icon}</span>{/if}{encounter.name}</h3>
       {#if levelGap}<span class="level {levelGap}">Lv. {level}</span>{/if}
     </div>
   </Discovery>
@@ -44,6 +47,9 @@
     letter-spacing: 0.02em;
     color: var(--ink-strong);
     margin: 0;
+  }
+  .icon {
+    margin-right: 6px;
   }
   .level {
     font: 600 12px/1 var(--font-ui);
