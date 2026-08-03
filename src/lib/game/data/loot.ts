@@ -1,8 +1,8 @@
 import { weightedPick } from '../util/weighted';
 import type { EffectId } from './effects';
 import type { Modifier } from './modifiers';
-import type { FlagId } from './journalFlags';
-import { hasFlag } from '../state/journalFlags.svelte';
+import type { Condition } from './condition';
+import { evaluateCondition } from '../condition';
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
@@ -181,20 +181,23 @@ export const ITEM_CAP: Partial<Record<ItemId, number>> = {
 };
 
 // A one-time-ever drop that silently becomes a different (usually inert)
-// item on every roll after the flag's already set - the roll's odds don't
-// change, only what the winning slot resolves to, so this is a plain
-// post-resolution rewrite (see substitute() below), not a pre-roll
-// exclusion like ITEM_CAP above. Reads journalFlags' hasFlag() directly -
-// a flag is a cheap global read, same tier isFeatureUnlocked already gets
-// read at from outside engine.ts, unlike ITEM_CAP's isAtCap, which stays an
-// injected callback because it's reading live inventory state instead.
-export const ITEM_SUBSTITUTIONS: Partial<Record<ItemId, { flag: FlagId; fallback: ItemId }>> = {
-  corkedBottle: { flag: 'genieBottleFound', fallback: 'emptyCorkedBottle' },
+// item once its condition is met - the roll's odds don't change, only what
+// the winning slot resolves to, so this is a plain post-resolution rewrite
+// (see substitute() below), not a pre-roll exclusion like ITEM_CAP above
+// (which changes the odds among what's left). `when` is the same shared
+// Condition every other gate reads (evaluateCondition, imported directly -
+// a plain cross-domain read, same tier isFeatureUnlocked/hasFlag already
+// got read at from outside engine.ts, unlike ITEM_CAP's isAtCap, which
+// stays an injected callback because it's reading live inventory state
+// instead). Was flag-only; widened to Condition so a future substitution
+// can gate on hasItem/hasFeature too without a second table.
+export const ITEM_SUBSTITUTIONS: Partial<Record<ItemId, { when: Condition; fallback: ItemId }>> = {
+  corkedBottle: { when: { kind: 'flag', flag: 'genieBottleFound' }, fallback: 'emptyCorkedBottle' },
 };
 
 function substitute(id: ItemId): ItemId {
   const sub = ITEM_SUBSTITUTIONS[id];
-  return sub && hasFlag(sub.flag) ? sub.fallback : id;
+  return sub && evaluateCondition(sub.when) ? sub.fallback : id;
 }
 
 export const RARITY_ORDER: readonly Rarity[] = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
