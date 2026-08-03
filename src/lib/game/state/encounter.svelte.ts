@@ -12,6 +12,7 @@ import { INVESTIGATE } from '../config';
 import { assertNever } from '../util/assertNever';
 import type { Encounter, Monster, Investigation, Social } from '../types';
 import type { DialogNodeId } from '../data/dialog';
+import type { CharacterId } from '../data/characters';
 
 let nextInstanceId = 1;
 
@@ -75,6 +76,7 @@ function createSocial(id: EncounterId, def: SocialDef, level: number): Social {
     level,
     dialogRoot: def.dialogRoot,
     currentNode: def.dialogRoot,
+    nameOverrides: {},
     status: 'active',
     diedAt: null,
   };
@@ -169,6 +171,14 @@ export function pickDialogChoice(next: DialogNodeId) {
   encounter.currentNode = next;
 }
 
+// A dialog `rename` line's only effect - same single-writer rule as
+// pickDialogChoice(). engine.ts's resolveDialogChoice() is the only caller.
+export function setCharacterName(character: CharacterId, name: string) {
+  const encounter = current[0];
+  if (encounter.action !== 'social') return;
+  encounter.nameOverrides[character] = name;
+}
+
 // Base Encounter behavior, not per-kind - status/diedAt live on every
 // variant, so this applies uniformly regardless of what's currently active.
 export function killMonster() {
@@ -209,10 +219,11 @@ interface SocialSnapshot extends EncounterSnapshotBase {
   action: 'social';
   level: number;
   // dialogRoot isn't persisted - it's def-derived and createEncounter()
-  // reconstructs it fresh. currentNode is the one field that actually
-  // drifts from spawn-time, same reasoning as Monster's level (see
+  // reconstructs it fresh. currentNode/nameOverrides are the fields that
+  // actually drift from spawn-time, same reasoning as Monster's level (see
   // hydrateEncounter()'s comment below).
   currentNode: DialogNodeId;
+  nameOverrides: Partial<Record<CharacterId, string>>;
 }
 
 export type EncounterSnapshot = MonsterSnapshot | InvestigationSnapshot | SocialSnapshot;
@@ -242,7 +253,13 @@ function encounterToSnapshot(encounter: Encounter): EncounterSnapshot {
         xpReward: encounter.xpReward,
       };
     case 'social':
-      return { ...base, action: 'social', level: encounter.level, currentNode: encounter.currentNode };
+      return {
+        ...base,
+        action: 'social',
+        level: encounter.level,
+        currentNode: encounter.currentNode,
+        nameOverrides: encounter.nameOverrides,
+      };
     default:
       return assertNever(encounter);
   }
@@ -291,6 +308,7 @@ function snapshotToEncounter(snapshot: EncounterSnapshot): Encounter {
         ...(createEncounter(id, snapshot.level) as Social),
         level: snapshot.level,
         currentNode: snapshot.currentNode,
+        nameOverrides: snapshot.nameOverrides,
         status: snapshot.status,
         diedAt: snapshot.diedAt,
       };

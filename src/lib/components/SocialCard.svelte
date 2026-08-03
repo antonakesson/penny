@@ -1,11 +1,18 @@
 <script lang="ts">
-  import { getEncounter, resolveDialogChoice, getVisibleDialogChoices, dismissDialog } from '../game/game';
+  import {
+    getEncounter,
+    resolveDialogChoice,
+    getVisibleDialogChoices,
+    getDialogSayLines,
+    dismissDialog,
+  } from '../game/game';
   import { getDialogNode } from '../game/data/dialog';
   import EncounterCardShell from './EncounterCardShell.svelte';
   import type { Social } from '../game/types';
 
   let encounter = $derived(getEncounter() as Social);
   let node = $derived(getDialogNode(encounter.currentNode));
+  let lines = $derived(getDialogSayLines(node));
   // Gated choices are filtered out here, not just hidden - so a gated
   // option gets neither a digit keybind nor a rendered index.
   let choices = $derived(getVisibleDialogChoices(node));
@@ -28,7 +35,14 @@
 
 <EncounterCardShell {encounter}>
   {#key encounter.currentNode}
-    <p class="line">{node.text}</p>
+    <div class="lines">
+      {#each lines as line}
+        <p class="line">
+          {#if line.speaker !== 'Narrator'}<span class="speaker">{line.speaker}</span>{/if}
+          {line.text}
+        </p>
+      {/each}
+    </div>
   {/key}
   {#if choices.length > 0}
     <div class="choices">
@@ -53,10 +67,20 @@
 </EncounterCardShell>
 
 <style>
+  .lines {
+    margin: 0 0 12px;
+  }
   .line {
     font-family: var(--font-body);
     color: var(--ink-strong);
-    margin: 0 0 12px;
+    margin: 0 0 6px;
+  }
+  .speaker {
+    font: 700 12px/1 var(--font-ui);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+    margin-right: 6px;
   }
   .choices {
     display: flex;

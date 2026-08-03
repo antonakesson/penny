@@ -1,5 +1,6 @@
 import type { Rarity } from './data/loot';
 import type { DialogNodeId } from './data/dialog';
+import type { CharacterId } from './data/characters';
 
 interface EncounterBase {
   instanceId: number; // UI-transition key only (hp-fill transition reset) — not meaningful data
@@ -37,6 +38,11 @@ export interface Social extends EncounterBase {
   level: number;
   dialogRoot: DialogNodeId;
   currentNode: DialogNodeId;
+  // Written by a dialog `rename` line (see DialogLine in data/dialog.ts) -
+  // overrides CHARACTERS' default display name for the rest of this
+  // encounter. Keyed by character, not global, so unrelated speakers in the
+  // same encounter don't share a name slot.
+  nameOverrides: Partial<Record<CharacterId, string>>;
 }
 
 export type Encounter = Monster | Investigation | Social;

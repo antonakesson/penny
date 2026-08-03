@@ -35,6 +35,7 @@ import {
   dismissDialog as dismissDialogInternal,
   getLevelGap as getLevelGapInternal,
   getVisibleDialogChoices as getVisibleDialogChoicesInternal,
+  getDialogSayLines as getDialogSayLinesInternal,
 } from './engine';
 export type { LevelGap } from './engine';
 import type { DialogNodeId, DialogNode } from './data/dialog';
@@ -169,6 +170,10 @@ export function dismissDialog() {
 
 export function getVisibleDialogChoices(node: DialogNode) {
   return getVisibleDialogChoicesInternal(node);
+}
+
+export function getDialogSayLines(node: DialogNode) {
+  return getDialogSayLinesInternal(node);
 }
 
 export function tick() {

@@ -8,8 +8,10 @@ import {
   dropEncounter,
   hasEncounter,
   pickDialogChoice,
+  setCharacterName,
 } from './state/encounter.svelte';
 import { getDialogNode, type DialogNodeId, type DialogNode, type DialogChoice } from './data/dialog';
+import { CHARACTERS } from './data/characters';
 import { evaluateCondition } from './condition';
 import { advance } from './state/map.svelte';
 import { pickEncounter } from './data/zones';
@@ -289,6 +291,25 @@ export function getVisibleDialogChoices(node: DialogNode): readonly DialogChoice
   return node.choices.filter((choice) => !choice.when || evaluateCondition(choice.when));
 }
 
+// <SocialCard/> calls this instead of reading node.lines directly - it
+// resolves each 'say' line's speaker to a display name (CHARACTERS' default,
+// overridden by any 'rename' line already processed for this encounter) and
+// drops 'action'/'rename' lines, which are silent. Renames are applied once
+// on node arrival (see resolveDialogChoice() below), so a node that both
+// renames a character and has that character speak always renders with the
+// post-rename name - there's no line-by-line temporal cursor since all of a
+// node's lines display at once.
+export function getDialogSayLines(node: DialogNode): { speaker: string; text: string }[] {
+  const encounter = getEncounter();
+  const overrides = encounter.action === 'social' ? encounter.nameOverrides : {};
+  return node.lines
+    .filter((line) => line.kind === 'say')
+    .map((line) => ({
+      speaker: line.speaker === 'narrator' ? 'Narrator' : (overrides[line.speaker] ?? CHARACTERS[line.speaker]),
+      text: line.text,
+    }));
+}
+
 // Reaching a terminal node (no choices of its own) does NOT resolve the
 // encounter here - a dialog's last line is real prose the player still
 // needs to read. See dismissDialog() below for the actual resolution.
@@ -297,7 +318,10 @@ export function resolveDialogChoice(next: DialogNodeId) {
   if (encounter.action !== 'social' || encounter.status !== 'active') return;
   pickDialogChoice(next);
   const node = getDialogNode(next);
-  if (node.effect) triggerEffect(node.effect);
+  for (const line of node.lines) {
+    if (line.kind === 'action') triggerEffect(line.effect);
+    else if (line.kind === 'rename') setCharacterName(line.character, line.name);
+  }
   journal.dialogNode(next);
 }
 
