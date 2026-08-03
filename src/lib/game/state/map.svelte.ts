@@ -16,6 +16,14 @@ export function getSeed(): string {
   return seed;
 }
 
+// The terrain lattice's numeric seed, reused as the placement seed for
+// map.ts's idHash-based POI anchoring - no need for a third independent
+// seed, idHash's string-keyed domain doesn't collide with elevationNoise's
+// integer-lattice one even sharing the same base number.
+export function getNumericSeed(): number {
+  return numericSeed;
+}
+
 export function advance(amount = 1) {
   distance += amount;
 }

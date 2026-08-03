@@ -5,7 +5,7 @@ import {
   type InvestigationDef,
   type SocialDef,
 } from '../data/encounters';
-import { pickEncounter } from '../data/zones';
+import { pickEncounter } from '../map';
 import { getCurrentZoneId } from './zone.svelte';
 import { getDifficulty } from './map.svelte';
 import { INVESTIGATE } from '../config';

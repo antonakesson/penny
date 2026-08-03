@@ -50,7 +50,7 @@ import {
   importSave as importSaveInternal,
   resetSave as resetSaveInternal,
 } from './save';
-import { ZONES } from './data/zones';
+import { getCurrentSubZoneView } from './map';
 import type { EncounterId } from './data/encounters';
 import type { EffectId } from './data/effects';
 import {
@@ -112,7 +112,7 @@ export function sumModifier(stat: StatId) {
 }
 
 export function getZone() {
-  return ZONES[getCurrentZoneId()];
+  return getCurrentSubZoneView(getCurrentZoneId(), getDistanceState());
 }
 
 export function getSeed() {

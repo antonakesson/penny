@@ -6,7 +6,7 @@ import {
   dropEncounter,
   hasEncounter,
 } from './state/encounter.svelte';
-import { pickEncounter } from './data/zones';
+import { pickEncounter } from './map';
 import { getCurrentZoneId } from './state/zone.svelte';
 import { shouldShowEvent } from './state/events.svelte';
 import { setActionIdle } from './state/action.svelte';

@@ -6,8 +6,11 @@
 </script>
 
 <section class="zone">
+  <p class="zone-name">{zone.zoneName}</p>
   <h2>{zone.name} <span class="distance">({distance})</span></h2>
-  <p class="lore">{zone.description}</p>
+  {#if zone.description}
+    <p class="lore">{zone.description}</p>
+  {/if}
   {#if zone.quote}
     <blockquote class="quote">
       <p class="quote-text">"{zone.quote.text}"</p>
@@ -19,6 +22,13 @@
 <style>
   .zone {
     margin-bottom: 28px;
+  }
+  .zone-name {
+    margin: 0 0 2px;
+    font: 600 11px/1 var(--font-ui);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
   }
   h2 {
     margin: 0 0 4px;
