@@ -22,6 +22,7 @@
     saveNow,
     getPendingFeatureAnnouncement,
     dismissFeatureAnnouncement,
+    dismissDialog,
   } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
   import { getConfirmRequest, resolveConfirm } from './lib/ui/confirmDialog.svelte';
@@ -55,12 +56,16 @@
   });
 
   // The whole page is the action surface - anywhere that isn't a real
-  // control presses/releases the current encounter's action.
+  // control presses/releases the current encounter's action. Dialog's
+  // "Continue" rides the same click instead of its own button - press()
+  // and dismissDialog() each no-op unless the current encounter matches
+  // their kind, so firing both here is safe.
   $effect(() => {
     function handlePointerDown(event: PointerEvent) {
       const target = event.target;
       if (target instanceof Element && target.closest('button, .pane')) return;
       press();
+      dismissDialog();
     }
     function handlePointerUp() {
       release();

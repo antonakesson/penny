@@ -1,11 +1,5 @@
 <script lang="ts">
-  import {
-    getEncounter,
-    resolveDialogChoice,
-    getVisibleDialogChoices,
-    getDialogSayLines,
-    dismissDialog,
-  } from '../game/game';
+  import { getEncounter, resolveDialogChoice, getVisibleDialogChoices, getDialogSayLines } from '../game/game';
   import { getDialogNode } from '../game/data/dialog';
   import EncounterCardShell from './EncounterCardShell.svelte';
   import type { Social } from '../game/types';
@@ -57,12 +51,8 @@
         </button>
       {/each}
     </div>
-  {:else if !node.choices?.length}
-    <div class="choices">
-      <button class="choice" disabled={encounter.status !== 'active'} onclick={() => dismissDialog()}>
-        Continue.
-      </button>
-    </div>
+  {:else if !node.choices?.length && encounter.status === 'active'}
+    <p class="continue-hint">Click to continue.</p>
   {/if}
 </EncounterCardShell>
 
@@ -105,5 +95,12 @@
   .choice-num {
     font-variant-numeric: tabular-nums;
     opacity: 0.7;
+  }
+  .continue-hint {
+    font: 500 12px/1 var(--font-ui);
+    letter-spacing: 0.04em;
+    font-style: italic;
+    color: var(--ink-faint);
+    margin: 0;
   }
 </style>
