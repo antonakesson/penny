@@ -1,4 +1,4 @@
-export type StatId = 'damage';
+export type StatId = 'damage' | 'petDamage';
 
 export interface Modifier {
   stat: StatId;
@@ -7,4 +7,5 @@ export interface Modifier {
 
 export const STAT_LABELS: Record<StatId, string> = {
   damage: 'Damage',
+  petDamage: 'Pet Damage',
 };

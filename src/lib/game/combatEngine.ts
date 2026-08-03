@@ -167,8 +167,9 @@ function petTick() {
     setPetRecovering(now);
     const encounter = getEncounter();
     if (encounter.action === 'social' || encounter.status !== 'active') return;
-    spawnFloatingText(`-${PET.damage}`, 'damage');
-    damageMonster(PET.damage);
+    const damage = PET.damage + sumModifier('petDamage');
+    spawnFloatingText(`-${damage}`, 'damage');
+    damageMonster(damage);
     if (encounter.hp <= 0) resolveKill(encounter);
     return;
   }

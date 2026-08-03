@@ -111,6 +111,7 @@ export const ITEMS = {
     name: 'Lifetime Supply of Acorns',
     rarity: 'rare',
     flavor: 'The genie did not specify a unit. This was, in retrospect, a mistake.',
+    passive: [{ stat: 'petDamage', value: 1 }],
   },
   tuskOfTheUnvanquishedSwineLord: {
     name: 'Tusk of the Unvanquished Swine-Lord, Who Only Ever Stood Here, In This Field, Doing Nothing',
