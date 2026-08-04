@@ -3,6 +3,7 @@ import type { Modifier } from './modifiers';
 import type { EncounterId } from './encounters';
 import type { ItemId } from './loot';
 import type { FlagId } from './journalFlags';
+import type { Condition } from './condition';
 
 interface EffectBase {
   title: string;
@@ -40,7 +41,14 @@ export type EffectDef = EffectBase &
     // Doesn't respect ITEM_CAP - if you want a curated *random* reward that
     // does, route it through a TREASURE pool + awardLoot() instead.
     | { kind: 'grantItem'; itemId: ItemId }
-    | { kind: 'grantXp'; amount: number }
+    // bonus is additive, evaluated at the moment the effect fires (not
+    // baked in at spawn/authoring time like combatEngine's difficulty
+    // scale) - for a reward that's mostly flat but should read as noticing
+    // something the player did. Generic on Condition rather than a
+    // one-off "lingered" field, so the next thing that wants a
+    // conditional bonus (any flag/item/feature check) doesn't need its
+    // own mechanism.
+    | { kind: 'grantXp'; amount: number; bonus?: { when: Condition; amount: number } }
     // Removes one `from`, grants one `to` - for turning a held item into its
     // spent/inert counterpart (see corkedBottle -> emptyCorkedBottle in
     // loot.ts) at the moment the thing it enables actually resolves, rather
@@ -57,6 +65,7 @@ export type EffectId =
   | 'freezeSpawn'
   | 'permanentDamageBoost'
   | 'eatChicken'
+  | 'grantJumpXp'
   | 'summonGenie'
   | 'openCorkedBottle'
   | 'closeCorkedBottle'
@@ -98,6 +107,17 @@ export const EFFECTS: Record<EffectId, EffectDef> = {
     amount: 5,
     title: 'Eat',
     description: "Best not to ask. +5 XP either way.",
+  },
+  // Fired unconditionally by interruptingCreek:jump - the jump always
+  // happens regardless of path taken to get there, so this is a flat style
+  // bonus, not a reward for solving anything. The bonus only exists to give
+  // the `lingered` flag (see journalFlags.ts) somewhere to be read back.
+  grantJumpXp: {
+    kind: 'grantXp',
+    amount: 20,
+    bonus: { when: { kind: 'flag', flag: 'lingered' }, amount: 10 },
+    title: 'Stuck the Landing',
+    description: 'The creek was not, in fact, timing you.',
   },
   summonGenie: {
     kind: 'launchEncounter',

@@ -29,4 +29,9 @@ export const JOURNAL_ENTRIES: Partial<Record<string, readonly JournalVariant[]>>
       text: "Went in anyway. Someone's writing a letter about it. Wonder if it'll arrive.",
     },
   ],
+  'interruptingCreek:linger': [
+    {
+      text: 'Waited by a creek for a reason to keep waiting. None arrived. Jumped it anyway.',
+    },
+  ],
 };

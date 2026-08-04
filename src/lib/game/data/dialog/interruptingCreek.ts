@@ -36,6 +36,7 @@ export default {
   },
   'interruptingCreek:jump': {
     lines: [
+      { kind: 'action', effect: 'grantJumpXp' },
       {
         kind: 'say',
         speaker: 'narrator',

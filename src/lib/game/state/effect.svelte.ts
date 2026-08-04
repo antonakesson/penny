@@ -6,6 +6,7 @@ import { setActionIdle } from './action.svelte';
 import { addItem, removeItem } from './inventory.svelte';
 import { addXp } from './xp.svelte';
 import { hasFlag } from './journalFlags.svelte';
+import { evaluateCondition } from '../condition';
 import { assertNever } from '../util/assertNever';
 
 let activeExpiries = $state<Partial<Record<EffectId, number>>>({});
@@ -52,9 +53,11 @@ function applyInstantEffect(def: EffectDef) {
     case 'grantItem':
       addItem(def.itemId, 1);
       return;
-    case 'grantXp':
-      addXp(def.amount);
+    case 'grantXp': {
+      const bonus = def.bonus && evaluateCondition(def.bonus.when) ? def.bonus.amount : 0;
+      addXp(def.amount + bonus);
       return;
+    }
     case 'swapItem':
       removeItem(def.from, 1);
       addItem(def.to, 1);
