@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import Discovery from './Discovery.svelte';
+  import Flavortext from './Flavortext.svelte';
   import { getLevelGap } from '../game/game';
   import type { Encounter } from '../game/types';
   import { ENCOUNTER_ICONS } from '../game/data/icons';
@@ -15,12 +15,12 @@
 </script>
 
 <section class="encounter" class:done={encounter.status === 'dead'}>
-  <Discovery monster={encounter}>
+  <Flavortext {encounter}>
     <div class="header">
       <h3 class="name">{#if icon}<span class="icon">{icon}</span>{/if}{encounter.name}</h3>
       {#if levelGap}<span class="level {levelGap}">Lv. {level}</span>{/if}
     </div>
-  </Discovery>
+  </Flavortext>
   {@render children()}
 </section>
 

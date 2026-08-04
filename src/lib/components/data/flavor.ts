@@ -68,10 +68,10 @@ interface EncounterFlavor {
   // otherwise. Not every encounter needs an entry; most fights have nothing
   // to say about the zone itself.
   quote?: Quote;
-  // Discovery.svelte: one static blurb, shown for the whole hold. Monster/
+  // Flavortext.svelte: one static blurb, shown for the whole hold. Monster/
   // social encounters only ever have this form, never beats.
   description?: string;
-  // Discovery.svelte: beats revealed in order as investigation progress
+  // Flavortext.svelte: beats revealed in order as investigation progress
   // advances, instead of one static blurb. Investigation encounters only
   // ever have this form, never description.
   beats?: readonly string[];
@@ -86,9 +86,6 @@ export const ENCOUNTER_FLAVOR: Partial<Record<EncounterId, EncounterFlavor>> = {
       text: 'Occupied.',
       attribution: 'A Voice, From Within',
     },
-  },
-  fish: {
-    description: 'Not the first of its kind to try to walk on land. The others, notably, did not go back.',
   },
   hastilyAbandonedCamp: {
     beats: ['The embers are still warm. Whoever left here didn’t mean to.'],
@@ -106,5 +103,13 @@ export const ENCOUNTER_FLAVOR: Partial<Record<EncounterId, EncounterFlavor>> = {
     beats: [
       'The trees pull back just enough to let real sunlight through, for once. Warm, quiet, unbothered — the kind of clearing that ends up on a postcard nobody in this forest has ever sent. Your squirrel flops onto its back in the grass and does not get up.',
     ],
+  },
+  forkTowardTheBog: {
+    description:
+      "Whatever put the marker here didn't bother carving a name into it — just an arrow, pointing off the packed trail into ground that squelches instead of crunches. Someone has since added, in a different hand and clearly after the fact: 'Boots off is a suggestion.'",
+  },
+  forkBackToTheWoods: {
+    description:
+      "The marker here has sunk to about knee height, same as everything else that stood still too long. Only the arrow's still legible, pointing back at solid ground with what might generously be called enthusiasm.",
   },
 };
