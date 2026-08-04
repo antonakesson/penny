@@ -43,19 +43,35 @@
 </script>
 
 <div class="signal-trace">
-  <svg viewBox="0 0 {VIEW_W} {VIEW_H}" preserveAspectRatio="none" class="chart">
-    <line x1="0" y1={VIEW_H / 2} x2={VIEW_W} y2={VIEW_H / 2} class="baseline" />
-    <polyline points={difficultyLinePoints} class="line difficulty" />
-    <polyline points={linePoints} class="line" />
-    <circle cx={VIEW_W} cy={currentDifficultyY} r="4" class="end-dot difficulty" />
-    <circle cx={VIEW_W} cy={currentY} r="4" class="end-dot" />
-  </svg>
+  <div class="chart-wrap">
+    <svg viewBox="0 0 {VIEW_W} {VIEW_H}" preserveAspectRatio="none" class="chart">
+      <line x1="0" y1={VIEW_H / 2} x2={VIEW_W} y2={VIEW_H / 2} class="baseline" />
+      <polyline points={difficultyLinePoints} class="line difficulty" />
+      <polyline points={linePoints} class="line" />
+      <circle cx={VIEW_W} cy={currentDifficultyY} r="4" class="end-dot difficulty" />
+      <circle cx={VIEW_W} cy={currentY} r="4" class="end-dot" />
+    </svg>
+    <p class="distance">Distance: {distance}</p>
+  </div>
 </div>
 
 <style>
   .signal-trace {
     max-width: 340px;
     margin-bottom: 20px;
+  }
+  .chart-wrap {
+    position: relative;
+  }
+  .distance {
+    position: absolute;
+    left: 2px;
+    bottom: 2px;
+    margin: 0;
+    font: 400 12px/1 var(--font-ui);
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
   }
   .chart {
     display: block;

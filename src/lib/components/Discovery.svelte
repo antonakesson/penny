@@ -1,27 +1,23 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import {
-    ENCOUNTERS,
-    type EncounterId,
-    type MonsterDef,
-    type InvestigationDef,
-    type SocialDef,
-  } from '../game/data/encounters';
+  import type { EncounterId } from '../game/data/encounters';
   import type { Encounter } from '../game/types';
+  import { ENCOUNTER_FLAVOR } from './data/flavor';
 
   let { monster, children }: { monster: Encounter; children: Snippet } = $props();
 
   // Investigation kinds walk through a beats array as progress advances,
   // instead of one static blurb for the whole hold.
   let description = $derived.by(() => {
+    const flavor = ENCOUNTER_FLAVOR[monster.id as EncounterId];
     if (monster.action === 'investigate') {
-      const beats = (ENCOUNTERS[monster.id as EncounterId] as InvestigationDef).descriptions;
+      const beats = flavor?.beats;
       if (!beats || beats.length === 0) return undefined;
       const progress = 1 - monster.hp / monster.maxHp;
       const index = Math.min(beats.length - 1, Math.floor(progress * beats.length));
       return beats[index];
     }
-    return (ENCOUNTERS[monster.id as EncounterId] as MonsterDef | SocialDef).description;
+    return flavor?.description;
   });
 </script>
 

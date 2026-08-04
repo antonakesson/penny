@@ -12,7 +12,6 @@ export interface MonsterDef {
   maxHp: number;
   xpReward: number;
   dropTableId: readonly string[];
-  description?: string;
 }
 
 export interface InvestigationDef {
@@ -21,8 +20,6 @@ export interface InvestigationDef {
   durationMs: number; // authored honestly, not a guessed maxHp
   xpReward: number;
   dropTableId: readonly string[];
-  // Beats revealed in order as progress advances (see Discovery.svelte).
-  descriptions?: readonly string[];
 }
 
 export interface SocialDef {
@@ -30,7 +27,6 @@ export interface SocialDef {
   name: string;
   level: number;
   dialogRoot: DialogNodeId;
-  description?: string;
 }
 
 export type EncounterDef = MonsterDef | InvestigationDef | SocialDef;
@@ -74,7 +70,6 @@ export const ENCOUNTERS = {
     maxHp: 3,
     xpReward: 5,
     dropTableId: ['fishDrops'],
-    description: 'Not the first of its kind to try to walk on land. The others, notably, did not go back.',
   },
 
   // Zone2/zone3 stats below are a first pass, not playtested.
@@ -132,7 +127,6 @@ export const ENCOUNTERS = {
     durationMs: 10_000,
     xpReward: 15,
     dropTableId: ['hastilyAbandonedCampDrops'],
-    descriptions: ['The embers are still warm. Whoever left here didn’t mean to.'],
   },
 
   rabbidSquirrel: {
@@ -157,17 +151,15 @@ export const ENCOUNTERS = {
   },
 
   // Default/declared id - what's placed in zones.ts. Same coordinate, same
-  // name, either way; only the last line of the description (and the
-  // squirrel's mood) says otherwise. See ENCOUNTER_SUBSTITUTIONS below.
+  // name, same mechanics, either way - only the flavor (components/data/
+  // flavor.ts's ENCOUNTER_FLAVOR) and the squirrel's mood differ. See
+  // ENCOUNTER_SUBSTITUTIONS below.
   pleasantClearing: {
     kind: 'investigation',
     name: 'Pleasant Clearing',
     durationMs: 3_000,
     xpReward: 5,
     dropTableId: [],
-    descriptions: [
-      "The trees pull back just enough to let real sunlight through, for once. Warm, quiet, unbothered — the kind of clearing that ends up on a postcard nobody in this forest has ever sent. You notice, distantly, that you haven't seen a single bird since you walked in.",
-    ],
   },
   // Substituted in once `pet` is unlocked - never placed directly.
   pleasantClearingRecruited: {
@@ -176,9 +168,6 @@ export const ENCOUNTERS = {
     durationMs: 3_000,
     xpReward: 5,
     dropTableId: [],
-    descriptions: [
-      'The trees pull back just enough to let real sunlight through, for once. Warm, quiet, unbothered — the kind of clearing that ends up on a postcard nobody in this forest has ever sent. Your squirrel flops onto its back in the grass and does not get up.',
-    ],
   },
 } as const satisfies Record<string, EncounterDef>;
 

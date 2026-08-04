@@ -27,9 +27,13 @@ export interface PoiGroupDef {
 }
 
 export interface SubZoneDef {
+  // Stable identity - keys the UI-owned flavor lookup (see
+  // components/data/flavor.ts). Never reassigned once shipped, same rule
+  // as PoiGroupDef.id above. Description/quote prose lives entirely outside
+  // this file - the game-logic layer only needs to know this subzone exists,
+  // not what it says about itself.
+  id: string;
   name: string;
-  description?: string;
-  quote?: { text: string; attribution: string };
   // Distance span. The last subzone in a zone stays active indefinitely past
   // it (no travel graph yet - see FEATURE_ZONE_MAP_REWORK.md's Deferred
   // section); length still matters there because it bounds where that
@@ -49,13 +53,8 @@ export const ZONES = {
     name: 'Whispering Woods',
     subZones: [
       {
+        id: 'treeLine',
         name: 'Tree Line',
-        description:
-          'The trees are evenly distributed. And strangely, equally tall, as if guided by some cost-benefit analysis of structural integrity versus sunlight yield. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',
-        quote: {
-          text: "If you don't count the people who don't come back, the forest is 100% safe.",
-          attribution: 'Cobb Thistlewood, Ranger / Coroner',
-        },
         length: 40,
         // Same pool as Deep Woods for now - splitting it by subzone is a
         // follow-up authoring decision, not made here.
@@ -73,7 +72,7 @@ export const ZONES = {
         ] as PoiGroupDef[],
       },
       {
-        // DRAFT - flavor text not written yet.
+        id: 'deepWoods',
         name: 'Deep Woods',
         length: 60,
         encounters: [
@@ -94,20 +93,15 @@ export const ZONES = {
       },
     ] as SubZoneDef[],
   },
-  // DRAFT - name/description/quote are placeholders, not locked in. Single
-  // open-ended subzone: unreachable until the travel graph exists, no
-  // subzone/POI structure authored yet.
+  // DRAFT - name is a placeholder, not locked in. Single open-ended subzone:
+  // unreachable until the travel graph exists, no subzone/POI structure
+  // authored yet.
   zone2: {
     name: 'Rainbow Bog',
     subZones: [
       {
+        id: 'rainbowBog',
         name: 'Rainbow Bog',
-        description:
-          'The name predates the bog. Nobody currently employed by any nearby settlement can explain the rainbow part, and several have stopped trying.',
-        quote: {
-          text: "You don't sink in the Bog. The Bog just gets taller around you.",
-          attribution: 'Widow Pruitt, Innkeeper',
-        },
         length: Infinity,
         encounters: [
           { id: 'watersnake', weight: 12 },
@@ -127,13 +121,8 @@ export const ZONES = {
     name: 'The Last Ledger',
     subZones: [
       {
+        id: 'theLastLedger',
         name: 'The Last Ledger',
-        description:
-          "Somebody kept immaculate records here, right up until they stopped. The books are still open on the desk, mid-entry, as if whoever was writing just meant to step out for a moment.",
-        quote: {
-          text: 'Possession is nine-tenths of the law. The other tenth is whoever still has the stamp.',
-          attribution: 'Marginal note, unsigned ledger',
-        },
         length: Infinity,
         encounters: [
           { id: 'guyWhoDefinitelyOwnsThisNow', weight: 10 },

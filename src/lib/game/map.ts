@@ -83,15 +83,16 @@ export function pickEncounter(zoneId: ZoneId): EncounterId {
   return substituteEncounter(weightedPick(subZone.encounters.map((e) => [e.id, e.weight] as const)));
 }
 
-// UI-facing view of "where the player is right now" - zone identity plus the
-// active subzone's flavor text, which is what's actually shown per-distance
-// now instead of the zone's own static fields.
+// UI-facing view of "where the player is right now" - identity (ids + display
+// names) only. Flavor text (description/quote) isn't mechanical data and
+// doesn't live here - the UI looks it up itself via subZoneId, see
+// components/data/flavor.ts.
 export function getCurrentSubZoneView(zoneId: ZoneId, distance: number) {
   const { subZone } = resolveSubZone(zoneId, distance);
   return {
+    zoneId,
     zoneName: ZONES[zoneId].name,
+    subZoneId: subZone.id,
     name: subZone.name,
-    description: subZone.description,
-    quote: subZone.quote,
   };
 }
