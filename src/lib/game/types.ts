@@ -43,6 +43,11 @@ export interface Social extends EncounterBase {
   // encounter. Keyed by character, not global, so unrelated speakers in the
   // same encounter don't share a name slot.
   nameOverrides: Partial<Record<CharacterId, string>>;
+  // uniqueIds of every one-shot DialogChoice picked so far this encounter
+  // (see DialogChoice.uniqueId in data/dialog.ts) - getVisibleDialogChoices()
+  // in dialogEngine.ts filters against this so a picked one-shot stops being
+  // offered on return visits to its node.
+  visitedChoiceIds: readonly string[];
 }
 
 export type Encounter = Monster | Investigation | Social;

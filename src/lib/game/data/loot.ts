@@ -88,11 +88,15 @@ export const ITEMS = {
     flavor: "You Won't Believe What Happened When One Man Challenged a Badger to Single Combat (Foresters Hate Him).",
     action: { effect: 'permanentDamageBoost', consumes: true },
   },
+  // consumes: false - popping the cork just starts the conversation. The
+  // bottle itself is only actually spent if the wish is (see spendGenieWish
+  // in effects.ts, fired from whichever genie dialog node commits to it) -
+  // "Never mind, go back in your bottle" leaves this item untouched.
   corkedBottle: {
     name: 'Corked Bottle',
     rarity: 'epic',
     flavor: 'Dusty. Corked. Heavier than it looks.',
-    action: { effect: 'summonGenie', consumes: true },
+    action: { effect: 'summonGenie', consumes: false },
   },
   // What corkedBottle becomes via ITEM_SUBSTITUTIONS once genieBottleFound
   // is set. No action - popping this one does nothing.

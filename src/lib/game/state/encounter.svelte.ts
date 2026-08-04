@@ -77,6 +77,7 @@ function createSocial(id: EncounterId, def: SocialDef, level: number): Social {
     dialogRoot: def.dialogRoot,
     currentNode: def.dialogRoot,
     nameOverrides: {},
+    visitedChoiceIds: [],
     status: 'active',
     diedAt: null,
   };
@@ -163,11 +164,16 @@ export function damageMonster(amount: number) {
 // The one place `currentNode` mutates - single-writer, same rule every
 // other slice in this module follows. Guarded on 'social' the same way
 // damageMonster() guards on the hp-drain kinds; engine.ts's
-// resolveDialogChoice() is the only caller.
-export function pickDialogChoice(next: DialogNodeId) {
+// resolveDialogChoice() is the only caller. uniqueId is the picked choice's
+// own DialogChoice.uniqueId (absent for choices that aren't one-shot) -
+// recorded here, alongside currentNode, so both mutate in the same call.
+export function pickDialogChoice(next: DialogNodeId, uniqueId?: string) {
   const encounter = current[0];
   if (encounter.action !== 'social') return;
   encounter.currentNode = next;
+  if (uniqueId && !encounter.visitedChoiceIds.includes(uniqueId)) {
+    encounter.visitedChoiceIds = [...encounter.visitedChoiceIds, uniqueId];
+  }
 }
 
 // A dialog `rename` line's only effect - same single-writer rule as
@@ -223,6 +229,7 @@ interface SocialSnapshot extends EncounterSnapshotBase {
   // hydrateEncounter()'s comment below).
   currentNode: DialogNodeId;
   nameOverrides: Partial<Record<CharacterId, string>>;
+  visitedChoiceIds: readonly string[];
 }
 
 export type EncounterSnapshot = MonsterSnapshot | InvestigationSnapshot | SocialSnapshot;
@@ -258,6 +265,7 @@ function encounterToSnapshot(encounter: Encounter): EncounterSnapshot {
         level: encounter.level,
         currentNode: encounter.currentNode,
         nameOverrides: encounter.nameOverrides,
+        visitedChoiceIds: encounter.visitedChoiceIds,
       };
     default:
       return assertNever(encounter);
@@ -308,6 +316,8 @@ function snapshotToEncounter(snapshot: EncounterSnapshot): Encounter {
         level: snapshot.level,
         currentNode: snapshot.currentNode,
         nameOverrides: snapshot.nameOverrides,
+        // ?? [] - older saves predate this field.
+        visitedChoiceIds: snapshot.visitedChoiceIds ?? [],
         status: snapshot.status,
         diedAt: snapshot.diedAt,
       };

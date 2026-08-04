@@ -4,7 +4,7 @@ import {
   pickDialogChoice,
   setCharacterName,
 } from './state/encounter.svelte';
-import { getDialogNode, type DialogNodeId, type DialogNode, type DialogChoice } from './data/dialog';
+import { getDialogNode, type DialogNode, type DialogChoice } from './data/dialog';
 import { CHARACTERS } from './data/characters';
 import { evaluateCondition } from './condition';
 import { advance } from './state/map.svelte';
@@ -12,11 +12,17 @@ import { triggerEffect, isEffectActive } from './state/effect.svelte';
 import * as journal from './journal';
 
 // <SocialCard/> calls this instead of reading node.choices directly, so a
-// gated choice is genuinely absent (no index, no keybind) rather than
-// rendered disabled.
+// gated or already-picked one-shot choice is genuinely absent (no index, no
+// keybind) rather than rendered disabled.
 export function getVisibleDialogChoices(node: DialogNode): readonly DialogChoice[] {
   if (!node.choices) return [];
-  return node.choices.filter((choice) => !choice.when || evaluateCondition(choice.when));
+  const encounter = getEncounter();
+  const visited = encounter.action === 'social' ? encounter.visitedChoiceIds : [];
+  return node.choices.filter(
+    (choice) =>
+      (!choice.when || evaluateCondition(choice.when)) &&
+      (!choice.uniqueId || !visited.includes(choice.uniqueId)),
+  );
 }
 
 // <SocialCard/> calls this instead of reading node.lines directly - it
@@ -41,10 +47,11 @@ export function getDialogSayLines(node: DialogNode): { speaker: string; text: st
 // Reaching a terminal node (no choices of its own) does NOT resolve the
 // encounter here - a dialog's last line is real prose the player still
 // needs to read. See dismissDialog() below for the actual resolution.
-export function resolveDialogChoice(next: DialogNodeId) {
+export function resolveDialogChoice(choice: DialogChoice) {
   const encounter = getEncounter();
   if (encounter.action !== 'social' || encounter.status !== 'active') return;
-  pickDialogChoice(next);
+  const next = choice.next;
+  pickDialogChoice(next, choice.uniqueId);
   const node = getDialogNode(next);
   for (const line of node.lines) {
     if (line.kind === 'action') triggerEffect(line.effect);

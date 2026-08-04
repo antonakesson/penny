@@ -41,6 +41,11 @@ export type EffectDef = EffectBase &
     // does, route it through a TREASURE pool + awardLoot() instead.
     | { kind: 'grantItem'; itemId: ItemId }
     | { kind: 'grantXp'; amount: number }
+    // Removes one `from`, grants one `to` - for turning a held item into its
+    // spent/inert counterpart (see corkedBottle -> emptyCorkedBottle in
+    // loot.ts) at the moment the thing it enables actually resolves, rather
+    // than consuming on use like ItemDef.action's `consumes` does.
+    | { kind: 'swapItem'; from: ItemId; to: ItemId }
   );
 
 // Hand-written, not `keyof typeof EFFECTS`: EffectDef.grantItem needs ItemId
@@ -54,6 +59,7 @@ export type EffectId =
   | 'eatChicken'
   | 'summonGenie'
   | 'grantGenieWish'
+  | 'spendGenieWish'
   | 'squirrelWish';
 
 export const EFFECTS: Record<EffectId, EffectDef> = {
@@ -103,6 +109,16 @@ export const EFFECTS: Record<EffectId, EffectDef> = {
     itemId: 'wishAsIs',
     title: 'Wish Granted',
     description: 'As advertised. Roughly.',
+  },
+  // Fired by whichever genie dialog node actually spends the wish
+  // (genie:item, genie:lore, genie:granted) - genie:nevermind fires nothing,
+  // so the bottle it's still holding stays the real, reusable corkedBottle.
+  spendGenieWish: {
+    kind: 'swapItem',
+    from: 'corkedBottle',
+    to: 'emptyCorkedBottle',
+    title: 'Wish Spent',
+    description: 'The bottle goes quiet.',
   },
   squirrelWish: {
     kind: 'grantItem',

@@ -3,7 +3,7 @@ import { unlockFeature } from './features.svelte';
 import { grantModifier } from './modifier.svelte';
 import { createEncounter, interruptEncounter } from './encounter.svelte';
 import { setActionIdle } from './action.svelte';
-import { addItem } from './inventory.svelte';
+import { addItem, removeItem } from './inventory.svelte';
 import { addXp } from './xp.svelte';
 import { hasFlag } from './journalFlags.svelte';
 import { assertNever } from '../util/assertNever';
@@ -54,6 +54,10 @@ function applyInstantEffect(def: EffectDef) {
       return;
     case 'grantXp':
       addXp(def.amount);
+      return;
+    case 'swapItem':
+      removeItem(def.from, 1);
+      addItem(def.to, 1);
       return;
     default:
       assertNever(def);

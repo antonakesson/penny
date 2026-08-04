@@ -8,7 +8,7 @@ export default {
     ],
     choices: [
       { text: 'I wish to know what happened to the missing adventurers.', next: 'genie:lore' },
-      { text: 'Who are you?', next: 'genie:whoAreYou' },
+      { text: 'Who are you?', next: 'genie:whoAreYou', uniqueId: 'whoAreYou' },
       { text: 'I want an item.', next: 'genie:item' },
       { text: 'Never mind. Go back in your bottle.', next: 'genie:nevermind' },
       {
@@ -18,6 +18,10 @@ export default {
       },
     ],
   },
+  // Terminal, not a loop back to genie:root - "I wish to know" on the
+  // choice that leads here is phrased as spending the wish, so it does:
+  // no follow-up choices, and 'genie:lore' is wired into FLAG_TRIGGERS
+  // (journalFlags.ts) to set genieWishGranted same as genie:item.
   'genie:lore': {
     lines: [
       {
@@ -26,8 +30,13 @@ export default {
         text: "The genie's smile doesn't move, but something behind its eyes does.",
       },
       { kind: 'say', speaker: 'genie', text: 'They died. Horribly. Unspeakably. Several different ways, if that helps.' },
+      { kind: 'action', effect: 'spendGenieWish' },
+      {
+        kind: 'say',
+        speaker: 'narrator',
+        text: "It doesn't wait to be dismissed. Wish spent, it folds back into the bottle.",
+      },
     ],
-    choices: [{ text: 'Fine.', next: 'genie:root' }],
   },
   'genie:whoAreYou': {
     lines: [
@@ -43,6 +52,7 @@ export default {
   'genie:item': {
     lines: [
       { kind: 'action', effect: 'grantGenieWish' },
+      { kind: 'action', effect: 'spendGenieWish' },
       {
         kind: 'say',
         speaker: 'narrator',
@@ -69,6 +79,7 @@ export default {
     lines: [
       { kind: 'say', speaker: 'genie', text: 'Granted! Take care, fellow travelers. Look out for the—' },
       { kind: 'action', effect: 'squirrelWish' },
+      { kind: 'action', effect: 'spendGenieWish' },
       { kind: 'say', speaker: 'narrator', text: 'It vanishes mid-sentence, in a small, tidy poof.' },
     ],
   },

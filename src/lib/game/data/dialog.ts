@@ -36,6 +36,12 @@ export interface DialogChoice {
   // Evaluated once when the node renders - won't flicker mid-node even if
   // the underlying state changes. Absent = always visible.
   when?: Condition;
+  // Once picked, this choice hides itself on every future render of the
+  // node it lives on (see visitedChoiceIds on Social) - for options whose
+  // text stops making sense to offer twice (e.g. "who are you?" already
+  // answered). Absent = always re-offered. Only needs to be unique within
+  // the choice's own node, not globally.
+  uniqueId?: string;
 }
 
 // No choices = dead end, conversation ends there.

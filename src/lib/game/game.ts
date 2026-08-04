@@ -42,7 +42,7 @@ import {
   getVisibleDialogChoices as getVisibleDialogChoicesInternal,
   getDialogSayLines as getDialogSayLinesInternal,
 } from './dialogEngine';
-import type { DialogNodeId, DialogNode } from './data/dialog';
+import type { DialogNode, DialogChoice } from './data/dialog';
 import {
   loadSave,
   saveNow as saveNowInternal,
@@ -164,8 +164,8 @@ export function useItem(itemId: ItemId) {
   useItemInternal(itemId);
 }
 
-export function resolveDialogChoice(next: DialogNodeId) {
-  resolveDialogChoiceInternal(next);
+export function resolveDialogChoice(choice: DialogChoice) {
+  resolveDialogChoiceInternal(choice);
 }
 
 export function dismissDialog() {

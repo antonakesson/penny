@@ -20,7 +20,7 @@
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
       const index = Number(event.key) - 1;
       if (!Number.isInteger(index) || index < 0 || index >= choices.length) return;
-      resolveDialogChoice(choices[index].next);
+      resolveDialogChoice(choices[index]);
     }
     document.addEventListener('keydown', handleKeydown);
     return () => document.removeEventListener('keydown', handleKeydown);
@@ -44,7 +44,7 @@
         <button
           class="choice"
           disabled={encounter.status !== 'active'}
-          onclick={() => resolveDialogChoice(choice.next)}
+          onclick={() => resolveDialogChoice(choice)}
         >
           <span class="choice-num">{i + 1}.</span>
           {choice.text}

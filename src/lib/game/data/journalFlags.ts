@@ -14,6 +14,7 @@ export type FlagId =
 export const FLAG_TRIGGERS: Partial<Record<string, FlagId>> = {
   corkedBottle: 'genieBottleFound',
   'genie:item': 'genieWishGranted',
+  'genie:lore': 'genieWishGranted',
   'genie:granted': 'genieWishGranted',
   'outhouse:accident': 'soiledPants',
   'outhouse:enter': 'breakingAndEnteringAndPooping',
