@@ -139,6 +139,22 @@ p {
 
 button {
   font-family: var(--font-ui);
+  transition: filter 0.15s ease;
+}
+
+/* Shared press/hover feedback for every button in the app - a component
+   opts out individually (see Modal.svelte's .backdrop-close) rather than
+   each one re-deriving its own. Brightness-based so it reads correctly
+   regardless of a button's own background (transparent, page-sunken, wax,
+   accent, ...). Hover is gated to devices that actually have a pointer, so
+   a tap doesn't leave a touch device stuck in a "hovered" state. */
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled):hover {
+    filter: brightness(1.12);
+  }
+}
+button:not(:disabled):active {
+  filter: brightness(0.88);
 }
 
 /* Bordered rect for stats/timers/counters — anywhere a number has to

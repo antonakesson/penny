@@ -59,6 +59,14 @@
     margin: 0;
     cursor: default;
   }
+  /* Opt out of app.css's global button hover/active feedback - this is an
+     invisible fullscreen dismiss target, not a visible button, and it'd
+     otherwise flicker brightness across the whole scrim as the mouse moves
+     over any part of the backdrop. */
+  .backdrop-close:hover,
+  .backdrop-close:active {
+    filter: none;
+  }
   .dialog {
     position: relative;
     width: 100%;
