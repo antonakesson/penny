@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ITEMS, ITEM_CAP, type ItemDef } from '../game/data/loot';
-  import { EFFECTS } from '../game/data/effects';
+  import { EFFECTS, type EffectId } from '../game/data/effects';
   import { getTooltip, hideTooltip } from '../ui/tooltip.svelte';
 
   const HALF_WIDTH = 110;
@@ -9,6 +9,15 @@
   let tooltip = $derived(getTooltip());
   let item = $derived(tooltip ? (ITEMS[tooltip.itemId] as ItemDef) : null);
   let isUnique = $derived(tooltip ? ITEM_CAP[tooltip.itemId] === 1 : false);
+  // action.effect can be a list (see loot.ts) - the first entry is always
+  // the player-facing headline (e.g. summonGenie), any after it are internal
+  // bookkeeping (e.g. openCorkedBottle swapping the item inert), so only the
+  // first's description belongs in the tooltip.
+  let actionEffectId = $derived.by((): EffectId | null => {
+    const effect = item?.action?.effect;
+    if (!effect) return null;
+    return typeof effect === 'string' ? effect : effect[0];
+  });
 
   let top = $derived(tooltip ? tooltip.rect.bottom + MARGIN : 0);
   let left = $derived(
@@ -42,8 +51,8 @@
     {#if item.flavor}
       <p class="tooltip-flavor">{item.flavor}</p>
     {/if}
-    {#if item.action}
-      <p class="tooltip-action">{EFFECTS[item.action.effect].description}</p>
+    {#if actionEffectId}
+      <p class="tooltip-action">{EFFECTS[actionEffectId].description}</p>
     {/if}
   </div>
 {/if}

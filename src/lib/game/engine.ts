@@ -77,7 +77,11 @@ export function useItem(itemId: ItemId) {
   // comparing instanceId before/after is how a launched encounter is
   // detected here to log it.
   const before = getEncounter().instanceId;
-  triggerEffect(action.effect);
+  // action.effect may be a single id or a list fired in order off the one
+  // click (see ItemDef.action in loot.ts) - corkedBottle uses this to both
+  // launch the genie and swap itself inert in the same beat.
+  const effects = Array.isArray(action.effect) ? action.effect : [action.effect];
+  for (const effect of effects) triggerEffect(effect);
   if (action.consumes) removeItem(itemId, 1);
   const after = getEncounter();
   if (after.instanceId !== before) journal.encounterSpawned(after.id);

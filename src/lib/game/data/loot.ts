@@ -11,8 +11,12 @@ export type ItemDef = {
   rarity: Rarity;
   flavor?: string;
   // consumes lives here, not on EffectDef - it's how *this item* uses the
-  // effect, not a property of the effect itself.
-  action?: { effect: EffectId; consumes: boolean };
+  // effect, not a property of the effect itself. effect can be a list -
+  // fired in order off the one click (see corkedBottle: summonGenie +
+  // openCorkedBottle both happen the instant it's popped) - rather than
+  // inventing a multi-sub-effect shape on EffectDef itself. Mirrors how a
+  // dialog node already sequences multiple `{ kind: 'action' }` lines.
+  action?: { effect: EffectId | readonly EffectId[]; consumes: boolean };
   // Raw modifiers, not an EffectId - a held bonus is just data, active
   // exactly while this item's count > 0 (see sumModifier()).
   passive?: readonly Modifier[];
@@ -88,15 +92,29 @@ export const ITEMS = {
     flavor: "You Won't Believe What Happened When One Man Challenged a Badger to Single Combat (Foresters Hate Him).",
     action: { effect: 'permanentDamageBoost', consumes: true },
   },
-  // consumes: false - popping the cork just starts the conversation. The
-  // bottle itself is only actually spent if the wish is (see spendGenieWish
-  // in effects.ts, fired from whichever genie dialog node commits to it) -
-  // "Never mind, go back in your bottle" leaves this item untouched.
+  // consumes: false - popping the cork just starts the conversation, it
+  // doesn't spend the item outright. Both effects fire off this one click:
+  // summonGenie launches the encounter, openCorkedBottle swaps this to
+  // openedCorkedBottle in the same beat, so the bottle goes inert for as
+  // long as the genie's out - a second click mid-conversation has no
+  // `action` left to fire, which is what actually stops spam-clicking from
+  // stacking duplicate genies (see openCorkedBottle/closeCorkedBottle/
+  // spendGenieWish in effects.ts for the rest of the state machine).
   corkedBottle: {
     name: 'Corked Bottle',
     rarity: 'epic',
     flavor: 'Dusty. Corked. Heavier than it looks.',
-    action: { effect: 'summonGenie', consumes: false },
+    action: { effect: ['summonGenie', 'openCorkedBottle'], consumes: false },
+  },
+  // What corkedBottle becomes the instant it's clicked (openCorkedBottle) -
+  // inert, no action, for as long as the genie encounter it launched is
+  // still unresolved. Reverts back to corkedBottle if the wish is declined
+  // (closeCorkedBottle, fired from genie:nevermind) or becomes the
+  // permanent emptyCorkedBottle if the wish is spent (spendGenieWish).
+  openedCorkedBottle: {
+    name: 'Corked Bottle',
+    rarity: 'epic',
+    flavor: "Cork's out. Whatever's in there is already talking.",
   },
   // What corkedBottle becomes via ITEM_SUBSTITUTIONS once genieBottleFound
   // is set. No action - popping this one does nothing.

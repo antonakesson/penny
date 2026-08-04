@@ -58,6 +58,8 @@ export type EffectId =
   | 'permanentDamageBoost'
   | 'eatChicken'
   | 'summonGenie'
+  | 'openCorkedBottle'
+  | 'closeCorkedBottle'
   | 'grantGenieWish'
   | 'spendGenieWish'
   | 'squirrelWish';
@@ -104,6 +106,34 @@ export const EFFECTS: Record<EffectId, EffectDef> = {
     title: 'Corked Bottle',
     description: 'Something answers. No refunds.',
   },
+  // Fired alongside summonGenie, off the same click (see corkedBottle's
+  // array action in loot.ts) - the bottle goes inert the instant the genie's
+  // out, so a second click while the dialog's still open has no `action` to
+  // fire at all. That's what actually stops a spam-click from stacking
+  // duplicate genies; summonGenie's own guardFlag only covers "wish already
+  // spent," not "genie currently mid-conversation." Carries the same
+  // guardFlag as summonGenie so the pair stays atomic - if the encounter
+  // didn't launch, the item shouldn't go inert either (a stray corkedBottle
+  // that outlives its wish, e.g. via DevTools, would otherwise brick itself
+  // with no genie to have ever popped it open).
+  openCorkedBottle: {
+    kind: 'swapItem',
+    from: 'corkedBottle',
+    to: 'openedCorkedBottle',
+    guardFlag: 'genieWishGranted',
+    title: 'Cork Popped',
+    description: 'Something is currently answering.',
+  },
+  // Fired from genie:nevermind - the one path that resolves the encounter
+  // without spending the wish, so the bottle un-opens and is real,
+  // clickable corkedBottle again.
+  closeCorkedBottle: {
+    kind: 'swapItem',
+    from: 'openedCorkedBottle',
+    to: 'corkedBottle',
+    title: 'Cork Replaced',
+    description: 'Back in its bottle. For now.',
+  },
   grantGenieWish: {
     kind: 'grantItem',
     itemId: 'wishAsIs',
@@ -111,11 +141,14 @@ export const EFFECTS: Record<EffectId, EffectDef> = {
     description: 'As advertised. Roughly.',
   },
   // Fired by whichever genie dialog node actually spends the wish
-  // (genie:item, genie:lore, genie:granted) - genie:nevermind fires nothing,
-  // so the bottle it's still holding stays the real, reusable corkedBottle.
+  // (genie:item, genie:lore, genie:granted) - from openedCorkedBottle, not
+  // corkedBottle, since by the time a wish resolves openCorkedBottle has
+  // already swapped the held item over. genie:nevermind fires
+  // closeCorkedBottle instead of this, so a declined wish reverts to the
+  // real, reusable corkedBottle rather than going inert.
   spendGenieWish: {
     kind: 'swapItem',
-    from: 'corkedBottle',
+    from: 'openedCorkedBottle',
     to: 'emptyCorkedBottle',
     title: 'Wish Spent',
     description: 'The bottle goes quiet.',

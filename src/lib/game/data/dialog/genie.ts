@@ -67,6 +67,9 @@ export default {
         speaker: 'narrator',
         text: 'The genie shrugs — not offended, not surprised — and folds itself back into the bottle like it was expecting this all along.',
       },
+      // Reverts openedCorkedBottle back to the real, reusable corkedBottle -
+      // the wish wasn't spent, so the bottle isn't either.
+      { kind: 'action', effect: 'closeCorkedBottle' },
     ],
   },
   'genie:squirrelNod': {
