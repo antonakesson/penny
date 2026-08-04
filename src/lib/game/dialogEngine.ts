@@ -8,7 +8,6 @@ import { getDialogNode, type DialogNodeId, type DialogNode, type DialogChoice } 
 import { CHARACTERS } from './data/characters';
 import { evaluateCondition } from './condition';
 import { advance } from './state/map.svelte';
-import { markEventFired } from './state/events.svelte';
 import { triggerEffect, isEffectActive } from './state/effect.svelte';
 import * as journal from './journal';
 
@@ -62,7 +61,6 @@ export function dismissDialog() {
   if (encounter.action !== 'social' || encounter.status !== 'active') return;
   const node = getDialogNode(encounter.currentNode);
   if (node.choices && node.choices.length > 0) return;
-  markEventFired(encounter.id);
   killMonster();
   if (!isEffectActive('freezeSpawn')) advance();
 }

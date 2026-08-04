@@ -4,7 +4,6 @@ import { getCurrentZoneId, hydrateZone } from './state/zone.svelte';
 import { serializeEncounter, hydrateEncounter, type EncounterSnapshot } from './state/encounter.svelte';
 import { serializeMap, hydrateMap, type MapSnapshot } from './state/map.svelte';
 import { serializeUnlockedFeatures, hydrateUnlockedFeatures } from './state/features.svelte';
-import { serializeFiredEvents, hydrateFiredEvents } from './state/events.svelte';
 import { serializeEffects, hydrateEffects } from './state/effect.svelte';
 import { serializeModifiers, hydrateModifiers } from './state/modifier.svelte';
 import { serializeFlags, hydrateFlags } from './state/journalFlags.svelte';
@@ -27,7 +26,6 @@ interface SaveData {
   encounter?: EncounterSnapshot[];
   map: MapSnapshot;
   unlockedFeatures: FeatureId[];
-  firedEventsMask: string;
   effects: Partial<Record<EffectId, number>>;
   modifiers: Modifier[];
   journalFlagsMask: string;
@@ -51,7 +49,6 @@ function buildSnapshot(): SaveEnvelope {
       encounter: serializeEncounter(),
       map: serializeMap(),
       unlockedFeatures: serializeUnlockedFeatures(),
-      firedEventsMask: serializeFiredEvents(),
       effects: serializeEffects(),
       modifiers: serializeModifiers(),
       journalFlagsMask: serializeFlags(),
@@ -71,7 +68,6 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
   if (!data.inventory || typeof data.inventory !== 'object') return false;
   if (typeof data.zone !== 'string' || !(data.zone in ZONES)) return false;
   if (!Array.isArray(data.unlockedFeatures)) return false;
-  if (typeof data.firedEventsMask !== 'string') return false;
   if (!data.effects || typeof data.effects !== 'object') return false;
   if (!Array.isArray(data.modifiers)) return false;
   if (typeof data.journalFlagsMask !== 'string') return false;
@@ -105,7 +101,6 @@ function applySnapshot(data: SaveData) {
   if (data.encounter) hydrateEncounter(data.encounter);
   hydrateMap(data.map);
   hydrateUnlockedFeatures(data.unlockedFeatures);
-  hydrateFiredEvents(data.firedEventsMask);
   hydrateEffects(data.effects);
   hydrateModifiers(data.modifiers);
   hydrateFlags(data.journalFlagsMask);

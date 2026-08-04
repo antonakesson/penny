@@ -5,15 +5,19 @@ import type { EncounterId } from './encounters';
 // multi-beat POI (a scene, then its aftermath) stays in relative order and
 // proximity under any seed, instead of two independent rolls that could land
 // reversed or arbitrarily far apart. A lone POI is just a one-member group.
+// A member just names an EncounterId - any conditioned branching (e.g. this
+// spot playing out differently once some other flag is set) is a property of
+// that encounter itself (see ENCOUNTER_SUBSTITUTIONS in encounters.ts), not
+// something a zone/POI author has to know or declare here.
 export interface PoiMember {
   encounter: EncounterId;
   offset: number; // distance from the group's anchor; need not be contiguous
 }
 
 export interface PoiGroupDef {
-  // Stable identity - the hash key. Never reassigned once a seed has shipped
-  // with content depending on it, same rule firedMask's bit assignments
-  // already follow (see state/events.svelte.ts).
+  // Stable identity - the hash key (map.ts's resolveGroup). Never reassigned
+  // once a seed has shipped with content depending on it - reassigning
+  // silently reshuffles where every hash-placed group in the zone lands.
   id: string;
   members: readonly PoiMember[];
   // Absolute distance override - skips the hash roll when set, so this group
@@ -82,6 +86,10 @@ export const ZONES = {
         ] as { id: EncounterId; weight: number }[],
         pois: [
           { id: 'hastilyAbandonedCamp', members: [{ encounter: 'hastilyAbandonedCamp', offset: 0 }] },
+          // Squirrel recruitment (Tree Line) is always resolved one way or
+          // the other by the time this is reachable, since it only anchors
+          // past distance 40 - see ENCOUNTER_SUBSTITUTIONS in encounters.ts.
+          { id: 'pleasantClearing', members: [{ encounter: 'pleasantClearing', offset: 0 }] },
         ] as PoiGroupDef[],
       },
     ] as SubZoneDef[],

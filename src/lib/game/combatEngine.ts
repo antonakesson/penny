@@ -1,7 +1,6 @@
 import { ACTION, INVESTIGATE, PET } from './config';
 import { getEncounter, damageMonster, killMonster } from './state/encounter.svelte';
 import { advance } from './state/map.svelte';
-import { markEventFired } from './state/events.svelte';
 import { getAction, setActionActive, setActionCooldown, setActionIdle } from './state/action.svelte';
 import { getPet, setPetAttacking, setPetRecovering, setPetIdle } from './state/pet.svelte';
 import { addXp, getLevel } from './state/xp.svelte';
@@ -211,7 +210,6 @@ function awardLoot(dropTableId: readonly string[]) {
 function resolveKill(encounter: Monster | Investigation) {
   awardXp(encounter.xpReward);
   awardLoot(encounter.dropTableId);
-  markEventFired(encounter.id);
   journal.encounterCompleted(encounter.id);
   killMonster();
   if (!isEffectActive('freezeSpawn')) advance();

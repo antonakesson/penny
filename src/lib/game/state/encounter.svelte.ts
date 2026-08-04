@@ -83,8 +83,8 @@ function createSocial(id: EncounterId, def: SocialDef, level: number): Social {
 }
 
 // The one place that turns a shape-blind id into a concrete Encounter -
-// zones.ts's pool and events.svelte.ts's shouldShowEvent() only ever hand
-// back an id, blind to what kind it resolves to. level defaults to the
+// map.ts's pickEncounter() and resolvePoiAt() only ever hand back an id,
+// blind to what kind it resolves to. level defaults to the
 // def's own authored level (i.e. no scaling) for kinds that have one - event
 // / one-shot encounters that don't pass one get their hardcoded stats
 // untouched; investigation ignores it entirely, it has no level concept.
@@ -107,13 +107,12 @@ export function createEncounter(id: EncounterId, level?: number): Encounter {
 // once whatever's in front resolves.
 //
 // Throwaway initial value - almost always immediately replaced by
-// hydrateEncounter() on load. Deliberately just a plain zone pick, never
-// event-aware: this runs before any save is hydrated (distance/firedMask
-// both still at their defaults), so an event roll here would either be
-// meaningless (distance 0 is always below any event's eligible band) or,
-// worse, burn a one-shot event on an instance nobody ever sees. Real "what's
-// next" decisions belong entirely to engine.ts's decideNextEncounter() -
-// this module no longer knows events exist.
+// hydrateEncounter() on load. Deliberately just a plain zone pick, not a POI
+// resolution: this runs before any save is hydrated (distance still at its
+// default of 0), so a POI check here would either be meaningless or, worse,
+// burn a POI anchored at/near distance 0 on an instance nobody ever sees.
+// Real "what's next" decisions belong entirely to engine.ts's
+// decideNextEncounter().
 let current = $state<Encounter[]>([createEncounter(pickEncounter(getCurrentZoneId()))]);
 
 export function getEncounter(): Encounter {

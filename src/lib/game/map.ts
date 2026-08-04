@@ -6,6 +6,7 @@ import { ZONES, type ZoneId, type SubZoneDef, type PoiGroupDef } from './data/zo
 import { idHash } from './util/noise';
 import { weightedPick } from './util/weighted';
 import { getDistance } from './state/map.svelte';
+import { substituteEncounter } from './data/encounters';
 import type { EncounterId } from './data/encounters';
 
 export interface ResolvedSubZone {
@@ -37,7 +38,9 @@ interface ResolvedPoi {
 // Anchors a group with one hash roll, keyed by the group's own stable id -
 // every member then sits at anchor + its offset. Clamped so the furthest
 // member never rolls past the subzone's own span. `at`, when set, skips the
-// roll entirely - a fixed landmark, not a placement.
+// roll entirely - a fixed landmark, not a placement. Members carry their
+// declared id, unsubstituted - substituteEncounter() runs last, at the
+// return points below, same as loot.ts's substitute().
 function resolveGroup(group: PoiGroupDef, subZoneStart: number, subZoneLength: number, seed: number): ResolvedPoi[] {
   if (group.at !== undefined) {
     return group.members.map((m) => ({ encounter: m.encounter, distance: group.at! + m.offset }));
@@ -48,24 +51,23 @@ function resolveGroup(group: PoiGroupDef, subZoneStart: number, subZoneLength: n
   return group.members.map((m) => ({ encounter: m.encounter, distance: anchor + m.offset }));
 }
 
-// Threshold crossing, not an exact match - a POI anchored at distance 73
-// still needs to fire if the player's distance jumps from 70 to 76 in one
-// batch (multi-kill advance). Walks every subzone in the zone, not just the
-// current one, so a one-shot can never be silently skipped by a big jump -
-// only "already fired" removes it from consideration. firedIds is keyed by
-// encounter id, same set state/events.svelte.ts's firedMask already tracks.
-export function resolvePoiAt(
-  zoneId: ZoneId,
-  distance: number,
-  seed: number,
-  firedIds: ReadonlySet<EncounterId>,
-): EncounterId | undefined {
+// Exact match, not a threshold - mathematically one-shot with zero stored
+// state. `advance()` (state/map.svelte.ts) only ever moves distance by 1, so
+// distance is a strict, never-repeating walk during real play: each integer
+// value is visited by exactly one decision call, ever, which means each
+// POI's hash-resolved anchor distance is reached exactly once, automatically
+// - no "already fired" bookkeeping required. (DevTools' devSetDistance can
+// jump distance arbitrarily, including backward - that's a deliberate dev
+// affordance for re-triggering a POI to test its content, not a case real
+// play can produce.) Two POIs landing on the same distance is an authoring
+// collision, not something this function defends against - see zones.ts.
+export function resolvePoiAt(zoneId: ZoneId, distance: number, seed: number): EncounterId | undefined {
   const subZones = ZONES[zoneId].subZones;
   let start = 0;
   for (const subZone of subZones) {
     for (const group of subZone.pois ?? []) {
       for (const poi of resolveGroup(group, start, subZone.length, seed)) {
-        if (distance >= poi.distance && !firedIds.has(poi.encounter)) return poi.encounter;
+        if (poi.distance === distance) return substituteEncounter(poi.encounter);
       }
     }
     start += subZone.length;
@@ -78,7 +80,7 @@ export function resolvePoiAt(
 // authoring tax from shape-matching a bell curve.
 export function pickEncounter(zoneId: ZoneId): EncounterId {
   const { subZone } = resolveSubZone(zoneId, getDistance());
-  return weightedPick(subZone.encounters.map((e) => [e.id, e.weight] as const));
+  return substituteEncounter(weightedPick(subZone.encounters.map((e) => [e.id, e.weight] as const)));
 }
 
 // UI-facing view of "where the player is right now" - zone identity plus the

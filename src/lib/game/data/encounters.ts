@@ -2,6 +2,8 @@
 // lives here. Whether an id is zone-pickable vs. event-only is a content
 // decision (listed in a zone's pool or not), not a type constraint.
 import type { DialogNodeId } from './dialog';
+import type { Condition } from './condition';
+import { evaluateCondition } from '../condition';
 
 export interface MonsterDef {
   kind: 'monster';
@@ -153,6 +155,45 @@ export const ENCOUNTERS = {
     level: 1,
     dialogRoot: 'outhouse:root',
   },
+
+  // Default/declared id - what's placed in zones.ts. Same coordinate, same
+  // name, either way; only the last line of the description (and the
+  // squirrel's mood) says otherwise. See ENCOUNTER_SUBSTITUTIONS below.
+  pleasantClearing: {
+    kind: 'investigation',
+    name: 'Pleasant Clearing',
+    durationMs: 3_000,
+    xpReward: 5,
+    dropTableId: [],
+    descriptions: [
+      "The trees pull back just enough to let real sunlight through, for once. Warm, quiet, unbothered — the kind of clearing that ends up on a postcard nobody in this forest has ever sent. You notice, distantly, that you haven't seen a single bird since you walked in.",
+    ],
+  },
+  // Substituted in once `pet` is unlocked - never placed directly.
+  pleasantClearingRecruited: {
+    kind: 'investigation',
+    name: 'Pleasant Clearing',
+    durationMs: 3_000,
+    xpReward: 5,
+    dropTableId: [],
+    descriptions: [
+      'The trees pull back just enough to let real sunlight through, for once. Warm, quiet, unbothered — the kind of clearing that ends up on a postcard nobody in this forest has ever sent. Your squirrel flops onto its back in the grass and does not get up.',
+    ],
+  },
 } as const satisfies Record<string, EncounterDef>;
 
 export type EncounterId = keyof typeof ENCOUNTERS;
+
+// An encounter id that silently resolves to a different encounter once
+// `when` is met - same shape as loot.ts's ITEM_SUBSTITUTIONS. Whatever
+// placed this id (a zone's ambient pool, a POI group) doesn't need to know
+// this exists; it's a property of the encounter, resolved fresh every time
+// the id is looked up, not a revisit mechanic.
+export const ENCOUNTER_SUBSTITUTIONS: Partial<Record<EncounterId, { when: Condition; fallback: EncounterId }>> = {
+  pleasantClearing: { when: { kind: 'hasFeature', feature: 'pet' }, fallback: 'pleasantClearingRecruited' },
+};
+
+export function substituteEncounter(id: EncounterId): EncounterId {
+  const sub = ENCOUNTER_SUBSTITUTIONS[id];
+  return sub && evaluateCondition(sub.when) ? sub.fallback : id;
+}

@@ -6,9 +6,9 @@ import {
   dropEncounter,
   hasEncounter,
 } from './state/encounter.svelte';
-import { pickEncounter } from './map';
+import { pickEncounter, resolvePoiAt } from './map';
 import { getCurrentZoneId } from './state/zone.svelte';
-import { shouldShowEvent } from './state/events.svelte';
+import { getDistance, getNumericSeed } from './state/map.svelte';
 import { setActionIdle } from './state/action.svelte';
 import { getLevel } from './state/xp.svelte';
 import { removeItem } from './state/inventory.svelte';
@@ -56,14 +56,14 @@ export function tick() {
 }
 
 // Priority: an active spawn-freeze replays the encounter that just died;
-// otherwise an eligible event; otherwise the normal zone pick. diedId is
-// passed explicitly since the dying encounter is already dropped from the
-// queue by the time this runs.
+// otherwise a POI anchored at the current distance; otherwise the normal
+// zone pick. diedId is passed explicitly since the dying encounter is
+// already dropped from the queue by the time this runs.
 function decideNextEncounter(diedId: EncounterId): Encounter {
   if (isEffectActive('freezeSpawn')) return createEncounter(diedId);
-  const eventEncounterId = shouldShowEvent();
-  if (eventEncounterId) return createEncounter(eventEncounterId);
   const zoneId = getCurrentZoneId();
+  const poiEncounterId = resolvePoiAt(zoneId, getDistance(), getNumericSeed());
+  if (poiEncounterId) return createEncounter(poiEncounterId);
   return createEncounter(pickEncounter(zoneId));
 }
 
