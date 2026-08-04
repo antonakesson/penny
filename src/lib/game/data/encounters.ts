@@ -150,6 +150,13 @@ export const ENCOUNTERS = {
     dialogRoot: 'outhouse:root',
   },
 
+  interruptingCreek: {
+    kind: 'social',
+    name: 'Interrupting Creek',
+    level: 1,
+    dialogRoot: 'interruptingCreek:root',
+  },
+
   // Default/declared id - what's placed in zones.ts. Same coordinate, same
   // name, same mechanics, either way - only the flavor (components/data/
   // flavor.ts's ENCOUNTER_FLAVOR) and the squirrel's mood differ. See

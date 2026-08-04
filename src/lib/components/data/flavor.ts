@@ -22,7 +22,7 @@ export const SUBZONE_FLAVOR: Record<ZoneId, Record<string, SubZoneFlavor>> = {
   zone1: {
     treeLine: {
       description:
-        'The trees are evenly distributed. And strangely, equally tall, as if guided by some cost-benefit analysis of structural integrity versus sunlight yield. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',
+        'The trees are suspiciously well-behaved — evenly spaced, uniformly tall, like something got tired of the mess and started grooming. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',
       quote: {
         text: "If you don't count the people who don't come back, the forest is 100% safe.",
         attribution: 'Cobb Thistlewood, Ranger / Coroner',
