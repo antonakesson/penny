@@ -3,6 +3,7 @@
 // decision (listed in a zone's pool or not), not a type constraint.
 import type { DialogNodeId } from './dialog';
 import type { Condition } from './condition';
+import type { ZoneId } from './zoneIds';
 import { evaluateCondition } from '../condition';
 
 export interface MonsterDef {
@@ -29,7 +30,35 @@ export interface SocialDef {
   dialogRoot: DialogNodeId;
 }
 
-export type EncounterDef = MonsterDef | InvestigationDef | SocialDef;
+// A branch to another zone's own distance track (see state/map.svelte.ts) -
+// not a dialog choice. `when`, same shape/semantics as DialogChoice's, hides
+// a branch entirely (no index, no keybind) rather than rendering it
+// disabled - e.g. a branch that only opens once some item/flag is in hand.
+export interface CrossroadBranch {
+  label: string;
+  destination: ZoneId;
+  // Required, not defaulted to 0 - a road connects two specific points, not
+  // "the start of the other zone". The reciprocal crossroad on the other
+  // end (see zones.ts) hardcodes its own entryDistance back to wherever
+  // this one sits, the same way two ends of a real road agree on where
+  // they meet.
+  entryDistance: number;
+  when?: Condition;
+}
+
+// Distinct from SocialDef on purpose - a crossroad reads as a fork in the
+// road, not a conversation that happens to offer a fork. No dialogRoot, no
+// character, no lines: just a name and the branches out of it. The "stay on
+// this path" option is never authored here - CrossroadCard always renders it
+// alongside whatever branches are declared, same way a POI's zone-switch is
+// itself a property of resolveCrossroadChoice(), not of this data.
+export interface CrossroadDef {
+  kind: 'crossroad';
+  name: string;
+  branches: readonly CrossroadBranch[];
+}
+
+export type EncounterDef = MonsterDef | InvestigationDef | SocialDef | CrossroadDef;
 
 export const ENCOUNTERS = {
   boar: {
@@ -168,6 +197,23 @@ export const ENCOUNTERS = {
     xpReward: 5,
     dropTableId: [],
   },
+  // First crossroad in the game. Paired with forkBackToTheWoods below -
+  // together they're one road, viewed from each end: this one lands you on
+  // that one (zone2 distance 1), which is itself a crossroad back here.
+  forkTowardTheBog: {
+    kind: 'crossroad',
+    name: 'The Bog Trail',
+    branches: [{ label: 'Follow the trail into Rainbow Bog', destination: 'zone2', entryDistance: 1 }],
+  },
+
+  // The other end of forkTowardTheBog's road - lands back at the exact
+  // distance that one sits at (zone1 deepWoods, 95), not zone1's start.
+  forkBackToTheWoods: {
+    kind: 'crossroad',
+    name: 'The Woods Trail',
+    branches: [{ label: 'Follow the trail back to Whispering Woods', destination: 'zone1', entryDistance: 95 }],
+  },
+
   // Substituted in once `pet` is unlocked - never placed directly.
   pleasantClearingRecruited: {
     kind: 'investigation',

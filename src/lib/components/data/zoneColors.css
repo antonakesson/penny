@@ -1,0 +1,26 @@
+/* Presentation only - same boundary as data/flavor.ts: nothing in game/*
+   reads this, zones.ts only needs to know a zone exists, not what color it
+   is. Keyed by ZoneId via [data-zone], set once on .combat in App.svelte -
+   not per-component, so every surface under it (currently just .combat's
+   own background) picks the current zone's tint for free without each one
+   re-deriving the zone itself.
+
+   --zone-tint falls back to var(--page) at the root, so a zone with no
+   entry here (or before JS has set data-zone at all) mixes page-with-page -
+   i.e. no visible tint - rather than mixing against an undefined/transparent
+   value. */
+:root {
+  --zone-tint: var(--page);
+}
+
+[data-zone='zone1'] {
+  --zone-tint: #3f5a3a; /* Whispering Woods - forest green */
+}
+
+[data-zone='zone2'] {
+  --zone-tint: #3a6b5f; /* Rainbow Bog - murky teal */
+}
+
+[data-zone='zone3'] {
+  --zone-tint: #6b5a3a; /* The Last Ledger - aged ledger sepia */
+}

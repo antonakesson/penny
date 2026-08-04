@@ -6,6 +6,7 @@
     devToolsSetDistance,
     devToolsTriggerEffect,
     devToolsSetSeed,
+    devToolsSetZone,
     getDistance,
     getSeed,
     getFlags,
@@ -13,10 +14,12 @@
   import { ENCOUNTERS, type EncounterId } from '../game/data/encounters';
   import { ITEMS, type ItemId } from '../game/data/loot';
   import { EFFECTS, type EffectId } from '../game/data/effects';
+  import { ZONES, type ZoneId } from '../game/data/zones';
 
   const monsterIds = Object.keys(ENCOUNTERS) as EncounterId[];
   const itemIds = Object.keys(ITEMS) as ItemId[];
   const effectIds = Object.keys(EFFECTS) as EffectId[];
+  const zoneIds = Object.keys(ZONES) as ZoneId[];
 
   let selectedMonster = $state<EncounterId>(monsterIds[0]);
   let selectedItem = $state<ItemId>(itemIds[0]);
@@ -25,6 +28,7 @@
   let distanceInput = $state(getDistance());
   let seedInput = $state(getSeed());
   let selectedEffect = $state<EffectId>(effectIds[0]);
+  let selectedZone = $state<ZoneId>(zoneIds[0]);
   let flags = $derived(Object.entries(getFlags()));
 </script>
 
@@ -71,6 +75,14 @@
     <div class="row">
       <input class="seed-input" type="text" bind:value={seedInput} aria-label="Seed" />
       <button onclick={() => devToolsSetSeed(seedInput)}>Set seed</button>
+    </div>
+    <div class="row">
+      <select bind:value={selectedZone} aria-label="Zone to jump to">
+        {#each zoneIds as id (id)}
+          <option value={id}>{ZONES[id].name}</option>
+        {/each}
+      </select>
+      <button onclick={() => devToolsSetZone(selectedZone)}>Set zone</button>
     </div>
   </section>
 

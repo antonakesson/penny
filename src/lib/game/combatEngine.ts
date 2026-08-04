@@ -126,8 +126,8 @@ function damageForKind(kind: ActionKind): number {
 
 function applyHit() {
   const encounter = getEncounter();
-  // Social never reaches here - currentHandler() returns null for it.
-  if (encounter.action === 'social') return;
+  // Social/crossroad never reach here - currentHandler() returns null for both.
+  if (encounter.action === 'social' || encounter.action === 'crossroad') return;
   // A dead monster can't be hit again - investigate's continuous hold would
   // otherwise keep re-triggering resolveKill() every tick until the next
   // encounter spawns.
@@ -156,7 +156,7 @@ function petTick() {
 
   if (pet.status === 'idle') {
     const encounter = getEncounter();
-    if (encounter.action === 'social' || encounter.status !== 'active') return;
+    if (encounter.action === 'social' || encounter.action === 'crossroad' || encounter.status !== 'active') return;
     setPetAttacking(now);
     return;
   }
@@ -165,7 +165,7 @@ function petTick() {
     if (now - (pet.startedAt ?? 0) < PET.activeMs) return;
     setPetRecovering(now);
     const encounter = getEncounter();
-    if (encounter.action === 'social' || encounter.status !== 'active') return;
+    if (encounter.action === 'social' || encounter.action === 'crossroad' || encounter.status !== 'active') return;
     const damage = PET.damage + sumModifier('petDamage');
     spawnFloatingText(`-${damage}`, 'damage');
     damageMonster(damage);

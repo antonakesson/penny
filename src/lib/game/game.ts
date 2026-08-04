@@ -44,6 +44,12 @@ import {
 } from './dialogEngine';
 import type { DialogNode, DialogChoice } from './data/dialog';
 import {
+  resolveCrossroadChoice as resolveCrossroadChoiceInternal,
+  getVisibleCrossroadBranches as getVisibleCrossroadBranchesInternal,
+} from './crossroadEngine';
+import type { CrossroadBranch } from './data/encounters';
+import type { ZoneId } from './data/zones';
+import {
   loadSave,
   saveNow as saveNowInternal,
   exportSave as exportSaveInternal,
@@ -59,6 +65,7 @@ import {
   devAwardXp,
   devSetDistance,
   devSetSeed,
+  devSetZone,
   devTriggerEffect,
   devDumpState,
 } from './devtools';
@@ -180,6 +187,14 @@ export function getDialogSayLines(node: DialogNode) {
   return getDialogSayLinesInternal(node);
 }
 
+export function resolveCrossroadChoice(choice: CrossroadBranch | 'continue') {
+  resolveCrossroadChoiceInternal(choice);
+}
+
+export function getVisibleCrossroadBranches(branches: readonly CrossroadBranch[]) {
+  return getVisibleCrossroadBranchesInternal(branches);
+}
+
 export function tick() {
   tickInternal();
 }
@@ -234,6 +249,10 @@ export function devToolsSetDistance(distance: number) {
 
 export function devToolsSetSeed(seed: string) {
   devSetSeed(seed);
+}
+
+export function devToolsSetZone(id: ZoneId) {
+  devSetZone(id);
 }
 
 export function devToolsTriggerEffect(effectId: EffectId) {

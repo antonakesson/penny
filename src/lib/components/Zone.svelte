@@ -91,8 +91,6 @@
 </script>
 
 <section class="zone">
-  <h2 class="zone-name">{zone.zoneName}</h2>
-  <p class="subzone-name">{zone.name}</p>
   {#if shownDescription}
     <p class="lore" style="opacity: {descriptionOpacity}; transition-duration: {descriptionFadeMs}ms;">
       {shownDescription}
@@ -109,18 +107,6 @@
 <style>
   .zone {
     margin-bottom: 28px;
-  }
-  .zone-name {
-    margin: 0;
-    font: 700 20px/1.2 var(--font-structural);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    color: var(--ink-strong);
-  }
-  .subzone-name {
-    margin: 2px 0 12px;
-    font: 600 14px/1.2 var(--font-ui);
-    color: var(--ink-faint);
   }
   .lore {
     font-style: italic;

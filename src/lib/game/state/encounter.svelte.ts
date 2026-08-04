@@ -4,13 +4,14 @@ import {
   type MonsterDef,
   type InvestigationDef,
   type SocialDef,
+  type CrossroadDef,
 } from '../data/encounters';
 import { pickEncounter } from '../map';
 import { getCurrentZoneId } from './zone.svelte';
 import { getDifficulty } from './map.svelte';
 import { INVESTIGATE } from '../config';
 import { assertNever } from '../util/assertNever';
-import type { Encounter, Monster, Investigation, Social } from '../types';
+import type { Encounter, Monster, Investigation, Social, Crossroad } from '../types';
 import type { DialogNodeId } from '../data/dialog';
 import type { CharacterId } from '../data/characters';
 
@@ -83,6 +84,18 @@ function createSocial(id: EncounterId, def: SocialDef, level: number): Social {
   };
 }
 
+function createCrossroad(id: EncounterId, def: CrossroadDef): Crossroad {
+  return {
+    instanceId: nextInstanceId++,
+    id,
+    name: def.name,
+    action: 'crossroad',
+    branches: def.branches,
+    status: 'active',
+    diedAt: null,
+  };
+}
+
 // The one place that turns a shape-blind id into a concrete Encounter -
 // map.ts's pickEncounter() and resolvePoiAt() only ever hand back an id,
 // blind to what kind it resolves to. level defaults to the
@@ -98,6 +111,8 @@ export function createEncounter(id: EncounterId, level?: number): Encounter {
       return createInvestigation(id, def);
     case 'social':
       return createSocial(id, def, level ?? def.level);
+    case 'crossroad':
+      return createCrossroad(id, def);
     default:
       return assertNever(def);
   }
@@ -157,7 +172,7 @@ export function dropEncounter() {
 // module's own invariant self-evident rather than relying on the caller.
 export function damageMonster(amount: number) {
   const encounter = current[0];
-  if (encounter.action === 'social') return;
+  if (encounter.action !== 'attack' && encounter.action !== 'investigate') return;
   encounter.hp = Math.max(0, encounter.hp - amount);
 }
 
@@ -232,7 +247,14 @@ interface SocialSnapshot extends EncounterSnapshotBase {
   visitedChoiceIds: readonly string[];
 }
 
-export type EncounterSnapshot = MonsterSnapshot | InvestigationSnapshot | SocialSnapshot;
+// branches isn't persisted - it's def-derived and createEncounter()
+// reconstructs it fresh, same reasoning as Social's dialogRoot above. Nothing
+// about a crossroad drifts from spawn-time.
+interface CrossroadSnapshot extends EncounterSnapshotBase {
+  action: 'crossroad';
+}
+
+export type EncounterSnapshot = MonsterSnapshot | InvestigationSnapshot | SocialSnapshot | CrossroadSnapshot;
 
 function encounterToSnapshot(encounter: Encounter): EncounterSnapshot {
   const base: EncounterSnapshotBase = {
@@ -267,6 +289,8 @@ function encounterToSnapshot(encounter: Encounter): EncounterSnapshot {
         nameOverrides: encounter.nameOverrides,
         visitedChoiceIds: encounter.visitedChoiceIds,
       };
+    case 'crossroad':
+      return { ...base, action: 'crossroad' };
     default:
       return assertNever(encounter);
   }
@@ -318,6 +342,12 @@ function snapshotToEncounter(snapshot: EncounterSnapshot): Encounter {
         nameOverrides: snapshot.nameOverrides,
         // ?? [] - older saves predate this field.
         visitedChoiceIds: snapshot.visitedChoiceIds ?? [],
+        status: snapshot.status,
+        diedAt: snapshot.diedAt,
+      };
+    case 'crossroad':
+      return {
+        ...(createEncounter(id) as Crossroad),
         status: snapshot.status,
         diedAt: snapshot.diedAt,
       };

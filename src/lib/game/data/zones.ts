@@ -1,4 +1,6 @@
 import type { EncounterId } from './encounters';
+import type { ZoneId } from './zoneIds';
+export type { ZoneId } from './zoneIds';
 
 // A POI group is placed with one hash roll (see map.ts's resolveGroup /
 // noise.ts's idHash) - every member sits at anchor + its own offset, so a
@@ -56,15 +58,13 @@ export const ZONES = {
         id: 'treeLine',
         name: 'Tree Line',
         length: 40,
-        // Same pool as Deep Woods for now - splitting it by subzone is a
-        // follow-up authoring decision, not made here.
         encounters: [
-          { id: 'thornyShrubbery', weight: 6 },
-          { id: 'fish', weight: 2 },
-          { id: 'boar', weight: 10 },
-          { id: 'honeybee', weight: 1 },
+          { id: 'thornyShrubbery', weight: 8 },
+          { id: 'fish', weight: 3 },
+          { id: 'boar', weight: 20 },
+          { id: 'honeybee', weight: 3 },
           { id: 'badger', weight: 15 },
-          { id: 'rabbitHole', weight: 3 },
+          { id: 'rabbitHole', weight: 1 },
         ] as { id: EncounterId; weight: number }[],
         pois: [
           { id: 'rabbidSquirrel', members: [{ encounter: 'rabbidSquirrel', offset: 0 }] },
@@ -77,12 +77,12 @@ export const ZONES = {
         name: 'Deep Woods',
         length: 60,
         encounters: [
-          { id: 'thornyShrubbery', weight: 6 },
-          { id: 'fish', weight: 2 },
-          { id: 'boar', weight: 10 },
-          { id: 'honeybee', weight: 1 },
+          { id: 'thornyShrubbery', weight: 4 },
+          { id: 'boar', weight: 15 },
+          { id: 'honeybee', weight: 2 },
+          { id: 'feralGoat', weight: 3 }, 
           { id: 'badger', weight: 15 },
-          { id: 'rabbitHole', weight: 3 },
+          { id: 'rabbitHole', weight: 1 },
         ] as { id: EncounterId; weight: number }[],
         pois: [
           { id: 'hastilyAbandonedCamp', members: [{ encounter: 'hastilyAbandonedCamp', offset: 0 }] },
@@ -90,6 +90,14 @@ export const ZONES = {
           // the other by the time this is reachable, since it only anchors
           // past distance 40 - see ENCOUNTER_SUBSTITUTIONS in encounters.ts.
           { id: 'pleasantClearing', members: [{ encounter: 'pleasantClearing', offset: 0 }] },
+          // Fixed landmark, not hash-placed - a fork in the road should sit
+          // at the same spot every seed. First crossroad in the game; see
+          // its own comment in encounters.ts.
+          {
+            id: 'forkTowardTheBog',
+            members: [{ encounter: 'forkTowardTheBog', offset: 0 }],
+            at: 95,
+          },
         ] as PoiGroupDef[],
       },
     ] as SubZoneDef[],
@@ -114,6 +122,17 @@ export const ZONES = {
           { id: 'fox', weight: 9 },
           { id: 'rabbitHole', weight: 3 },
         ] as { id: EncounterId; weight: number }[],
+        pois: [
+          // The far end of zone1's forkTowardTheBog - see its comment in
+          // encounters.ts. Sits at distance 1 because that's where its
+          // partner's entryDistance lands you: the very first step into the
+          // Bog is standing back at the same fork.
+          {
+            id: 'forkBackToTheWoods',
+            members: [{ encounter: 'forkBackToTheWoods', offset: 0 }],
+            at: 1,
+          },
+        ] as PoiGroupDef[],
       },
     ] as SubZoneDef[],
   },
@@ -135,6 +154,4 @@ export const ZONES = {
       },
     ] as SubZoneDef[],
   },
-} as const;
-
-export type ZoneId = keyof typeof ZONES;
+} as const satisfies Record<ZoneId, ZoneDef>;

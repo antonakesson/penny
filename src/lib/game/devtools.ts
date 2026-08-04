@@ -4,13 +4,15 @@ import { createEncounter, spawn, getEncounter } from './state/encounter.svelte';
 import { getAction } from './state/action.svelte';
 import { addItem, getInventory } from './state/inventory.svelte';
 import { addXp, getXp } from './state/xp.svelte';
-import { getSeed, getDistance, hydrateMap } from './state/map.svelte';
+import { getSeed, getDistance, getAllDistances, setDistance, hydrateMap } from './state/map.svelte';
+import { getCurrentZoneId, switchZone } from './state/zone.svelte';
 import { triggerEffect } from './state/effect.svelte';
 import { serializeModifiers } from './state/modifier.svelte';
 import { getAllFlags } from './state/journalFlags.svelte';
 import type { EncounterId } from './data/encounters';
 import type { ItemId } from './data/loot';
 import type { EffectId } from './data/effects';
+import type { ZoneId } from './data/zones';
 
 export function devSpawn(id: EncounterId) {
   spawn(createEncounter(id));
@@ -26,11 +28,17 @@ export function devAwardXp(amount: number) {
 }
 
 export function devSetDistance(distance: number) {
-  hydrateMap({ seed: getSeed(), distance });
+  setDistance(distance);
 }
 
 export function devSetSeed(seed: string) {
-  hydrateMap({ seed, distance: getDistance() });
+  hydrateMap({ seed, distances: { ...getAllDistances() } });
+}
+
+// Jumps straight to a zone for testing without walking a crossroad -
+// distance is untouched, same coordinate space, different content pool.
+export function devSetZone(id: ZoneId) {
+  switchZone(id);
 }
 
 export function devTriggerEffect(effectId: EffectId) {
@@ -44,6 +52,7 @@ export function devDumpState() {
     inventory: getInventory(),
     xp: getXp(),
     distance: getDistance(),
+    zone: getCurrentZoneId(),
     permanentModifiers: serializeModifiers(),
     flags: getAllFlags(),
   };
@@ -56,6 +65,7 @@ if (import.meta.env.DEV) {
     awardXp: devAwardXp,
     setDistance: devSetDistance,
     setSeed: devSetSeed,
+    setZone: devSetZone,
     triggerEffect: devTriggerEffect,
     state: devDumpState,
   };

@@ -8,8 +8,8 @@
 
   let { encounter, children }: { encounter: Encounter; children: Snippet } = $props();
 
-  // Investigation has no `level` field - narrowed once here.
-  let level = $derived(encounter.action !== 'investigate' ? encounter.level : null);
+  // Only attack/social carry a `level` field - narrowed once here.
+  let level = $derived(encounter.action === 'attack' || encounter.action === 'social' ? encounter.level : null);
   let levelGap = $derived(level !== null ? getLevelGap(level) : null);
   let icon = $derived(ENCOUNTER_ICONS[encounter.id as EncounterId]);
 </script>

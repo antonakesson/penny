@@ -1,6 +1,7 @@
 import type { Rarity } from './data/loot';
 import type { DialogNodeId } from './data/dialog';
 import type { CharacterId } from './data/characters';
+import type { CrossroadBranch } from './data/encounters';
 
 interface EncounterBase {
   instanceId: number; // UI-transition key only (hp-fill transition reset) — not meaningful data
@@ -50,7 +51,16 @@ export interface Social extends EncounterBase {
   visitedChoiceIds: readonly string[];
 }
 
-export type Encounter = Monster | Investigation | Social;
+// Discrete, click-to-resolve, same as Social - but never hp-drain, and never
+// mistaken for one: no level, no dialog. branches is def-derived (static per
+// id), copied here rather than looked up fresh so CrossroadCard doesn't need
+// to know about ENCOUNTERS.
+export interface Crossroad extends EncounterBase {
+  action: 'crossroad';
+  branches: readonly CrossroadBranch[];
+}
+
+export type Encounter = Monster | Investigation | Social | Crossroad;
 
 // Only the hp-drain kinds use this mutex - Social's click-to-pick skips it.
 export type ActionKind = 'attack' | 'investigate';

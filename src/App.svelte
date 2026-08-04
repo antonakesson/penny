@@ -1,4 +1,5 @@
 <script lang="ts">
+  import HeroBanner from './lib/components/HeroBanner.svelte';
   import Zone from './lib/components/Zone.svelte';
   import SignalTrace from './lib/components/SignalTrace.svelte';
   import Encounter from './lib/components/Encounter.svelte';
@@ -23,6 +24,7 @@
     getPendingFeatureAnnouncement,
     dismissFeatureAnnouncement,
     dismissDialog,
+    getZone,
   } from './lib/game/game';
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
   import { getConfirmRequest, resolveConfirm } from './lib/ui/confirmDialog.svelte';
@@ -30,6 +32,9 @@
 
   let confirmRequest = $derived(getConfirmRequest());
   let featureAnnouncement = $derived(getPendingFeatureAnnouncement());
+  // Only for the tint below (see zoneColors.css) - nothing else here reads
+  // the zone, so this stays a plain derived value rather than its own module.
+  let zoneId = $derived(getZone().zoneId);
 
   // Runs before first render, so saved state hydrates before the player
   // sees a frame of fresh state.
@@ -85,7 +90,8 @@
 
 <div class="app-shell">
   <Nav />
-  <main class="combat">
+  <main class="combat" data-zone={zoneId}>
+    <HeroBanner />
     <Zone />
     <SignalTrace />
     <Encounter />
@@ -149,6 +155,11 @@
     max-width: 480px;
     margin: 0 auto;
     padding: 20px 20px 84px;
+    /* --zone-tint is set per [data-zone] in zoneColors.css - mixing it
+       against --page rather than replacing it keeps the surface's own
+       light/dark value doing the work, this just washes it slightly. */
+    background: color-mix(in srgb, var(--page) 88%, var(--zone-tint) 12%);
+    transition: background-color 800ms ease;
   }
 
   @media (min-width: 900px) {
