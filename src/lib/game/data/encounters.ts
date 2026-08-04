@@ -181,7 +181,7 @@ export const ENCOUNTERS = {
 
   interruptingCreek: {
     kind: 'social',
-    name: 'Interrupting Creek',
+    name: 'Unprompted Creek',
     level: 1,
     dialogRoot: 'interruptingCreek:root',
   },
