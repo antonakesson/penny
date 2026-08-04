@@ -1,4 +1,5 @@
 import { LEVELS, LEVEL_CAP } from '../data/levels';
+import { spawnXpFloatingText } from './xpFloatingText.svelte';
 
 let xp = $state(0);
 
@@ -6,8 +7,14 @@ export function getXp(): number {
   return xp;
 }
 
+// Floating text lives here, not at each call site - every XP source (a
+// kill, a devtools cheat, a dialog/item grantXp effect) gets the same
+// on-screen feedback for free, instead of each caller having to remember to
+// pair addXp() with its own spawnXpFloatingText() call. See combatEngine.ts's
+// now-removed awardXp() wrapper for the shape this replaced.
 export function addXp(amount: number) {
   xp += amount;
+  spawnXpFloatingText(amount);
 }
 
 export function hydrateXp(value: number) {

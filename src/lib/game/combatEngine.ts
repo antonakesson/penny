@@ -6,7 +6,6 @@ import { getPet, setPetAttacking, setPetRecovering, setPetIdle } from './state/p
 import { addXp, getLevel } from './state/xp.svelte';
 import { addItem, getInventory } from './state/inventory.svelte';
 import { spawnFloatingText, spawnLootText } from './state/floatingText.svelte';
-import { spawnXpFloatingText } from './state/xpFloatingText.svelte';
 import { resolveDropIds, ITEMS, ITEM_CAP, type ItemId } from './data/loot';
 import { isFeatureUnlocked } from './state/features.svelte';
 import { isEffectActive } from './state/effect.svelte';
@@ -185,11 +184,6 @@ export function runCombatTick() {
   petTick();
 }
 
-function awardXp(amount: number) {
-  addXp(amount);
-  spawnXpFloatingText(amount);
-}
-
 function isAtItemCap(itemId: ItemId): boolean {
   const cap = ITEM_CAP[itemId];
   return cap !== undefined && (getInventory()[itemId] ?? 0) >= cap;
@@ -208,7 +202,7 @@ function awardLoot(dropTableId: readonly string[]) {
 // Only the hp-drain kinds resolve through here - Social gets its own
 // resolveDialogChoice()/dismissDialog() in dialogEngine.ts.
 function resolveKill(encounter: Monster | Investigation) {
-  awardXp(encounter.xpReward);
+  addXp(encounter.xpReward);
   awardLoot(encounter.dropTableId);
   journal.encounterCompleted(encounter.id);
   killMonster();
