@@ -207,11 +207,11 @@ export const ENCOUNTERS = {
   },
 
   // The other end of forkTowardTheBog's road - lands back at the exact
-  // distance that one sits at (zone1 deepWoods, 95), not zone1's start.
+  // distance that one sits at (zone1 bossApproach, 258), not zone1's start.
   forkBackToTheWoods: {
     kind: 'crossroad',
     name: 'The Woods Trail',
-    branches: [{ label: 'Follow the trail back to Whispering Woods', destination: 'zone1', entryDistance: 95 }],
+    branches: [{ label: 'Follow the trail back to Whispering Woods', destination: 'zone1', entryDistance: 258 }],
   },
 
   // Substituted in once `pet` is unlocked - never placed directly.

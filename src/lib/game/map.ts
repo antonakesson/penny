@@ -14,20 +14,28 @@ export interface ResolvedSubZone {
   start: number;
 }
 
-// Walks the zone's ordered, fixed-length subzones and returns the one the
-// given distance falls in. O(subzone count), trivial at this scale. The last
-// subzone stays active past its own length - no travel graph yet, so there's
-// nowhere else to go.
+// Walks the zone's ordered subzones (each declaring its own startingDistance)
+// and returns the one the given distance falls in. O(subzone count), trivial
+// at this scale. The last subzone stays active past its own start - no
+// travel graph past it yet, so there's nowhere else to go.
 export function resolveSubZone(zoneId: ZoneId, distance: number): ResolvedSubZone {
   const subZones = ZONES[zoneId].subZones;
-  let start = 0;
   for (let i = 0; i < subZones.length; i++) {
     const subZone = subZones[i];
-    const isLast = i === subZones.length - 1;
-    if (isLast || distance < start + subZone.length) return { subZone, start };
-    start += subZone.length;
+    const next = subZones[i + 1];
+    if (!next || distance < next.startingDistance) return { subZone, start: subZone.startingDistance };
   }
   throw new Error(`resolveSubZone: zone "${zoneId}" has no subzones`);
+}
+
+// A subzone's own span - the gap to the next subzone's start, or Infinity
+// for the last one (it has no declared end). Only resolvePoiAt needs this,
+// to bound where a hash-placed POI's anchor is allowed to roll (see
+// resolveGroup below) - resolveSubZone itself never needs a span, only a
+// starting point to compare distance against.
+function subZoneSpan(subZones: readonly SubZoneDef[], index: number): number {
+  const next = subZones[index + 1];
+  return next ? next.startingDistance - subZones[index].startingDistance : Infinity;
 }
 
 interface ResolvedPoi {
@@ -63,14 +71,13 @@ function resolveGroup(group: PoiGroupDef, subZoneStart: number, subZoneLength: n
 // collision, not something this function defends against - see zones.ts.
 export function resolvePoiAt(zoneId: ZoneId, distance: number, seed: number): EncounterId | undefined {
   const subZones = ZONES[zoneId].subZones;
-  let start = 0;
-  for (const subZone of subZones) {
+  for (let i = 0; i < subZones.length; i++) {
+    const subZone = subZones[i];
     for (const group of subZone.pois ?? []) {
-      for (const poi of resolveGroup(group, start, subZone.length, seed)) {
+      for (const poi of resolveGroup(group, subZone.startingDistance, subZoneSpan(subZones, i), seed)) {
         if (poi.distance === distance) return substituteEncounter(poi.encounter);
       }
     }
-    start += subZone.length;
   }
   return undefined;
 }

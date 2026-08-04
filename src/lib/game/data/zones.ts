@@ -36,11 +36,12 @@ export interface SubZoneDef {
   // not what it says about itself.
   id: string;
   name: string;
-  // Distance span. The last subzone in a zone stays active indefinitely past
-  // it (no travel graph yet - see FEATURE_ZONE_MAP_REWORK.md's Deferred
-  // section); length still matters there because it bounds where that
-  // subzone's own POIs are allowed to anchor.
-  length: number;
+  // Absolute distance where this subzone begins - authored the way you'd
+  // actually plan a zone out ("Tree Line starts at 0, Deep Woods at 80"),
+  // not as a span you'd have to sum backward to know where you are. The
+  // last subzone in a zone has no explicit end and stays active
+  // indefinitely past its own start (no travel graph past it yet).
+  startingDistance: number;
   encounters: readonly { id: EncounterId; weight: number }[];
   pois?: readonly PoiGroupDef[];
 }
@@ -53,11 +54,18 @@ export interface ZoneDef {
 export const ZONES = {
   zone1: {
     name: 'Whispering Woods',
+    // Full-zone layout sketched 2026-08-04: Tree Line -> Deep Woods (name
+    // pending - not sold on it, see naming discussion) -> a lake/bandit-camp
+    // area -> grasslands -> a boss-buildup stretch holding the crossroad.
+    // Only Tree Line and Deep Woods have real content; the last three are
+    // structural placeholders (borrowed encounter pools, no POIs of their
+    // own yet) so the layout is walkable and testable before any of that
+    // content is actually authored.
     subZones: [
       {
         id: 'treeLine',
         name: 'Tree Line',
-        length: 40,
+        startingDistance: 0,
         encounters: [
           { id: 'thornyShrubbery', weight: 8 },
           { id: 'fish', weight: 3 },
@@ -74,13 +82,18 @@ export const ZONES = {
       },
       {
         id: 'deepWoods',
+        // Name not settled - reads too much like a direct translation
+        // ("deep forest") rather than the actual idea, which is a
+        // liability/jurisdiction boundary (off-piste, out of the Ranger
+        // Office's patrol - see Tree Line's own flavor text). Candidates
+        // floated: The Unpatrolled, Off-Piste, Unclaimed.
         name: 'Deep Woods',
-        length: 60,
+        startingDistance: 80,
         encounters: [
           { id: 'thornyShrubbery', weight: 4 },
           { id: 'boar', weight: 15 },
           { id: 'honeybee', weight: 2 },
-          { id: 'feralGoat', weight: 3 }, 
+          { id: 'feralGoat', weight: 3 },
           { id: 'badger', weight: 15 },
           { id: 'rabbitHole', weight: 1 },
         ] as { id: EncounterId; weight: number }[],
@@ -88,15 +101,70 @@ export const ZONES = {
           { id: 'hastilyAbandonedCamp', members: [{ encounter: 'hastilyAbandonedCamp', offset: 0 }] },
           // Squirrel recruitment (Tree Line) is always resolved one way or
           // the other by the time this is reachable, since it only anchors
-          // past distance 40 - see ENCOUNTER_SUBSTITUTIONS in encounters.ts.
+          // past distance 80 - see ENCOUNTER_SUBSTITUTIONS in encounters.ts.
           { id: 'pleasantClearing', members: [{ encounter: 'pleasantClearing', offset: 0 }] },
+        ] as PoiGroupDef[],
+      },
+      // DRAFT - placeholder, not locked in. A lake/bandit-camp area; needs
+      // its own humanoid encounters (bandits etc.) and, critically, its own
+      // loot table - every drop table in this zone so far is forest-critter
+      // themed, nothing humanoid exists yet. Borrows Deep Woods' pool
+      // purely so this stretch is walkable in the meantime.
+      {
+        id: 'lakeCamp',
+        name: 'Lake Camp',
+        startingDistance: 150,
+        encounters: [
+          { id: 'thornyShrubbery', weight: 4 },
+          { id: 'boar', weight: 15 },
+          { id: 'honeybee', weight: 2 },
+          { id: 'feralGoat', weight: 3 },
+          { id: 'badger', weight: 15 },
+          { id: 'rabbitHole', weight: 1 },
+        ] as { id: EncounterId; weight: number }[],
+      },
+      // DRAFT - placeholder, not locked in. Grasslands over wetlands on
+      // purpose: Rainbow Bog (past the crossroad ahead) is already
+      // wetland-themed, so this stretch stays dry for contrast rather than
+      // reading as more of the same biome before you even cross over.
+      {
+        id: 'grasslands',
+        name: 'Grasslands',
+        startingDistance: 200,
+        encounters: [
+          { id: 'thornyShrubbery', weight: 4 },
+          { id: 'boar', weight: 15 },
+          { id: 'honeybee', weight: 2 },
+          { id: 'feralGoat', weight: 3 },
+          { id: 'badger', weight: 15 },
+          { id: 'rabbitHole', weight: 1 },
+        ] as { id: EncounterId; weight: number }[],
+      },
+      // DRAFT - placeholder, not locked in. Meant to hold a short (~10
+      // distance) buildup -> miniboss/lore -> boss -> reward sequence before
+      // the crossroad; none of that is authored yet, only the crossroad
+      // itself has moved here from its old spot in Deep Woods.
+      {
+        id: 'bossApproach',
+        name: 'Boss Approach',
+        startingDistance: 250,
+        encounters: [
+          { id: 'thornyShrubbery', weight: 4 },
+          { id: 'boar', weight: 15 },
+          { id: 'honeybee', weight: 2 },
+          { id: 'feralGoat', weight: 3 },
+          { id: 'badger', weight: 15 },
+          { id: 'rabbitHole', weight: 1 },
+        ] as { id: EncounterId; weight: number }[],
+        pois: [
           // Fixed landmark, not hash-placed - a fork in the road should sit
           // at the same spot every seed. First crossroad in the game; see
-          // its own comment in encounters.ts.
+          // its own comment in encounters.ts. entryDistance on
+          // forkBackToTheWoods (zone2) must stay in sync with this number.
           {
             id: 'forkTowardTheBog',
             members: [{ encounter: 'forkTowardTheBog', offset: 0 }],
-            at: 95,
+            at: 258,
           },
         ] as PoiGroupDef[],
       },
@@ -111,7 +179,7 @@ export const ZONES = {
       {
         id: 'rainbowBog',
         name: 'Rainbow Bog',
-        length: Infinity,
+        startingDistance: 0,
         encounters: [
           { id: 'watersnake', weight: 12 },
           { id: 'deceptiveMoundLookingSolidButWasActuallyWetFeet', weight: 4 },
@@ -143,7 +211,7 @@ export const ZONES = {
       {
         id: 'theLastLedger',
         name: 'The Last Ledger',
-        length: Infinity,
+        startingDistance: 0,
         encounters: [
           { id: 'guyWhoDefinitelyOwnsThisNow', weight: 10 },
           { id: 'ruffian', weight: 12 },
