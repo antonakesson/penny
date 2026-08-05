@@ -1,6 +1,6 @@
 import type { EffectId } from './effects';
 import type { Condition } from './condition';
-import type { CharacterId } from './characters';
+import type { NpcId } from './npc';
 
 // Plain string, not keyof typeof DIALOGS - that would make DIALOGS
 // self-referential (a node's `next` pointing at a sibling key of the object
@@ -8,7 +8,7 @@ import type { CharacterId } from './characters';
 // runtime, not compile time.
 export type DialogNodeId = string;
 
-export type Speaker = CharacterId | 'narrator';
+export type Speaker = NpcId | 'narrator';
 
 // Tagged union, not one line-object with optional fields - adding a future
 // capability (e.g. a sound cue) is a new tag, and none of the content
@@ -26,9 +26,9 @@ export type DialogLine =
   // only on node arrival.
   | { kind: 'action'; effect: EffectId }
   // Overrides a character's display name for the rest of the encounter
-  // (or until the next rename) - see CHARACTERS in characters.ts for the
-  // default it overrides.
-  | { kind: 'rename'; character: CharacterId; name: string };
+  // (or until the next rename) - see NPCS in npc.ts for the default it
+  // overrides.
+  | { kind: 'rename'; character: NpcId; name: string };
 
 export interface DialogChoice {
   text: string;

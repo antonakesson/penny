@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getZone, getEncounter } from '../game/game';
-  import { SUBZONE_FLAVOR, ENCOUNTER_FLAVOR, type Quote } from './data/flavor';
+  import { SUBZONE_FLAVOR, ENCOUNTER_FLAVOR, formatAttribution, type Quote } from './data/flavor';
   import type { EncounterId } from '../game/data/encounters';
 
   const FADE_OUT_MS = 1000;
@@ -99,7 +99,7 @@
   {#if shownQuote}
     <blockquote class="quote" style="opacity: {quoteOpacity}; transition-duration: {quoteFadeMs}ms;">
       <p class="quote-text">"{shownQuote.text}"</p>
-      <cite class="quote-attribution">— {shownQuote.attribution}</cite>
+      <cite class="quote-attribution">— {formatAttribution(shownQuote.attribution)}</cite>
     </blockquote>
   {/if}
 </section>

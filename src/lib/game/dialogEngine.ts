@@ -5,7 +5,7 @@ import {
   setCharacterName,
 } from './state/encounter.svelte';
 import { getDialogNode, type DialogNode, type DialogChoice } from './data/dialog';
-import { CHARACTERS } from './data/characters';
+import { NPCS } from './data/npc';
 import { evaluateCondition } from './condition';
 import { advance } from './state/map.svelte';
 import { triggerEffect, isEffectActive } from './state/effect.svelte';
@@ -26,7 +26,7 @@ export function getVisibleDialogChoices(node: DialogNode): readonly DialogChoice
 }
 
 // <SocialCard/> calls this instead of reading node.lines directly - it
-// resolves each 'say' line's speaker to a display name (CHARACTERS' default,
+// resolves each 'say' line's speaker to a display name (NPCS' default,
 // overridden by any 'rename' line already processed for this encounter) and
 // drops 'action'/'rename' lines, which are silent. Renames are applied once
 // on node arrival (see resolveDialogChoice() below), so a node that both
@@ -39,7 +39,7 @@ export function getDialogSayLines(node: DialogNode): { speaker: string; text: st
   return node.lines
     .filter((line) => line.kind === 'say')
     .map((line) => ({
-      speaker: line.speaker === 'narrator' ? 'Narrator' : (overrides[line.speaker] ?? CHARACTERS[line.speaker]),
+      speaker: line.speaker === 'narrator' ? 'Narrator' : (overrides[line.speaker] ?? NPCS[line.speaker].name),
       text: line.text,
     }));
 }

@@ -1,5 +1,6 @@
 import type { ZoneId } from '../../game/data/zones';
 import type { EncounterId } from '../../game/data/encounters';
+import { NPCS, type NpcDef, type NpcId } from '../../game/data/npc';
 
 // Presentation only - nothing here has a mechanical effect, and nothing in
 // game/* (engine.ts, map.ts, encounter.svelte.ts) imports this file. zones.ts
@@ -8,7 +9,19 @@ import type { EncounterId } from '../../game/data/encounters';
 // comment for the boundary this keys off of.
 export interface Quote {
   text: string;
-  attribution: string;
+  // Either a registered identity - looked up + formatted via
+  // formatAttribution() below - or a one-off freeform source with no NPCS
+  // entry of its own (an unsigned note, "a voice" with nothing further to
+  // say about it). Pointing at an NpcId instead of just typing the string
+  // twice means renaming/retiring that NPC is a compile error at every
+  // attribution that still names them, not a silently stale byline.
+  attribution: NpcId | { freeform: string };
+}
+
+export function formatAttribution(attribution: Quote['attribution']): string {
+  if (typeof attribution !== 'string') return attribution.freeform;
+  const npc: NpcDef = NPCS[attribution];
+  return npc.title ? `${npc.name}, ${npc.title}` : npc.name;
 }
 
 interface SubZoneFlavor {
@@ -25,7 +38,7 @@ export const SUBZONE_FLAVOR: Record<ZoneId, Record<string, SubZoneFlavor>> = {
         'The trees are suspiciously well-behaved — evenly spaced, uniformly tall, like something got tired of the mess and started grooming. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',
       quote: {
         text: "If you don't count the people who don't come back, the forest is 100% safe.",
-        attribution: 'Cobb Thistlewood, Ranger / Coroner',
+        attribution: 'cobbThistlewood',
       },
     },
     // DRAFT - placeholder, not locked in. See LORE.md's Deep Woods entry.
@@ -34,7 +47,7 @@ export const SUBZONE_FLAVOR: Record<ZoneId, Record<string, SubZoneFlavor>> = {
         "Past the tree line proper, the Ranger Office's numbered trail markers grow sparse, then stop entirely — mid-post, as if whoever was counting simply lost the thread. Official policy holds that the trail continues regardless; it declines to specify for how long that's supposed to be reassuring.",
       quote: {
         text: 'Half my regulars stopped coming back after Tree Line. The other half just started going further in first.',
-        attribution: 'Elsa, Licensed Companionship Consultant',
+        attribution: 'elsa',
       },
     },
   },
@@ -45,7 +58,7 @@ export const SUBZONE_FLAVOR: Record<ZoneId, Record<string, SubZoneFlavor>> = {
         'The name predates the bog. Nobody currently employed by any nearby settlement can explain the rainbow part, and several have stopped trying.',
       quote: {
         text: "You don't sink in the Bog. The Bog just gets taller around you.",
-        attribution: 'Widow Pruitt, Innkeeper',
+        attribution: 'widowPruitt',
       },
     },
   },
@@ -56,7 +69,7 @@ export const SUBZONE_FLAVOR: Record<ZoneId, Record<string, SubZoneFlavor>> = {
         'Somebody kept immaculate records here, right up until they stopped. The books are still open on the desk, mid-entry, as if whoever was writing just meant to step out for a moment.',
       quote: {
         text: 'Possession is nine-tenths of the law. The other tenth is whoever still has the stamp.',
-        attribution: 'Marginal note, unsigned ledger',
+        attribution: { freeform: 'Marginal note, unsigned ledger' },
       },
     },
   },
@@ -84,7 +97,7 @@ export const ENCOUNTER_FLAVOR: Partial<Record<EncounterId, EncounterFlavor>> = {
   occupiedOuthouse: {
     quote: {
       text: 'Occupied.',
-      attribution: 'A Voice, From Within',
+      attribution: 'occupant',
     },
   },
   hastilyAbandonedCamp: {

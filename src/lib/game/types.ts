@@ -1,6 +1,6 @@
 import type { Rarity } from './data/loot';
 import type { DialogNodeId } from './data/dialog';
-import type { CharacterId } from './data/characters';
+import type { NpcId } from './data/npc';
 import type { CrossroadBranch } from './data/encounters';
 
 interface EncounterBase {
@@ -40,10 +40,10 @@ export interface Social extends EncounterBase {
   dialogRoot: DialogNodeId;
   currentNode: DialogNodeId;
   // Written by a dialog `rename` line (see DialogLine in data/dialog.ts) -
-  // overrides CHARACTERS' default display name for the rest of this
-  // encounter. Keyed by character, not global, so unrelated speakers in the
-  // same encounter don't share a name slot.
-  nameOverrides: Partial<Record<CharacterId, string>>;
+  // overrides NPCS' default display name for the rest of this encounter.
+  // Keyed by character, not global, so unrelated speakers in the same
+  // encounter don't share a name slot.
+  nameOverrides: Partial<Record<NpcId, string>>;
   // uniqueIds of every one-shot DialogChoice picked so far this encounter
   // (see DialogChoice.uniqueId in data/dialog.ts) - getVisibleDialogChoices()
   // in dialogEngine.ts filters against this so a picked one-shot stops being

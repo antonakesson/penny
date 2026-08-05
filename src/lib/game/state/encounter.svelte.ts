@@ -13,7 +13,7 @@ import { INVESTIGATE } from '../config';
 import { assertNever } from '../util/assertNever';
 import type { Encounter, Monster, Investigation, Social, Crossroad } from '../types';
 import type { DialogNodeId } from '../data/dialog';
-import type { CharacterId } from '../data/characters';
+import type { NpcId } from '../data/npc';
 
 let nextInstanceId = 1;
 
@@ -193,7 +193,7 @@ export function pickDialogChoice(next: DialogNodeId, uniqueId?: string) {
 
 // A dialog `rename` line's only effect - same single-writer rule as
 // pickDialogChoice(). engine.ts's resolveDialogChoice() is the only caller.
-export function setCharacterName(character: CharacterId, name: string) {
+export function setCharacterName(character: NpcId, name: string) {
   const encounter = current[0];
   if (encounter.action !== 'social') return;
   encounter.nameOverrides[character] = name;
@@ -243,7 +243,7 @@ interface SocialSnapshot extends EncounterSnapshotBase {
   // actually drift from spawn-time, same reasoning as Monster's level (see
   // hydrateEncounter()'s comment below).
   currentNode: DialogNodeId;
-  nameOverrides: Partial<Record<CharacterId, string>>;
+  nameOverrides: Partial<Record<NpcId, string>>;
   visitedChoiceIds: readonly string[];
 }
 
