@@ -6,6 +6,7 @@ import {
   type SocialDef,
   type CrossroadDef,
 } from '../data/encounters';
+import { MONSTER_ENTITIES, INVESTIGATION_ENTITIES } from '../data/entities';
 import { pickEncounter } from '../map';
 import { getCurrentZoneId } from './zone.svelte';
 import { getDifficulty } from './map.svelte';
@@ -17,10 +18,11 @@ import type { NpcId } from '../data/npc';
 
 let nextInstanceId = 1;
 
-// No per-monster-identity scaling - hp/xp start from the def's own
-// honestly-authored numbers. A tougher version of a monster is a separate
-// def/id (e.g. a future mediumBoar) rather than the same id stretched by a
-// formula; see enemy_design_scope / the zones.ts level-removal for why.
+// No per-monster-identity scaling - hp/xp start from the entity's own
+// honestly-authored numbers (data/entities.ts). A tougher version of a
+// monster is a separate entity/id (e.g. a future mediumBoar) rather than
+// the same id stretched by a formula; see enemy_design_scope / the zones.ts
+// level-removal for why.
 //
 // What DOES still scale live is session intensity: the difficulty signal
 // (0..1, resamples as distance changes) lerped to a 0..2 multiplier, applied
@@ -30,39 +32,41 @@ let nextInstanceId = 1;
 // already warns about for level. Floored at 1 so a low-difficulty roll can
 // never produce a free/0-hp kill.
 function createMonster(id: EncounterId, def: MonsterDef, level: number): Monster {
+  const entity = MONSTER_ENTITIES[def.entity];
   const scale = getDifficulty() * 2;
-  const maxHp = Math.max(1, Math.round(def.maxHp * scale));
-  const xpReward = Math.max(1, Math.round(def.xpReward * scale));
+  const maxHp = Math.max(1, Math.round(entity.maxHp * scale));
+  const xpReward = Math.max(1, Math.round(entity.xpReward * scale));
   return {
     instanceId: nextInstanceId++,
     id,
-    name: def.name,
+    name: entity.name,
     action: 'attack',
     level,
     hp: maxHp,
     maxHp,
     xpReward,
-    dropTableId: def.dropTableId,
+    dropTableId: entity.dropTableId,
     status: 'active',
     diedAt: null,
   };
 }
 
-// maxHp is derived from the def's honestly-authored durationMs against the
-// investigate dps knob, not authored directly as a guessed hp number - see
-// ENCOUNTER_REFACTOR.md decision 3. No level scaling: an investigation isn't
-// a zone-difficulty-scaled encounter.
+// maxHp is derived from the entity's honestly-authored durationMs against
+// the investigate dps knob, not authored directly as a guessed hp number -
+// see ENCOUNTER_REFACTOR.md decision 3. No level scaling: an investigation
+// isn't a zone-difficulty-scaled encounter.
 function createInvestigation(id: EncounterId, def: InvestigationDef): Investigation {
-  const maxHp = Math.max(1, Math.round((def.durationMs / 1000) * INVESTIGATE.dps));
+  const entity = INVESTIGATION_ENTITIES[def.entity];
+  const maxHp = Math.max(1, Math.round((entity.durationMs / 1000) * INVESTIGATE.dps));
   return {
     instanceId: nextInstanceId++,
     id,
-    name: def.name,
+    name: entity.name,
     action: 'investigate',
     hp: maxHp,
     maxHp,
-    xpReward: def.xpReward,
-    dropTableId: def.dropTableId,
+    xpReward: entity.xpReward,
+    dropTableId: entity.dropTableId,
     status: 'active',
     diedAt: null,
   };
@@ -106,7 +110,7 @@ export function createEncounter(id: EncounterId, level?: number): Encounter {
   const def = ENCOUNTERS[id];
   switch (def.kind) {
     case 'monster':
-      return createMonster(id, def, level ?? def.level);
+      return createMonster(id, def, level ?? MONSTER_ENTITIES[def.entity].level);
     case 'investigation':
       return createInvestigation(id, def);
     case 'social':

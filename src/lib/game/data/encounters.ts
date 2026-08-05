@@ -5,22 +5,25 @@ import type { DialogNodeId } from './dialog';
 import type { Condition } from './condition';
 import type { ZoneId } from './zoneIds';
 import { evaluateCondition } from '../condition';
+import { assertNever } from '../util/assertNever';
+import {
+  MONSTER_ENTITIES,
+  INVESTIGATION_ENTITIES,
+  type MonsterEntityId,
+  type InvestigationEntityId,
+} from './entities';
 
+// name/level/hp/xp/drops live on the entity (data/entities.ts), not here -
+// this is dispatch (what to show, how to resolve) plus a pointer to what's
+// actually spawning, not a copy of what that thing is.
 export interface MonsterDef {
   kind: 'monster';
-  name: string;
-  level: number;
-  maxHp: number;
-  xpReward: number;
-  dropTableId: readonly string[];
+  entity: MonsterEntityId;
 }
 
 export interface InvestigationDef {
   kind: 'investigation';
-  name: string;
-  durationMs: number; // authored honestly, not a guessed maxHp
-  xpReward: number;
-  dropTableId: readonly string[];
+  entity: InvestigationEntityId;
 }
 
 export interface SocialDef {
@@ -61,102 +64,30 @@ export interface CrossroadDef {
 export type EncounterDef = MonsterDef | InvestigationDef | SocialDef | CrossroadDef;
 
 export const ENCOUNTERS = {
-  boar: {
-    kind: 'monster',
-    name: 'Boar',
-    level: 1,
-    maxHp: 5,
-    xpReward: 2,
-    dropTableId: ['boarDrops'],
-  },
-  honeybee: {
-    kind: 'monster',
-    name: 'Honeybee',
-    level: 1,
-    maxHp: 2,
-    xpReward: 8,
-    dropTableId: ['honeybeeDrops'],
-  },
-  badger: {
-    kind: 'monster',
-    name: 'Badger',
-    level: 1,
-    maxHp: 3,
-    xpReward: 1,
-    dropTableId: ['badgerDrops'],
-  },
-  thornyShrubbery: {
-    kind: 'investigation',
-    name: 'Thorny Shrubbery',
-    durationMs: 2_000,
-    xpReward: 3,
-    dropTableId: ['shrubberyDrops'],
-  },
-  fish: {
-    kind: 'monster',
-    name: 'Fish',
-    level: 1,
-    maxHp: 3,
-    xpReward: 5,
-    dropTableId: ['fishDrops'],
-  },
+  boar: { kind: 'monster', entity: 'boar' },
+  honeybee: { kind: 'monster', entity: 'honeybee' },
+  badger: { kind: 'monster', entity: 'badger' },
+  thornyShrubbery: { kind: 'investigation', entity: 'thornyShrubbery' },
+  fish: { kind: 'monster', entity: 'fish' },
 
-  // Zone2/zone3 stats below are a first pass, not playtested.
-  watersnake: { kind: 'monster', name: 'Watersnake', level: 4, maxHp: 34, xpReward: 17, dropTableId: [] },
-  fox: { kind: 'monster', name: 'Fox', level: 5, maxHp: 36, xpReward: 14, dropTableId: [] },
-  moose: { kind: 'monster', name: 'Moose', level: 6, maxHp: 50, xpReward: 33, dropTableId: [] },
-  blueberry: { kind: 'monster', name: 'Blueberry', level: 5, maxHp: 38, xpReward: 38, dropTableId: [] },
-  duckJustADuck: {
-    kind: 'monster',
-    name: 'Duck. Just a Duck.',
-    level: 4,
-    maxHp: 30,
-    xpReward: 15,
-    dropTableId: [],
-  },
+  watersnake: { kind: 'monster', entity: 'watersnake' },
+  fox: { kind: 'monster', entity: 'fox' },
+  moose: { kind: 'monster', entity: 'moose' },
+  blueberry: { kind: 'monster', entity: 'blueberry' },
+  duckJustADuck: { kind: 'monster', entity: 'duckJustADuck' },
   deceptiveMoundLookingSolidButWasActuallyWetFeet: {
     kind: 'monster',
-    name: 'Deceptive Mound (Looking Solid But Was Actually Wet Feet)',
-    level: 4,
-    maxHp: 32,
-    xpReward: 75,
-    dropTableId: [],
+    entity: 'deceptiveMoundLookingSolidButWasActuallyWetFeet',
   },
-  feralGoat: { kind: 'monster', name: 'Feral Goat', level: 5, maxHp: 36, xpReward: 14, dropTableId: [] },
-  ruffian: { kind: 'monster', name: 'Ruffian', level: 7, maxHp: 55, xpReward: 22, dropTableId: [] },
-  suspiciouslyOrganizedRatKing: {
-    kind: 'monster',
-    name: 'Suspiciously Organized Rat King',
-    level: 8,
-    maxHp: 70,
-    xpReward: 45,
-    dropTableId: [],
-  },
-  guyWhoDefinitelyOwnsThisNow: {
-    kind: 'monster',
-    name: 'Guy Who Definitely Owns This Now',
-    level: 6,
-    maxHp: 40,
-    xpReward: 20,
-    dropTableId: [],
-  },
-  theAuditor: { kind: 'monster', name: 'The Auditor', level: 8, maxHp: 51, xpReward: 51, dropTableId: [] },
+  feralGoat: { kind: 'monster', entity: 'feralGoat' },
+  ruffian: { kind: 'monster', entity: 'ruffian' },
+  suspiciouslyOrganizedRatKing: { kind: 'monster', entity: 'suspiciouslyOrganizedRatKing' },
+  guyWhoDefinitelyOwnsThisNow: { kind: 'monster', entity: 'guyWhoDefinitelyOwnsThisNow' },
+  theAuditor: { kind: 'monster', entity: 'theAuditor' },
 
-  rabbitHole: {
-    kind: 'investigation',
-    name: 'Rabbit Hole',
-    durationMs: 5_000,
-    xpReward: 4,
-    dropTableId: ['letterDrops'],
-  },
+  rabbitHole: { kind: 'investigation', entity: 'rabbitHole' },
 
-  hastilyAbandonedCamp: {
-    kind: 'investigation',
-    name: 'Hastily Abandoned Camp',
-    durationMs: 10_000,
-    xpReward: 15,
-    dropTableId: ['hastilyAbandonedCampDrops'],
-  },
+  hastilyAbandonedCamp: { kind: 'investigation', entity: 'hastilyAbandonedCamp' },
 
   rabbidSquirrel: {
     kind: 'social',
@@ -194,16 +125,10 @@ export const ENCOUNTERS = {
   },
 
   // Default/declared id - what's placed in zones.ts. Same coordinate, same
-  // name, same mechanics, either way - only the flavor (components/data/
+  // entity, same mechanics, either way - only the flavor (components/data/
   // flavor.ts's ENCOUNTER_FLAVOR) and the squirrel's mood differ. See
   // ENCOUNTER_SUBSTITUTIONS below.
-  pleasantClearing: {
-    kind: 'investigation',
-    name: 'Pleasant Clearing',
-    durationMs: 3_000,
-    xpReward: 5,
-    dropTableId: [],
-  },
+  pleasantClearing: { kind: 'investigation', entity: 'pleasantClearing' },
   // First crossroad in the game. Paired with forkBackToTheWoods below -
   // together they're one road, viewed from each end: this one lands you on
   // that one (zone2 distance 1), which is itself a crossroad back here.
@@ -221,14 +146,12 @@ export const ENCOUNTERS = {
     branches: [{ label: 'Follow the trail back to Whispering Woods', destination: 'zone1', entryDistance: 258 }],
   },
 
-  // Substituted in once `pet` is unlocked - never placed directly.
-  pleasantClearingRecruited: {
-    kind: 'investigation',
-    name: 'Pleasant Clearing',
-    durationMs: 3_000,
-    xpReward: 5,
-    dropTableId: [],
-  },
+  // Substituted in once `pet` is unlocked - never placed directly. Same
+  // entity as pleasantClearing above (was two hand-duplicated defs before
+  // the entity split; now the shared 'pleasantClearing' entity is the only
+  // copy of those numbers, and only ENCOUNTER_FLAVOR needs to know these
+  // are two different ids).
+  pleasantClearingRecruited: { kind: 'investigation', entity: 'pleasantClearing' },
 } as const satisfies Record<string, EncounterDef>;
 
 export type EncounterId = keyof typeof ENCOUNTERS;
@@ -245,4 +168,24 @@ export const ENCOUNTER_SUBSTITUTIONS: Partial<Record<EncounterId, { when: Condit
 export function substituteEncounter(id: EncounterId): EncounterId {
   const sub = ENCOUNTER_SUBSTITUTIONS[id];
   return sub && evaluateCondition(sub.when) ? sub.fallback : id;
+}
+
+// For callers that only have a bare EncounterId and need a display name
+// without already knowing (at the type level) which kind it resolves to -
+// e.g. DevTools' spawn dropdown. Anywhere that already branches on `kind`
+// (state/encounter.svelte.ts's create*() functions) should look its entity
+// up directly instead of going through this.
+export function getEncounterName(id: EncounterId): string {
+  const def = ENCOUNTERS[id];
+  switch (def.kind) {
+    case 'monster':
+      return MONSTER_ENTITIES[def.entity].name;
+    case 'investigation':
+      return INVESTIGATION_ENTITIES[def.entity].name;
+    case 'social':
+    case 'crossroad':
+      return def.name;
+    default:
+      return assertNever(def);
+  }
 }

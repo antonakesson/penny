@@ -11,7 +11,7 @@
     getSeed,
     getFlags,
   } from '../game/game';
-  import { ENCOUNTERS, type EncounterId } from '../game/data/encounters';
+  import { ENCOUNTERS, getEncounterName, type EncounterId } from '../game/data/encounters';
   import { ITEMS, type ItemId } from '../game/data/loot';
   import { EFFECTS, type EffectId } from '../game/data/effects';
   import { ZONES, type ZoneId } from '../game/data/zones';
@@ -38,7 +38,7 @@
     <div class="row">
       <select bind:value={selectedMonster} aria-label="Encounter to spawn">
         {#each monsterIds as id (id)}
-          <option value={id}>{ENCOUNTERS[id].name}</option>
+          <option value={id}>{getEncounterName(id)}</option>
         {/each}
       </select>
       <button onclick={() => devToolsSpawn(selectedMonster)}>Spawn</button>
