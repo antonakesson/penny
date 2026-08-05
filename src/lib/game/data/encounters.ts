@@ -186,6 +186,13 @@ export const ENCOUNTERS = {
     dialogRoot: 'unpromptedCreek:root',
   },
 
+  indifferentBog: {
+    kind: 'social',
+    name: 'Indifferent Bog',
+    level: 1,
+    dialogRoot: 'indifferentBog:root',
+  },
+
   // Default/declared id - what's placed in zones.ts. Same coordinate, same
   // name, same mechanics, either way - only the flavor (components/data/
   // flavor.ts's ENCOUNTER_FLAVOR) and the squirrel's mood differ. See

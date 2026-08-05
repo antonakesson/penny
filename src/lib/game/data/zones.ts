@@ -200,6 +200,7 @@ export const ZONES = {
             members: [{ encounter: 'forkBackToTheWoods', offset: 0 }],
             at: 1,
           },
+          { id: 'indifferentBog', members: [{ encounter: 'indifferentBog', offset: 0 }] },
         ] as PoiGroupDef[],
       },
     ] as SubZoneDef[],
