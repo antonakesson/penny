@@ -179,11 +179,11 @@ export const ENCOUNTERS = {
     dialogRoot: 'outhouse:root',
   },
 
-  interruptingCreek: {
+  unpromptedCreek: {
     kind: 'social',
     name: 'Unprompted Creek',
     level: 1,
-    dialogRoot: 'interruptingCreek:root',
+    dialogRoot: 'unpromptedCreek:root',
   },
 
   // Default/declared id - what's placed in zones.ts. Same coordinate, same

@@ -75,7 +75,7 @@ Things worth knowing that aren't obvious from the shape alone:
 - **Terminal node (no `choices`) ≠ encounter resolved.** The player still
   has to read the last line and dismiss it (`dismissDialog()` in
   `engine.ts`) before the encounter actually completes — a one-line
-  terminal node like `interruptingCreek:jump` is fine, don't feel
+  terminal node like `unpromptedCreek:jump` is fine, don't feel
   obligated to add a hollow "..." choice just to give it a next step.
 - **`uniqueId` is one-shot per choice, not per node**, and only needs to
   be unique within that node — it's how "who are you?"-style options
@@ -112,7 +112,7 @@ Things worth knowing that aren't obvious from the shape alone:
   `applyFlagTrigger` for every node reached).
 
 None of this is required — a dialog tree with zero effects, conditions,
-or flags (like `interruptingCreek`) is a complete, valid encounter.
+or flags (like `indifferentBog`) is a complete, valid encounter.
 
 ## Voice — read before drafting prose
 

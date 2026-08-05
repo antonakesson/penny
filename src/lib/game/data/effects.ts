@@ -108,7 +108,7 @@ export const EFFECTS: Record<EffectId, EffectDef> = {
     title: 'Eat',
     description: "Best not to ask. +5 XP either way.",
   },
-  // Fired unconditionally by interruptingCreek:jump - the jump always
+  // Fired unconditionally by unpromptedCreek:jump - the jump always
   // happens regardless of path taken to get there, so this is a flat style
   // bonus, not a reward for solving anything. The bonus only exists to give
   // the `lingered` flag (see journalFlags.ts) somewhere to be read back.

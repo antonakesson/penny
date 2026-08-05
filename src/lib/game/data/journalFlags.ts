@@ -23,5 +23,5 @@ export const FLAG_TRIGGERS: Partial<Record<string, FlagId>> = {
   // set the instant the choice is made rather than waiting for the beat to
   // finish playing out. See effects.ts's grantJumpXp for the one thing that
   // currently reads this back.
-  'interruptingCreek:linger': 'lingered',
+  'unpromptedCreek:linger': 'lingered',
 };

@@ -1,7 +1,7 @@
 import type { DialogNode } from '../dialog';
 
 export default {
-  'interruptingCreek:root': {
+  'unpromptedCreek:root': {
     lines: [
       {
         kind: 'say',
@@ -10,11 +10,11 @@ export default {
       },
     ],
     choices: [
-      { text: 'Linger a while.', next: 'interruptingCreek:linger' },
-      { text: 'Negotiate the jump.', next: 'interruptingCreek:jump' },
+      { text: 'Linger a while.', next: 'unpromptedCreek:linger' },
+      { text: 'Negotiate the jump.', next: 'unpromptedCreek:jump' },
     ],
   },
-  'interruptingCreek:linger': {
+  'unpromptedCreek:linger': {
     lines: [
       {
         kind: 'say',
@@ -22,9 +22,9 @@ export default {
         text: 'You feel a profound sense of purpose.',
       },
     ],
-    choices: [{ text: '...', next: 'interruptingCreek:lingered' }],
+    choices: [{ text: '...', next: 'unpromptedCreek:lingered' }],
   },
-  'interruptingCreek:lingered': {
+  'unpromptedCreek:lingered': {
     lines: [
       {
         kind: 'say',
@@ -32,9 +32,9 @@ export default {
         text: 'You feel a normal sense of purpose.',
       },
     ],
-    choices: [{ text: 'Negotiate the jump.', next: 'interruptingCreek:jump' }],
+    choices: [{ text: 'Negotiate the jump.', next: 'unpromptedCreek:jump' }],
   },
-  'interruptingCreek:jump': {
+  'unpromptedCreek:jump': {
     lines: [
       { kind: 'action', effect: 'grantJumpXp' },
       {
