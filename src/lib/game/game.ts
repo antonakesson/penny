@@ -16,6 +16,8 @@ import {
   getDistance as getDistanceState,
   getSignalAt as getSignalAtState,
   getDifficultyAt as getDifficultyAtState,
+  isReturning as isReturningState,
+  setReturning as setReturningState,
 } from './state/map.svelte';
 import {
   isFeatureUnlocked as isFeatureUnlockedState,
@@ -136,6 +138,14 @@ export function getSignalAt(distance: number) {
 
 export function getDifficultyAt(distance: number) {
   return getDifficultyAtState(distance);
+}
+
+export function isReturning() {
+  return isReturningState();
+}
+
+export function setReturning(value: boolean) {
+  setReturningState(value);
 }
 
 export function isFeatureUnlocked(id: FeatureId) {

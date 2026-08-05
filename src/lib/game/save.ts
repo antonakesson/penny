@@ -18,10 +18,11 @@ const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
 // No migrations - a save from a different version is discarded outright.
 // Bumped 1->2 when MapSnapshot's `distance: number` became per-zone
-// `distances` - an old save's shape wouldn't hydrate correctly even if it
-// happened to pass isValidEnvelope, so bumping is the honest signal rather
-// than letting shape-validation catch it by accident.
-const SAVE_VERSION = 2;
+// `distances`; bumped 2->3 when `frontier`/`returning` joined it - an old
+// save's shape wouldn't hydrate correctly even if it happened to pass
+// isValidEnvelope, so bumping is the honest signal rather than letting
+// shape-validation catch it by accident.
+const SAVE_VERSION = 3;
 
 interface SaveData {
   xp: number;
@@ -85,7 +86,16 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
     return false;
 
   const map = data.map as Record<string, unknown> | undefined;
-  if (!map || typeof map.seed !== 'string' || !map.distances || typeof map.distances !== 'object') return false;
+  if (
+    !map ||
+    typeof map.seed !== 'string' ||
+    !map.distances ||
+    typeof map.distances !== 'object' ||
+    !map.frontier ||
+    typeof map.frontier !== 'object' ||
+    typeof map.returning !== 'boolean'
+  )
+    return false;
 
   const encounter = data.encounter;
   return (

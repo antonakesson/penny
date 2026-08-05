@@ -4,7 +4,16 @@ import { createEncounter, spawn, getEncounter } from './state/encounter.svelte';
 import { getAction } from './state/action.svelte';
 import { addItem, getInventory } from './state/inventory.svelte';
 import { addXp, getXp } from './state/xp.svelte';
-import { getSeed, getDistance, getAllDistances, setDistance, hydrateMap } from './state/map.svelte';
+import {
+  getSeed,
+  getDistance,
+  getAllDistances,
+  getAllFrontiers,
+  isReturning,
+  setDistance,
+  setReturning,
+  hydrateMap,
+} from './state/map.svelte';
 import { getCurrentZoneId, switchZone } from './state/zone.svelte';
 import { triggerEffect } from './state/effect.svelte';
 import { serializeModifiers } from './state/modifier.svelte';
@@ -31,8 +40,12 @@ export function devSetDistance(distance: number) {
   setDistance(distance);
 }
 
+export function devSetReturning(value: boolean) {
+  setReturning(value);
+}
+
 export function devSetSeed(seed: string) {
-  hydrateMap({ seed, distances: { ...getAllDistances() } });
+  hydrateMap({ seed, distances: { ...getAllDistances() }, frontier: { ...getAllFrontiers() }, returning: isReturning() });
 }
 
 // Jumps straight to a zone for testing without walking a crossroad -
@@ -53,6 +66,7 @@ export function devDumpState() {
     xp: getXp(),
     distance: getDistance(),
     zone: getCurrentZoneId(),
+    returning: isReturning(),
     permanentModifiers: serializeModifiers(),
     flags: getAllFlags(),
   };
@@ -64,6 +78,7 @@ if (import.meta.env.DEV) {
     addItem: devAddItem,
     awardXp: devAwardXp,
     setDistance: devSetDistance,
+    setReturning: devSetReturning,
     setSeed: devSetSeed,
     setZone: devSetZone,
     triggerEffect: devTriggerEffect,

@@ -1,5 +1,6 @@
 <script lang="ts">
   import HeroBanner from './lib/components/HeroBanner.svelte';
+  import TravelBanner from './lib/components/TravelBanner.svelte';
   import Zone from './lib/components/Zone.svelte';
   import SignalTrace from './lib/components/SignalTrace.svelte';
   import Encounter from './lib/components/Encounter.svelte';
@@ -92,6 +93,7 @@
   <Nav />
   <main class="combat" data-zone={zoneId}>
     <HeroBanner />
+    <TravelBanner />
     <Zone />
     <SignalTrace />
     <Encounter />

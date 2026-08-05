@@ -9,9 +9,37 @@ let seed = $state<string>(crypto.randomUUID());
 // destination zone, independent of wherever the player was in the zone they
 // left. Missing entries default to 0 (a zone nobody's ever stood in yet).
 let distances = $state<Partial<Record<ZoneId, number>>>({});
+// Per-zone high-water mark - furthest distance ever reached, independent of
+// where the player currently stands. Only ever grows, via bumpFrontier()
+// below; walking backward moves `distances` without touching this. Not
+// consumed by anything yet (Auto Travel's target-picker and a route-map's
+// "how far back can I look" are the known future readers) - added now,
+// alongside `returning`, because both live in the same MapSnapshot and
+// there's no reason to grow that shape twice.
+let frontier = $state<Partial<Record<ZoneId, number>>>({});
+// Which way advance() steps once an encounter resolves. Persisted like the
+// rest of this file's state (see MapSnapshot below) rather than kept
+// memory-only - distances/frontier already survive a reload, and a lone
+// in-memory exception here would just be an inconsistency, not a real save
+// saving.
+let returning = $state(false);
 
 export function getDistance(): number {
   return distances[getCurrentZoneId()] ?? 0;
+}
+
+// Defaults to the current zone - callers checking another zone's frontier
+// (a future travel-target picker) pass one explicitly.
+export function getFrontier(zoneId: ZoneId = getCurrentZoneId()): number {
+  return frontier[zoneId] ?? 0;
+}
+
+export function isReturning(): boolean {
+  return returning;
+}
+
+export function setReturning(value: boolean) {
+  returning = value;
 }
 
 export function getSeed(): string {
@@ -43,9 +71,21 @@ export function getNumericSeed(): number {
   return terrainSeedFor(getCurrentZoneId());
 }
 
+function bumpFrontier(zoneId: ZoneId, value: number) {
+  if (value > (frontier[zoneId] ?? 0)) frontier[zoneId] = value;
+}
+
+// `returning` flips the sign here rather than at each call site - all three
+// callers (combatEngine.ts's resolveKill, crossroadEngine.ts's
+// resolveCrossroadChoice, dialogEngine.ts's dismissDialog) just mean "take
+// the post-resolution step," and which way that step goes is this module's
+// business, not theirs. Floor-clamped at 0 - retreat has nowhere to go past
+// the start of a zone.
 export function advance(amount = 1) {
   const zoneId = getCurrentZoneId();
-  distances[zoneId] = (distances[zoneId] ?? 0) + amount;
+  const next = Math.max(0, (distances[zoneId] ?? 0) + (returning ? -amount : amount));
+  distances[zoneId] = next;
+  bumpFrontier(zoneId, next);
 }
 
 // Real-play jump to a specific distance within the current zone -
@@ -54,7 +94,9 @@ export function advance(amount = 1) {
 // Distinct from hydrateMap() below (a save-load restore), same split as
 // switchZone() vs hydrateZone() in state/zone.svelte.ts.
 export function setDistance(value: number) {
-  distances[getCurrentZoneId()] = value;
+  const zoneId = getCurrentZoneId();
+  distances[zoneId] = value;
+  bumpFrontier(zoneId, value);
 }
 
 // 0..1 - a pure function of (distance, seed, current zone), recomputed on
@@ -81,6 +123,8 @@ export function getDifficulty(): number {
 export interface MapSnapshot {
   seed: string;
   distances: Partial<Record<ZoneId, number>>;
+  frontier: Partial<Record<ZoneId, number>>;
+  returning: boolean;
 }
 
 // Read-only whole-map accessor - save.ts's buildSnapshot() and devtools.ts's
@@ -90,11 +134,19 @@ export function getAllDistances(): Readonly<Partial<Record<ZoneId, number>>> {
   return distances;
 }
 
+// Same shape/reason as getAllDistances() - devSetSeed() needs to carry every
+// zone's frontier forward too, not just the current zone's.
+export function getAllFrontiers(): Readonly<Partial<Record<ZoneId, number>>> {
+  return frontier;
+}
+
 export function serializeMap(): MapSnapshot {
-  return { seed, distances: { ...distances } };
+  return { seed, distances: { ...distances }, frontier: { ...frontier }, returning };
 }
 
 export function hydrateMap(snapshot: MapSnapshot) {
   seed = snapshot.seed;
   distances = { ...snapshot.distances };
+  frontier = { ...snapshot.frontier };
+  returning = snapshot.returning;
 }
