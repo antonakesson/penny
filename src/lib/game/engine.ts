@@ -12,19 +12,18 @@ import { getDistance, getNumericSeed } from './state/map.svelte';
 import { getLevel } from './state/xp.svelte';
 import { removeItem } from './state/inventory.svelte';
 import { ITEMS, type ItemId, type ItemDef } from './data/loot';
-import { SKILLS, getSkillEffects, type SkillId } from './data/skills';
+import { SKILLS, getSkillEffects, getSkillTiming, type SkillId } from './data/skills';
 import { SKILL_GRANTS } from './data/skillGrants';
 import { isSkillKnown, learnSkill as learnSkillState } from './state/skill.svelte';
 import {
-  getExclusiveSkill,
-  getFreeSkill,
+  getActivations,
   getActiveSkill,
-  isSlotBusy,
+  isBlockedByFaculties,
   startSkill,
   setSkillPhase,
   advanceChannelTick,
   clearSkill,
-  clearExclusiveSkill,
+  clearTargetedSkills,
   setCooldown,
   getCooldownEndsAt,
 } from './state/skillActivation.svelte';
@@ -61,9 +60,8 @@ export function tick() {
   const now = Date.now();
 
   if (encounter.status === 'dead' && encounter.diedAt !== null && now - encounter.diedAt >= ENCOUNTER_END_MS) {
-    // Drop any half-finished swing before the next encounter's skill takes
-    // over the slot.
-    clearExclusiveSkill();
+    // Drop any half-finished swing before the next encounter arrives.
+    clearTargetedSkills();
     // Anything paused behind the dropped encounter becomes the new front
     // automatically. Only decide something fresh if nothing's left.
     dropEncounter();
@@ -108,21 +106,21 @@ export function useItem(itemId: ItemId) {
 }
 
 // The current encounter's own combat skill, if it has one - an encounter's
-// `action` field IS a SkillId for the hp-drain kinds (see SkillDef.exclusive
-// in data/skills.ts). null for social/crossroad, which resolve by clicking a
-// choice and never touch the activation slot at all.
+// `action` field IS a SkillId for the hp-drain kinds (see
+// SkillDef.requiresTarget in data/skills.ts). null for social/crossroad,
+// which resolve by clicking a choice and never start an activation at all.
 function currentActionSkill(): SkillId | null {
   const encounter = getEncounter();
   if (encounter.action === 'social' || encounter.action === 'crossroad') return null;
   return encounter.action satisfies ActionKind;
 }
 
-// An exclusive skill is only usable against an encounter that names it, and
+// A targeted skill is only usable against an encounter that names it, and
 // only while that encounter is still alive - the hp check is what stops a
 // channel from landing one more tick on something that died earlier this
-// same tick. A non-exclusive skill has no target and is always usable.
+// same tick. An untargeted skill has nothing to lose and is always usable.
 function isUsable(skillId: SkillId): boolean {
-  if (!SKILLS[skillId].exclusive) return true;
+  if (!SKILLS[skillId].requiresTarget) return true;
   const encounter = getEncounter();
   return currentActionSkill() === skillId && encounter.status === 'active' && 'hp' in encounter && encounter.hp > 0;
 }
@@ -134,13 +132,21 @@ function isUsable(skillId: SkillId): boolean {
 // place it would actually matter if it somehow did.
 export function pressSkill(skillId: SkillId) {
   if (!isSkillKnown(skillId)) return;
-  if (isSlotBusy(skillId)) return;
+  // The whole mutex, in one line: attack and investigate refuse each other
+  // because both take `hands`, and Turn Around refuses mid-swing because a
+  // swing took the `focus` it needs. Neither of those is a rule anyone
+  // wrote - see SkillDef.occupies.
+  if (isBlockedByFaculties(skillId)) return;
   if (!isUsable(skillId)) return;
   const now = Date.now();
   const endsAt = getCooldownEndsAt(skillId);
   if (endsAt !== undefined && now < endsAt) return;
 
-  const { timing } = SKILLS[skillId];
+  // Via the accessor, not SKILLS directly: every skill being a cast or a
+  // channel today is a fact about the roster, not about what this switch has
+  // to handle. Read off the const registry, the last instant skill leaving
+  // would make its branch a type error and assertNever stop meaning anything.
+  const timing = getSkillTiming(skillId);
   switch (timing.kind) {
     case 'instant':
       fireSkill(skillId, now);
@@ -197,16 +203,14 @@ function endActivation(skillId: SkillId, now: number) {
 }
 
 // One state machine for all three timing shapes, replacing the per-kind
-// handlers combatEngine.ts used to carry. Runs both slots; each is a no-op
-// when empty.
+// handlers combatEngine.ts used to carry. Iterates a snapshot rather than
+// live state, since resolving one activation can clear another.
 function resolveSkills() {
   const now = Date.now();
-  resolveActivation(getExclusiveSkill()?.id, now);
-  resolveActivation(getFreeSkill()?.id, now);
+  for (const { id } of getActivations()) resolveActivation(id, now);
 }
 
-function resolveActivation(skillId: SkillId | undefined, now: number) {
-  if (!skillId) return;
+function resolveActivation(skillId: SkillId, now: number) {
   const active = getActiveSkill(skillId);
   if (!active) return;
 

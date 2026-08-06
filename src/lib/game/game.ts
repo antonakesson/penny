@@ -28,8 +28,9 @@ import type { ItemId } from './data/loot';
 import { isSkillKnown as isSkillKnownState, getKnownSkillIds as getKnownSkillIdsState } from './state/skill.svelte';
 import {
   getCooldownEndsAt as getSkillCooldownEndsAtState,
-  getExclusiveSkill as getExclusiveSkillState,
+  getPrimaryActivation as getPrimaryActivationState,
   getActiveSkill as getActiveSkillState,
+  getBlockingFaculty as getBlockingFacultyState,
 } from './state/skillActivation.svelte';
 import { channelDps, type SkillId } from './data/skills';
 import {
@@ -91,11 +92,17 @@ export function getLevelProgress() {
   return getLevelProgressState();
 }
 
-// Whatever the player is currently doing to the encounter in front of them -
-// a cast winding up, a channel running, a swing recovering - or null. The
-// attack/investigate meters draw off this.
-export function getExclusiveSkill() {
-  return getExclusiveSkillState();
+// Whatever the player is currently doing - a cast winding up, a channel
+// running, a swing recovering - or null. CastBar.svelte draws off this.
+export function getPrimaryActivation() {
+  return getPrimaryActivationState();
+}
+
+// Which faculty is standing in the way of a skill, or null if nothing is.
+// The Skills pane uses it to say why a row won't respond, instead of a
+// keypress that does nothing.
+export function getBlockingFaculty(id: SkillId) {
+  return getBlockingFacultyState(id);
 }
 
 export function getPet() {

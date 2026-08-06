@@ -2,7 +2,7 @@ import { EFFECTS, type EffectDef, type EffectId } from '../data/effects';
 import { unlockFeature } from './features.svelte';
 import { grantModifier } from './modifier.svelte';
 import { createEncounter, interruptEncounter, damageMonster } from './encounter.svelte';
-import { clearExclusiveSkill } from './skillActivation.svelte';
+import { clearTargetedSkills } from './skillActivation.svelte';
 import { spawnFloatingText } from './floatingText.svelte';
 import { calculateDamage } from '../damage';
 import { addItem, removeItem } from './inventory.svelte';
@@ -48,9 +48,10 @@ function applyInstantEffect(def: EffectDef) {
       grantModifier(def.modifier);
       return;
     case 'launchEncounter':
-      // Slot cleared so a half-finished swing doesn't bleed into the
-      // interrupting encounter. Whatever was active is paused, not lost.
-      clearExclusiveSkill();
+      // Anything aimed at the old encounter is dropped so a half-finished
+      // swing doesn't bleed into the interrupting one. Whatever was active
+      // is paused, not lost.
+      clearTargetedSkills();
       interruptEncounter(createEncounter(def.encounterId));
       return;
     case 'grantItem':

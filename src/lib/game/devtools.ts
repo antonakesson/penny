@@ -1,7 +1,7 @@
 // Dev-only debug tools - window.__dev console API + DevTools.svelte's
 // backing functions. Gated by import.meta.env.DEV, stripped from prod.
 import { createEncounter, spawn, getEncounter } from './state/encounter.svelte';
-import { getExclusiveSkill } from './state/skillActivation.svelte';
+import { getActivations, getHeldFaculties } from './state/skillActivation.svelte';
 import { addItem, getInventory } from './state/inventory.svelte';
 import { addXp, getXp } from './state/xp.svelte';
 import {
@@ -67,7 +67,8 @@ export function devLearnSkill(skillId: SkillId) {
 export function devDumpState() {
   return {
     encounter: getEncounter(),
-    activeSkill: getExclusiveSkill(),
+    activations: getActivations(),
+    heldFaculties: [...getHeldFaculties()],
     inventory: getInventory(),
     xp: getXp(),
     distance: getDistance(),

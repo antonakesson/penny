@@ -15,11 +15,12 @@ export const ACTION_KEY_LABEL = 'Space';
 // there'll be actual play to base it on.
 export const UTILITY_KEYS = ['q', 'w', 'e', 'r', 't'] as const;
 
-// Exclusive skills never take a utility slot - the encounter in front of you
+// Targeted skills never take a utility slot - the encounter in front of you
 // decides which one of those you're using, so they all answer to ACTION_KEY
-// instead. SkillDef.exclusive does that filtering for free.
+// instead. A skill answers to Space if the encounter picks it and to Q-T if
+// you do, which is exactly SkillDef.requiresTarget.
 function utilitySkillIds(known: readonly SkillId[]): SkillId[] {
-  return known.filter((id) => !SKILLS[id].exclusive);
+  return known.filter((id) => !SKILLS[id].requiresTarget);
 }
 
 export function skillForKey(key: string, known: readonly SkillId[]): SkillId | null {
@@ -31,7 +32,7 @@ export function skillForKey(key: string, known: readonly SkillId[]): SkillId | n
 // What the Skills pane prints on a row, so the binding is visible rather
 // than folklore. null for a utility skill past the end of the key row.
 export function hotkeyLabelFor(id: SkillId, known: readonly SkillId[]): string | null {
-  if (SKILLS[id].exclusive) return ACTION_KEY_LABEL;
+  if (SKILLS[id].requiresTarget) return ACTION_KEY_LABEL;
   const slot = utilitySkillIds(known).indexOf(id);
   if (slot === -1 || slot >= UTILITY_KEYS.length) return null;
   return UTILITY_KEYS[slot].toUpperCase();

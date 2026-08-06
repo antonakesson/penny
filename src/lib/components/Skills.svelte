@@ -8,35 +8,20 @@
     isSkillKnown,
     getActiveSkill,
     getSkillCooldownEndsAt,
+    getBlockingFaculty,
     getKnownSkillIds,
     getLevelProgress,
   } from '../game/game';
   import { hotkeyLabelFor } from '../ui/hotkeys';
 
-  // "Shape" is the concept board's word for the click behaviour a slot gets,
-  // and it's now derivable rather than hardcoded - the timing union IS the
-  // shape. "Avenue" (which of the three families it belongs to, for the
-  // tag's colour) still isn't expressible from the def, so it stays a
-  // per-id table with a proc fallback: a skill added to data/skills.ts
-  // without an entry here renders something rather than crashing.
-  function shapeFor(id: SkillId): string {
-    switch (SKILLS[id].timing.kind) {
-      case 'cast':
-        return 'Cast';
-      case 'channel':
-        return 'Channel';
-      default:
-        return 'Icon';
-    }
-  }
-  const AVENUE: Partial<Record<SkillId, 'proc' | 'mode' | 'world'>> = {
-    attack: 'proc',
-    investigate: 'mode',
-    turnAround: 'world',
-  };
-  function avenueFor(id: SkillId): 'proc' | 'mode' | 'world' {
-    return AVENUE[id] ?? 'proc';
-  }
+  // The concept board's shape tag (Icon/Toggle/Checklist/Dropdown) and its
+  // avenue colour (proc/mode/world) are both gone from here. At three skills
+  // neither was load-bearing: the tag's text said what pressing costs, which
+  // the description already implies, and its colour sorted a roster too small
+  // to need sorting. When the roster does grow into real families - travel,
+  // passives, timed buffs - the answer is sections in this ladder, not a
+  // colour on every row. Both concepts still live in the concept board
+  // artifact if they're wanted back.
 
   let knownIds = $derived(getKnownSkillIds());
   let level = $derived(getLevelProgress().level);
@@ -57,8 +42,18 @@
 
   function isBusy(id: SkillId): boolean {
     if (getActiveSkill(id) !== null) return true;
+    if (getBlockingFaculty(id) !== null) return true;
     const endsAt = getSkillCooldownEndsAt(id);
     return endsAt !== undefined && endsAt > now;
+  }
+
+  // Why a row won't respond, when the reason is something you're doing
+  // rather than a timer. A dimmed row that says nothing reads as a bug; one
+  // that says "hands occupied" reads as a rule.
+  function blockedNote(id: SkillId): string | null {
+    if (getActiveSkill(id) !== null) return null;
+    const faculty = getBlockingFaculty(id);
+    return faculty === null ? null : `${faculty} occupied`;
   }
 </script>
 
@@ -80,14 +75,16 @@
         onkeyup={(e) => (e.key === 'Enter' || e.key === ' ') && releaseSkill(id)}
       >
         <div class="ladder-info">
-          <span class="ladder-name">{skill.name}</span>
+          <span class="ladder-title">
+            <span class="ladder-name">{skill.name}</span>
+            {#if hotkeyLabelFor(id, knownIds)}
+              <span class="tag key">{hotkeyLabelFor(id, knownIds)}</span>
+            {/if}
+            {#if blockedNote(id)}
+              <span class="blocked">{blockedNote(id)}</span>
+            {/if}
+          </span>
           <span class="ladder-mech">{skill.description}</span>
-        </div>
-        <div class="ladder-tags">
-          <span class="tag {avenueFor(id)}">{shapeFor(id)}</span>
-          {#if hotkeyLabelFor(id, knownIds)}
-            <span class="tag key">{hotkeyLabelFor(id, knownIds)}</span>
-          {/if}
         </div>
       </div>
     {/each}
@@ -110,7 +107,6 @@
           <span class="ladder-name">{skill.name}</span>
           <span class="ladder-mech">{skill.description}</span>
         </div>
-        <span class="ladder-shape tag {avenueFor(id)}">{shapeFor(id)}</span>
         <button class="learn-btn" class:disabled={!ready} disabled={!ready} onclick={() => learnSkill(id)}>
           {ready ? 'Learn' : 'Locked'}
         </button>
@@ -161,7 +157,6 @@
     grid-template-columns: 30px 1fr;
     grid-template-areas:
       'level info'
-      '. shape'
       '. btn';
     row-gap: 4px;
     column-gap: 10px;
@@ -180,9 +175,7 @@
      unlock level repeated back to you every time you'd click to use it. */
   .ladder-row.known-row {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      'info'
-      'shape';
+    grid-template-areas: 'info';
     cursor: pointer;
   }
   .ladder-row.known-row.locked {
@@ -209,6 +202,14 @@
     gap: 3px;
     min-width: 0;
   }
+  /* The key rides with the name rather than down in the tag row - it names
+     the thing rather than classifying it, so it belongs to the title line. */
+  .ladder-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
   .ladder-name {
     font: 700 14px/1.3 var(--font-structural);
     color: var(--ink-strong);
@@ -217,16 +218,13 @@
     font: 400 13px/1.4 var(--font-body);
     color: var(--ink-faint);
   }
-  .ladder-tags {
-    grid-area: shape;
-    justify-self: start;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .ladder-shape {
-    grid-area: shape;
-    justify-self: start;
+  /* Not a tag - it's a transient condition, not a property of the skill, so
+     it deliberately doesn't take the tag's chrome. */
+  .blocked {
+    font: 400 12px/1 var(--font-body);
+    font-style: italic;
+    color: var(--wax);
+    text-transform: lowercase;
   }
   /* Keycap, not a category - reads as a physical thing to press rather than
      another coloured family tag. */
@@ -245,22 +243,6 @@
     padding: 3px 8px;
     white-space: nowrap;
   }
-  .tag.proc {
-    color: var(--accent-text);
-    border: 1px solid var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, var(--page));
-  }
-  .tag.mode {
-    color: var(--wax);
-    border: 1px solid var(--wax);
-    background: color-mix(in srgb, var(--wax) 12%, var(--page));
-  }
-  .tag.world {
-    color: var(--rarity-rare);
-    border: 1px solid var(--rarity-rare);
-    background: color-mix(in srgb, var(--rarity-rare) 12%, var(--page));
-  }
-
   .learn-btn {
     grid-area: btn;
     justify-self: start;

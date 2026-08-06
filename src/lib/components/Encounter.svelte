@@ -4,8 +4,7 @@
   import InvestigationCard from './InvestigationCard.svelte';
   import SocialCard from './SocialCard.svelte';
   import CrossroadCard from './CrossroadCard.svelte';
-  import AttackMeter from './AttackMeter.svelte';
-  import InvestigationMeter from './InvestigationMeter.svelte';
+  import CastBar from './CastBar.svelte';
   import FloatingText from './FloatingText.svelte';
 
   let encounter = $derived(getEncounter());
@@ -15,11 +14,11 @@
   {#if encounter.action === 'attack'}
     <MonsterCard />
     <FloatingText />
-    <AttackMeter />
+    <CastBar idleSkill="attack" />
   {:else if encounter.action === 'investigate'}
     <InvestigationCard />
     <FloatingText />
-    <InvestigationMeter />
+    <CastBar idleSkill="investigate" />
   {:else if encounter.action === 'social'}
     <SocialCard />
   {:else}
