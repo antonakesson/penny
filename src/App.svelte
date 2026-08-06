@@ -20,6 +20,9 @@
     tick,
     press,
     release,
+    pressSkill,
+    releaseSkill,
+    getKnownSkillIds,
     initGame,
     saveNow,
     getPendingFeatureAnnouncement,
@@ -30,6 +33,7 @@
   import { AUTOSAVE_INTERVAL_MS } from './lib/game/config';
   import { getConfirmRequest, resolveConfirm } from './lib/ui/confirmDialog.svelte';
   import { isPaneVisible } from './lib/ui/panes.svelte';
+  import { ACTION_KEY, skillForKey } from './lib/ui/hotkeys';
 
   let confirmRequest = $derived(getConfirmRequest());
   let featureAnnouncement = $derived(getPendingFeatureAnnouncement());
@@ -85,6 +89,58 @@
       document.removeEventListener('pointerup', handlePointerUp);
       document.removeEventListener('pointercancel', handlePointerUp);
       window.removeEventListener('blur', handlePointerUp);
+    };
+  });
+
+  // Same press/release pair as the pointer surface above, just reached by
+  // keyboard - both are thin adapters onto engine.ts's pressSkill/
+  // releaseSkill, which is also what the Skills pane rows call. Space is
+  // whatever the current encounter is fought with (press() resolves that);
+  // Q/W/E/R/T are the utility skills in learn order (see ui/hotkeys.ts).
+  $effect(() => {
+    function isTyping(target: EventTarget | null) {
+      return (
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+      );
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      // repeat: a held key fires keydown over and over, which would re-press
+      // a channel every few ms instead of holding it once.
+      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (isTyping(event.target)) return;
+      if (event.key === ACTION_KEY) {
+        // Space scrolls the page and activates whatever button has focus -
+        // including, on a bad day, a dialog choice.
+        event.preventDefault();
+        press();
+        return;
+      }
+      const skillId = skillForKey(event.key.toLowerCase(), getKnownSkillIds());
+      if (skillId) pressSkill(skillId);
+    }
+    function handleKeyUp(event: KeyboardEvent) {
+      if (isTyping(event.target)) return;
+      if (event.key === ACTION_KEY) {
+        release();
+        return;
+      }
+      const skillId = skillForKey(event.key.toLowerCase(), getKnownSkillIds());
+      if (skillId) releaseSkill(skillId);
+    }
+    // Alt-tabbing mid-channel never delivers the keyup, so let go of
+    // everything held rather than leaving a channel running unattended.
+    function releaseEverything() {
+      release();
+      for (const id of getKnownSkillIds()) releaseSkill(id);
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', releaseEverything);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', releaseEverything);
     };
   });
 </script>

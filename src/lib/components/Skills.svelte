@@ -11,6 +11,7 @@
     getKnownSkillIds,
     getLevelProgress,
   } from '../game/game';
+  import { hotkeyLabelFor } from '../ui/hotkeys';
 
   // "Shape" is the concept board's word for the click behaviour a slot gets,
   // and it's now derivable rather than hardcoded - the timing union IS the
@@ -82,7 +83,12 @@
           <span class="ladder-name">{skill.name}</span>
           <span class="ladder-mech">{skill.description}</span>
         </div>
-        <span class="ladder-shape tag {avenueFor(id)}">{shapeFor(id)}</span>
+        <div class="ladder-tags">
+          <span class="tag {avenueFor(id)}">{shapeFor(id)}</span>
+          {#if hotkeyLabelFor(id, knownIds)}
+            <span class="tag key">{hotkeyLabelFor(id, knownIds)}</span>
+          {/if}
+        </div>
       </div>
     {/each}
   </div>
@@ -211,9 +217,25 @@
     font: 400 13px/1.4 var(--font-body);
     color: var(--ink-faint);
   }
+  .ladder-tags {
+    grid-area: shape;
+    justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
   .ladder-shape {
     grid-area: shape;
     justify-self: start;
+  }
+  /* Keycap, not a category - reads as a physical thing to press rather than
+     another coloured family tag. */
+  .tag.key {
+    font-family: var(--font-structural);
+    color: var(--ink-strong);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    background: var(--page);
   }
   .tag {
     font: 600 10px/1 var(--font-ui);
