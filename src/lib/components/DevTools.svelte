@@ -7,19 +7,23 @@
     devToolsTriggerEffect,
     devToolsSetSeed,
     devToolsSetZone,
+    devToolsLearnSkill,
     getDistance,
     getSeed,
     getFlags,
+    getKnownSkillIds,
   } from '../game/game';
   import { ENCOUNTERS, getEncounterName, type EncounterId } from '../game/data/encounters';
   import { ITEMS, type ItemId } from '../game/data/loot';
   import { EFFECTS, type EffectId } from '../game/data/effects';
   import { ZONES, type ZoneId } from '../game/data/zones';
+  import { SKILLS, type SkillId } from '../game/data/skills';
 
   const monsterIds = Object.keys(ENCOUNTERS) as EncounterId[];
   const itemIds = Object.keys(ITEMS) as ItemId[];
   const effectIds = Object.keys(EFFECTS) as EffectId[];
   const zoneIds = Object.keys(ZONES) as ZoneId[];
+  const skillIds = Object.keys(SKILLS) as SkillId[];
 
   let selectedMonster = $state<EncounterId>(monsterIds[0]);
   let selectedItem = $state<ItemId>(itemIds[0]);
@@ -29,7 +33,9 @@
   let seedInput = $state(getSeed());
   let selectedEffect = $state<EffectId>(effectIds[0]);
   let selectedZone = $state<ZoneId>(zoneIds[0]);
+  let selectedSkill = $state<SkillId>(skillIds[0]);
   let flags = $derived(Object.entries(getFlags()));
+  let knownSkills = $derived(getKnownSkillIds());
 </script>
 
 <div class="devtools">
@@ -96,6 +102,23 @@
       </select>
       <button onclick={() => devToolsTriggerEffect(selectedEffect)}>Trigger</button>
     </div>
+  </section>
+
+  <section>
+    <p class="section-label">Skills</p>
+    <div class="row">
+      <select bind:value={selectedSkill} aria-label="Skill to learn">
+        {#each skillIds as id (id)}
+          <option value={id}>{SKILLS[id].name}</option>
+        {/each}
+      </select>
+      <button onclick={() => devToolsLearnSkill(selectedSkill)}>Learn</button>
+    </div>
+    <ul class="flags">
+      {#each skillIds as id (id)}
+        <li class:flag-set={knownSkills.includes(id)}>{SKILLS[id].name}</li>
+      {/each}
+    </ul>
   </section>
 
   <section>

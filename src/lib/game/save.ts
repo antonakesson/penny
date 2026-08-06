@@ -8,21 +8,23 @@ import { serializeEffects, hydrateEffects } from './state/effect.svelte';
 import { serializeModifiers, hydrateModifiers } from './state/modifier.svelte';
 import { serializeFlags, hydrateFlags } from './state/journalFlags.svelte';
 import { serializeEntries, hydrateEntries, type JournalEntry } from './state/journal.svelte';
+import { serializeSkills, hydrateSkills } from './state/skill.svelte';
 import { ZONES, type ZoneId } from './data/zones';
 import type { FeatureId } from './data/features';
 import type { EffectId } from './data/effects';
 import type { Modifier } from './data/modifiers';
+import type { SkillId } from './data/skills';
 import type { Inventory } from './types';
 
 const SAVE_KEY = 'idle-game:save';
 const BACKUP_KEY = 'idle-game:save:backup';
 // No migrations - a save from a different version is discarded outright.
 // Bumped 1->2 when MapSnapshot's `distance: number` became per-zone
-// `distances`; bumped 2->3 when `frontier`/`returning` joined it - an old
-// save's shape wouldn't hydrate correctly even if it happened to pass
-// isValidEnvelope, so bumping is the honest signal rather than letting
-// shape-validation catch it by accident.
-const SAVE_VERSION = 3;
+// `distances`; bumped 2->3 when `frontier`/`returning` joined it; bumped
+// 3->4 when `skills` joined it - an old save's shape wouldn't hydrate
+// correctly even if it happened to pass isValidEnvelope, so bumping is the
+// honest signal rather than letting shape-validation catch it by accident.
+const SAVE_VERSION = 4;
 
 interface SaveData {
   xp: number;
@@ -35,6 +37,7 @@ interface SaveData {
   modifiers: Modifier[];
   journalFlagsMask: string;
   journalEntries: JournalEntry[];
+  skills: SkillId[];
 }
 
 interface SaveEnvelope {
@@ -58,6 +61,7 @@ function buildSnapshot(): SaveEnvelope {
       modifiers: serializeModifiers(),
       journalFlagsMask: serializeFlags(),
       journalEntries: serializeEntries(),
+      skills: serializeSkills(),
     },
   };
 }
@@ -84,6 +88,7 @@ function isValidEnvelope(raw: unknown): raw is SaveEnvelope {
     })
   )
     return false;
+  if (!Array.isArray(data.skills) || !data.skills.every((s) => typeof s === 'string')) return false;
 
   const map = data.map as Record<string, unknown> | undefined;
   if (
@@ -119,6 +124,7 @@ function applySnapshot(data: SaveData) {
   hydrateModifiers(data.modifiers);
   hydrateFlags(data.journalFlagsMask);
   hydrateEntries(data.journalEntries);
+  hydrateSkills(data.skills);
 }
 
 // isValidEnvelope only checks shape - a save can be well-typed but still

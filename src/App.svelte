@@ -1,11 +1,11 @@
 <script lang="ts">
   import HeroBanner from './lib/components/HeroBanner.svelte';
-  import TravelBanner from './lib/components/TravelBanner.svelte';
   import Zone from './lib/components/Zone.svelte';
-  import SignalTrace from './lib/components/SignalTrace.svelte';
+  import MiniMap from './lib/components/MiniMap.svelte';
   import Encounter from './lib/components/Encounter.svelte';
   import ActivePet from './lib/components/ActivePet.svelte';
   import Character from './lib/components/Character.svelte';
+  import Skills from './lib/components/Skills.svelte';
   import Inventory from './lib/components/Inventory.svelte';
   import Journal from './lib/components/Journal.svelte';
   import Pet from './lib/components/Pet.svelte';
@@ -93,14 +93,16 @@
   <Nav />
   <main class="combat" data-zone={zoneId}>
     <HeroBanner />
-    <TravelBanner />
     <Zone />
-    <SignalTrace />
+    <MiniMap />
     <Encounter />
     <ActivePet />
   </main>
   <Pane paneId="character" label="Character">
     <Character />
+  </Pane>
+  <Pane paneId="skills" label="Skills">
+    <Skills />
   </Pane>
   <Pane paneId="inventory" label="Inventory">
     <Inventory />

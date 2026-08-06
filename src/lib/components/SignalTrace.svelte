@@ -57,8 +57,11 @@
 
 <style>
   .signal-trace {
-    max-width: 340px;
-    margin-bottom: 20px;
+    /* Was max-width/margin-bottom directly - now a flexed child of
+       MiniMap.svelte, which owns that outer sizing/spacing since a
+       direction indicator sits beside this now. */
+    flex: 1 1 auto;
+    min-width: 0;
   }
   .chart-wrap {
     position: relative;

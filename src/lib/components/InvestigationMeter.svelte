@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { getAction } from '../game/game';
+  import { getActiveSkill } from '../game/game';
   import Meter from './Meter.svelte';
 
-  let action = $derived(getAction());
-  let holding = $derived(action.kind === 'investigate' && action.status === 'active');
+  let holding = $derived(getActiveSkill('investigate')?.phase === 'channeling');
   let label = $derived(holding ? 'Digging through it…' : 'Undisturbed');
 </script>
 

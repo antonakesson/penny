@@ -10,7 +10,7 @@ import { MONSTER_ENTITIES, INVESTIGATION_ENTITIES } from '../data/entities';
 import { pickEncounter } from '../map';
 import { getCurrentZoneId } from './zone.svelte';
 import { getDifficulty } from './map.svelte';
-import { INVESTIGATE } from '../config';
+import { channelDps } from '../data/skills';
 import { assertNever } from '../util/assertNever';
 import type { Encounter, Monster, Investigation, Social, Crossroad } from '../types';
 import type { DialogNodeId } from '../data/dialog';
@@ -52,12 +52,15 @@ function createMonster(id: EncounterId, def: MonsterDef, level: number): Monster
 }
 
 // maxHp is derived from the entity's honestly-authored durationMs against
-// the investigate dps knob, not authored directly as a guessed hp number -
-// see ENCOUNTER_REFACTOR.md decision 3. No level scaling: an investigation
-// isn't a zone-difficulty-scaled encounter.
+// the rate the Investigate skill actually drains at, not authored directly
+// as a guessed hp number - see ENCOUNTER_REFACTOR.md decision 3. Reading the
+// rate off the skill def (rather than a config knob beside it) is what keeps
+// a retuned channel and the hp it has to chew through from drifting apart.
+// No level scaling: an investigation isn't a zone-difficulty-scaled
+// encounter.
 function createInvestigation(id: EncounterId, def: InvestigationDef): Investigation {
   const entity = INVESTIGATION_ENTITIES[def.entity];
-  const maxHp = Math.max(1, Math.round((entity.durationMs / 1000) * INVESTIGATE.dps));
+  const maxHp = Math.max(1, Math.round((entity.durationMs / 1000) * channelDps('investigate')));
   return {
     instanceId: nextInstanceId++,
     id,

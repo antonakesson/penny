@@ -1,11 +1,14 @@
 import { EFFECTS, type EffectDef, type EffectId } from '../data/effects';
 import { unlockFeature } from './features.svelte';
 import { grantModifier } from './modifier.svelte';
-import { createEncounter, interruptEncounter } from './encounter.svelte';
-import { setActionIdle } from './action.svelte';
+import { createEncounter, interruptEncounter, damageMonster } from './encounter.svelte';
+import { clearExclusiveSkill } from './skillActivation.svelte';
+import { spawnFloatingText } from './floatingText.svelte';
+import { calculateDamage } from '../damage';
 import { addItem, removeItem } from './inventory.svelte';
 import { addXp } from './xp.svelte';
 import { hasFlag } from './journalFlags.svelte';
+import { isReturning, setReturning } from './map.svelte';
 import { evaluateCondition } from '../condition';
 import { assertNever } from '../util/assertNever';
 
@@ -45,9 +48,9 @@ function applyInstantEffect(def: EffectDef) {
       grantModifier(def.modifier);
       return;
     case 'launchEncounter':
-      // Mutex reset so a mid-swing cooldown doesn't bleed into the
+      // Slot cleared so a half-finished swing doesn't bleed into the
       // interrupting encounter. Whatever was active is paused, not lost.
-      setActionIdle();
+      clearExclusiveSkill();
       interruptEncounter(createEncounter(def.encounterId));
       return;
     case 'grantItem':
@@ -62,6 +65,20 @@ function applyInstantEffect(def: EffectDef) {
       removeItem(def.from, 1);
       addItem(def.to, 1);
       return;
+    case 'toggleDirection':
+      setReturning(!isReturning());
+      return;
+    // No kill resolution here - engine.ts's tick() notices hp <= 0 once,
+    // after every damage source has gone (see combatEngine's
+    // resolveEncounterDeath). damageMonster() ignores non-hp-drain kinds, so
+    // a stray trigger against a dialog is a no-op rather than a guard here.
+    case 'damageEncounter': {
+      const amount = def.amount === 'playerDamage' ? calculateDamage() : def.amount;
+      if (amount <= 0) return;
+      spawnFloatingText(`-${amount}`, 'damage');
+      damageMonster(amount);
+      return;
+    }
     default:
       assertNever(def);
   }

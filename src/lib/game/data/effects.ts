@@ -54,6 +54,19 @@ export type EffectDef = EffectBase &
     // loot.ts) at the moment the thing it enables actually resolves, rather
     // than consuming on use like ItemDef.action's `consumes` does.
     | { kind: 'swapItem'; from: ItemId; to: ItemId }
+    // Hits whatever hp-drain encounter is currently in front. 'playerDamage'
+    // reads level + damage modifiers live (see damage.ts); a number is flat,
+    // for a skill whose punch doesn't scale with the character - a channel's
+    // per-tick drip, say. Deliberately does NOT resolve the kill: engine.ts's
+    // tick() notices hp <= 0 once per tick, so every damage source gets death
+    // handling for free instead of each one re-checking (which is exactly the
+    // duplication combatEngine's applyHit/petTick used to carry).
+    | { kind: 'damageEncounter'; amount: number | 'playerDamage' }
+    // Flips map.svelte.ts's `returning` flag - the Turn Around skill's
+    // entire behavior (see data/skills.ts). No payload: unlike the kinds
+    // above, every trigger flips it again, there's no "done forever" or
+    // "done for N seconds" here, just a toggle on every activation.
+    | { kind: 'toggleDirection' }
   );
 
 // Hand-written, not `keyof typeof EFFECTS`: EffectDef.grantItem needs ItemId
@@ -71,7 +84,10 @@ export type EffectId =
   | 'closeCorkedBottle'
   | 'grantGenieWish'
   | 'spendGenieWish'
-  | 'squirrelWish';
+  | 'squirrelWish'
+  | 'toggleDirection'
+  | 'strike'
+  | 'sift';
 
 export const EFFECTS: Record<EffectId, EffectDef> = {
   unlockJournal: {
@@ -178,5 +194,28 @@ export const EFFECTS: Record<EffectId, EffectDef> = {
     itemId: 'lifetimeAcorns',
     title: 'Acorn Wish',
     description: "The squirrel's, not yours.",
+  },
+  toggleDirection: {
+    kind: 'toggleDirection',
+    title: 'About Face',
+    description: 'Reverses the direction of travel.',
+  },
+  // The Attack skill's entire payload - one swing's worth of damage, fired
+  // once when its cast resolves (see data/skills.ts).
+  strike: {
+    kind: 'damageEncounter',
+    amount: 'playerDamage',
+    title: 'Strike',
+    description: 'Hits the thing in front of you.',
+  },
+  // The Investigate skill's per-tick payload. Flat 1, not 'playerDamage' -
+  // rummaging through a hedge is not improved by being a higher level, and
+  // an investigation's length is authored as a durationMs (data/entities.ts)
+  // that assumes a fixed drain rate.
+  sift: {
+    kind: 'damageEncounter',
+    amount: 1,
+    title: 'Sift',
+    description: 'Turns something over.',
   },
 };

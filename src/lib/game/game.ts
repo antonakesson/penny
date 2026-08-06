@@ -1,6 +1,5 @@
 import { getInventory as getInventoryState } from './state/inventory.svelte';
 import { getXp as getXpState, getLevelProgress as getLevelProgressState } from './state/xp.svelte';
-import { getAction as getActionState } from './state/action.svelte';
 import { getPet as getPetState } from './state/pet.svelte';
 import { getEncounter as getEncounterState } from './state/encounter.svelte';
 import { getFloatingTexts as getFloatingTextsState } from './state/floatingText.svelte';
@@ -17,7 +16,6 @@ import {
   getSignalAt as getSignalAtState,
   getDifficultyAt as getDifficultyAtState,
   isReturning as isReturningState,
-  setReturning as setReturningState,
 } from './state/map.svelte';
 import {
   isFeatureUnlocked as isFeatureUnlockedState,
@@ -27,17 +25,25 @@ import {
 import { FEATURES, type FeatureId } from './data/features';
 import { isSoundEnabled as isSoundEnabledState, setSoundEnabled as setSoundEnabledState } from './state/settings.svelte';
 import type { ItemId } from './data/loot';
+import { isSkillKnown as isSkillKnownState, getKnownSkillIds as getKnownSkillIdsState } from './state/skill.svelte';
+import {
+  getCooldownEndsAt as getSkillCooldownEndsAtState,
+  getExclusiveSkill as getExclusiveSkillState,
+  getActiveSkill as getActiveSkillState,
+} from './state/skillActivation.svelte';
+import { channelDps, type SkillId } from './data/skills';
 import {
   tick as tickInternal,
   useItem as useItemInternal,
+  pressSkill as pressSkillInternal,
+  releaseSkill as releaseSkillInternal,
+  press as pressInternal,
+  release as releaseInternal,
+  learnSkill as learnSkillInternal,
   getLevelGap as getLevelGapInternal,
 } from './engine';
 export type { LevelGap } from './engine';
-import {
-  press as pressInternal,
-  release as releaseInternal,
-  calculateDamage as calculateDamageInternal,
-} from './combatEngine';
+import { calculateDamage as calculateDamageInternal } from './damage';
 import {
   resolveDialogChoice as resolveDialogChoiceInternal,
   dismissDialog as dismissDialogInternal,
@@ -69,6 +75,7 @@ import {
   devSetSeed,
   devSetZone,
   devTriggerEffect,
+  devLearnSkill,
   devDumpState,
 } from './devtools';
 
@@ -84,8 +91,11 @@ export function getLevelProgress() {
   return getLevelProgressState();
 }
 
-export function getAction() {
-  return getActionState();
+// Whatever the player is currently doing to the encounter in front of them -
+// a cast winding up, a channel running, a swing recovering - or null. The
+// attack/investigate meters draw off this.
+export function getExclusiveSkill() {
+  return getExclusiveSkillState();
 }
 
 export function getPet() {
@@ -140,12 +150,12 @@ export function getDifficultyAt(distance: number) {
   return getDifficultyAtState(distance);
 }
 
+// Read-only from here on - direction now only flips through useSkill()'s
+// toggleDirection effect (see Skills.svelte's Turn Around row). Nothing
+// left calls a UI-level setReturning() directly; map.svelte.ts's own
+// setReturning is still there for effect.svelte.ts and devtools.ts to call.
 export function isReturning() {
   return isReturningState();
-}
-
-export function setReturning(value: boolean) {
-  setReturningState(value);
 }
 
 export function isFeatureUnlocked(id: FeatureId) {
@@ -179,6 +189,44 @@ export function getLevelGap(encounterLevel: number) {
 
 export function useItem(itemId: ItemId) {
   useItemInternal(itemId);
+}
+
+export function pressSkill(skillId: SkillId) {
+  pressSkillInternal(skillId);
+}
+
+export function releaseSkill(skillId: SkillId) {
+  releaseSkillInternal(skillId);
+}
+
+export function learnSkill(skillId: SkillId) {
+  learnSkillInternal(skillId);
+}
+
+export function isSkillKnown(id: SkillId) {
+  return isSkillKnownState(id);
+}
+
+// Pure snapshot (see skillActivation.svelte.ts) - the Skills pane compares
+// this against its own polled clock so the row's dim-while-cooling-down
+// state re-renders as time passes without this getter needing to be called
+// every frame.
+export function getSkillCooldownEndsAt(id: SkillId) {
+  return getSkillCooldownEndsAtState(id);
+}
+
+export function getActiveSkill(id: SkillId) {
+  return getActiveSkillState(id);
+}
+
+// How fast a channel skill drains its target - InvestigationCard's
+// "seconds left" readout is the only caller.
+export function getChannelDps(id: SkillId) {
+  return channelDps(id);
+}
+
+export function getKnownSkillIds() {
+  return getKnownSkillIdsState();
 }
 
 export function resolveDialogChoice(choice: DialogChoice) {
@@ -267,6 +315,10 @@ export function devToolsSetZone(id: ZoneId) {
 
 export function devToolsTriggerEffect(effectId: EffectId) {
   devTriggerEffect(effectId);
+}
+
+export function devToolsLearnSkill(skillId: SkillId) {
+  devLearnSkill(skillId);
 }
 
 export function devToolsDumpState() {

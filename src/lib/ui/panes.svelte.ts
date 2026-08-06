@@ -3,6 +3,7 @@ import type { FeatureId } from '../game/data/features';
 
 export const PANES = {
   character: { label: 'Character' },
+  skills: { label: 'Skills' },
   inventory: { label: 'Inventory' },
   journal: { label: 'Journal' },
   pet: { label: 'Pet' },

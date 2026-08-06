@@ -62,16 +62,11 @@ export interface Crossroad extends EncounterBase {
 
 export type Encounter = Monster | Investigation | Social | Crossroad;
 
-// Only the hp-drain kinds use this mutex - Social's click-to-pick skips it.
+// The hp-drain kinds' `action` field, which doubles as the SkillId of the
+// skill they're fought with - data/skills.ts asserts every one of these
+// names a real skill. Social/crossroad have no combat skill and resolve by
+// clicking a choice instead.
 export type ActionKind = 'attack' | 'investigate';
-
-export interface ActionState {
-  // Meaningless while status is 'idle' - whichever kind's onDown() fires
-  // next stamps it fresh.
-  kind: ActionKind;
-  status: 'idle' | 'active' | 'cooldown';
-  startedAt: number | null;
-}
 
 export type Inventory = Record<string, number>;
 

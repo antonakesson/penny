@@ -1,7 +1,13 @@
 <script lang="ts">
-  import { getAction } from '../game/game';
-  import { ACTION } from '../game/config';
+  import { getActiveSkill } from '../game/game';
+  import { SKILLS } from '../game/data/skills';
   import Meter from './Meter.svelte';
+
+  // Attack is a cast skill now (data/skills.ts) - the same 1500ms windup and
+  // 400ms recovery config.ts's ACTION knob used to hold, read off the skill
+  // def so the meter can't disagree with what the engine actually runs.
+  // SKILLS is `as const`, so `timing` is known to be the cast member here.
+  const { timing, cooldownMs } = SKILLS.attack;
 
   let now = $state(Date.now());
 
@@ -13,21 +19,21 @@
     return () => cancelAnimationFrame(frame);
   });
 
-  let action = $derived(getAction());
-  let phase = $derived(action.status);
-  let elapsed = $derived(action.startedAt !== null ? Math.max(0, now - action.startedAt) : 0);
+  let active = $derived(getActiveSkill('attack'));
+  let phase = $derived(active?.phase ?? 'idle');
+  let elapsed = $derived(active ? Math.max(0, now - active.startedAt) : 0);
 
   let pct = $derived.by(() => {
-    if (phase === 'active') return Math.min(100, (elapsed / ACTION.activeMs) * 100);
-    if (phase === 'cooldown') return Math.max(0, 100 - (elapsed / ACTION.cooldownMs) * 100);
+    if (phase === 'casting') return Math.min(100, (elapsed / timing.castTimeMs) * 100);
+    if (phase === 'recovering') return Math.max(0, 100 - (elapsed / cooldownMs) * 100);
     return 0;
   });
 
-  let phaseMs = $derived(phase === 'active' ? ACTION.activeMs : ACTION.cooldownMs);
+  let phaseMs = $derived(phase === 'casting' ? timing.castTimeMs : cooldownMs);
   let remainingMs = $derived(phase === 'idle' ? 0 : Math.max(0, phaseMs - elapsed));
 
   let label = $derived(
-    phase === 'active' ? 'Attacking…' : phase === 'cooldown' ? 'Recovering…' : 'Ready'
+    phase === 'casting' ? 'Attacking…' : phase === 'recovering' ? 'Recovering…' : 'Ready'
   );
 </script>
 
@@ -37,7 +43,7 @@
       {#if phase !== 'idle'}<span class="timer">{(remainingMs / 1000).toFixed(1)}s</span>{/if}
     {/snippet}
     {#snippet fill()}
-      <div class="fill" class:cooldown={phase === 'cooldown'} style="width: {pct}%"></div>
+      <div class="fill" class:cooldown={phase === 'recovering'} style="width: {pct}%"></div>
     {/snippet}
   </Meter>
 </div>

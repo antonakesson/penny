@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { getEncounter } from '../game/game';
-  import { INVESTIGATE } from '../game/config';
+  import { getEncounter, getChannelDps } from '../game/game';
   import EncounterCardShell from './EncounterCardShell.svelte';
   import Meter from './Meter.svelte';
   import type { Investigation } from '../game/types';
@@ -9,7 +8,7 @@
   let pct = $derived(Math.round((investigation.hp / investigation.maxHp) * 100));
   // hp/maxHp are the runtime mechanism, but this reads as a timer - show
   // seconds remaining, not a fraction labeled HP.
-  let secondsLeft = $derived(Math.ceil(investigation.hp / INVESTIGATE.dps));
+  let secondsLeft = $derived(Math.ceil(investigation.hp / getChannelDps('investigate')));
 </script>
 
 <EncounterCardShell encounter={investigation}>
