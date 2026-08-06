@@ -2,6 +2,7 @@
   import { getEncounter, resolveDialogChoice, getVisibleDialogChoices, getDialogSayLines } from '../game/game';
   import { getDialogNode } from '../game/data/dialog';
   import EncounterCardShell from './EncounterCardShell.svelte';
+  import { createChoiceSettle } from '../ui/choiceSettle.svelte';
   import type { Social } from '../game/types';
 
   let encounter = $derived(getEncounter() as Social);
@@ -10,12 +11,19 @@
   // Gated choices are filtered out here, not just hidden - so a gated
   // option gets neither a digit keybind nor a rendered index.
   let choices = $derived(getVisibleDialogChoices(node));
+  // Re-armed per node, not per encounter - every advance swaps a fresh set
+  // of options in under the cursor, so every advance needs the window.
+  let settle = createChoiceSettle(() => `${encounter.instanceId}:${encounter.currentNode}`);
+  let ready = $derived(encounter.status === 'active' && settle.settled);
 
   // Ignored while a text input has focus, so typing a digit elsewhere
-  // (DevTools' fields) doesn't also fire a dialog choice.
+  // (DevTools' fields) doesn't also fire a dialog choice. Digits are the
+  // one keyboard binding conversation gets - the skill hotkeys in
+  // ui/hotkeys.ts deliberately stay clear of them, so a rhythm press can
+  // never pick a dialog option.
   $effect(() => {
     function handleKeydown(event: KeyboardEvent) {
-      if (encounter.status !== 'active' || choices.length === 0) return;
+      if (!ready || choices.length === 0) return;
       const target = event.target;
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
       const index = Number(event.key) - 1;
@@ -41,11 +49,7 @@
   {#if choices.length > 0}
     <div class="choices">
       {#each choices as choice, i}
-        <button
-          class="choice"
-          disabled={encounter.status !== 'active'}
-          onclick={() => resolveDialogChoice(choice)}
-        >
+        <button class="choice" disabled={!ready} onclick={() => resolveDialogChoice(choice)}>
           <span class="choice-num">{i + 1}.</span>
           {choice.text}
         </button>

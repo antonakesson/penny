@@ -1,10 +1,15 @@
 <script lang="ts">
   import { getEncounter, resolveCrossroadChoice, getVisibleCrossroadBranches } from '../game/game';
   import EncounterCardShell from './EncounterCardShell.svelte';
+  import { createChoiceSettle } from '../ui/choiceSettle.svelte';
   import type { Crossroad } from '../game/types';
 
   let encounter = $derived(getEncounter() as Crossroad);
   let branches = $derived(getVisibleCrossroadBranches(encounter.branches));
+  // A crossroad's branches never change mid-encounter, so the instance is
+  // the only thing that re-arms the window.
+  let settle = createChoiceSettle(() => encounter.instanceId);
+  let ready = $derived(encounter.status === 'active' && settle.settled);
 </script>
 
 <EncounterCardShell {encounter}>
@@ -12,18 +17,14 @@
     {#each branches as branch}
       <button
         class="branch"
-        disabled={encounter.status !== 'active'}
+        disabled={!ready}
         onclick={() => resolveCrossroadChoice(branch)}
       >
         {branch.label}
       </button>
     {/each}
   </div>
-  <button
-    class="continue"
-    disabled={encounter.status !== 'active'}
-    onclick={() => resolveCrossroadChoice('continue')}
-  >
+  <button class="continue" disabled={!ready} onclick={() => resolveCrossroadChoice('continue')}>
     Stay the course
   </button>
 </EncounterCardShell>

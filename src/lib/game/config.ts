@@ -1,5 +1,10 @@
 export const ENCOUNTER_END_MS = 500;
 
+// How long a newly-rendered choice ignores input (see ui/choiceSettle).
+// Long enough to swallow one stray click from an attack rhythm, short
+// enough that a player who meant it doesn't notice waiting.
+export const CHOICE_SETTLE_MS = 250;
+
 export const AUTOSAVE_INTERVAL_MS = 10_000;
 
 // Keeps consecutive kills off integer lattice points (noise is 0 there) and
