@@ -98,7 +98,7 @@ export const SKILLS = {
     name: 'Turn Around',
     // Describes the one-shot action only - which way that leaves you
     // facing is map.svelte.ts's returning flag, not this skill's business
-    // (see MiniMap.svelte for where that actually surfaces).
+    // (see SignalTrace.svelte for where that actually surfaces).
     description: 'Reverses whichever direction you happen to be walking.',
     verb: 'Turning around',
     // A second, because that is roughly how long turning around takes. No

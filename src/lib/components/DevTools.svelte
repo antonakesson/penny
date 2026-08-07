@@ -75,7 +75,7 @@
   <section>
     <p class="section-label">Map</p>
     <div class="row">
-      <input type="number" min="0" bind:value={distanceInput} aria-label="Distance" />
+      <input type="number" bind:value={distanceInput} aria-label="Distance" />
       <button onclick={() => devToolsSetDistance(distanceInput)}>Set distance</button>
     </div>
     <div class="row">

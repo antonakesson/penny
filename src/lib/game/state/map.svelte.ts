@@ -79,11 +79,13 @@ function bumpFrontier(zoneId: ZoneId, value: number) {
 // callers (combatEngine.ts's resolveKill, crossroadEngine.ts's
 // resolveCrossroadChoice, dialogEngine.ts's dismissDialog) just mean "take
 // the post-resolution step," and which way that step goes is this module's
-// business, not theirs. Floor-clamped at 0 - retreat has nowhere to go past
-// the start of a zone.
+// business, not theirs. Unclamped - distance is linear and 0 is just where a
+// crossroad landing happens to start you, not a floor. Turning around at 0
+// and continuing to retreat walks out the negative side, same as advancing
+// walks out the positive side.
 export function advance(amount = 1) {
   const zoneId = getCurrentZoneId();
-  const next = Math.max(0, (distances[zoneId] ?? 0) + (returning ? -amount : amount));
+  const next = (distances[zoneId] ?? 0) + (returning ? -amount : amount);
   distances[zoneId] = next;
   bumpFrontier(zoneId, next);
 }
