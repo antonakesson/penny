@@ -122,6 +122,9 @@ export const ZONES = {
         pois: [
           { id: 'rabbidSquirrel', members: [{ encounter: 'rabbidSquirrel', offset: 0 }] },
           { id: 'unpromptedCreek', members: [{ encounter: 'unpromptedCreek', offset: 0 }] },
+          // Fixed landmark, not hash-rolled - a superunique should hold the
+          // same spot every seed, same reasoning as cliffsEdge/forkTowardTheBog.
+          { id: 'broar', members: [{ encounter: 'broar', offset: 0 }], at: 30 },
         ] as PoiGroupDef[],
       },
       {

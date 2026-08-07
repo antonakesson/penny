@@ -160,6 +160,17 @@ export const ITEMS = {
   },
   // Dev-only test item - absent from every TREASURE pool, reachable only
   // via DevTools' "Add item" dropdown.
+  // Quest item - inert for now (no `action`). Found digging through
+  // broarAftermath, not on Broar's own kill drop - the ground turned it up,
+  // it isn't evidence of anything he did. Cobb's reaction to it is a
+  // separate, not-yet-built encounter (he's coroner as much as ranger - see
+  // his character bible). Third leg of the "people who don't come back"
+  // motif (LORE.md) - never say whose, never say why.
+  partialHumanLeg: {
+    name: 'Partial Human Leg',
+    rarity: 'rare',
+    flavor: 'Still has a boot on it.',
+  },
   perpetualRequisitionSlip: {
     name: 'Requisition Slip for a Training Weight, Issued Once and Never Signed Back In',
     rarity: 'legendary',
@@ -179,6 +190,7 @@ export const ITEM_CAP: Partial<Record<ItemId, number>> = {
   letterGoatSituation: 1,
   letterTollNotice: 1,
   knottedTwineRing: 1,
+  partialHumanLeg: 1,
 };
 
 // A drop that silently resolves to a different item once `when` is met -
@@ -202,6 +214,17 @@ const TREASURE: Record<string, DropPool> = {
 
   // Entries
   boarDrops: { nothing: 15, tuskDrops: 6, chicken: 6, misc: 2, noobTreasure: 1 },
+  // Placeholder - no 'nothing' entry (a landmark superunique should always
+  // pay out), but reuses existing items. The actual themed trophy (his
+  // hangout spot's belongings, not anything worn) is still undesigned -
+  // separate step, deferred on purpose (see loot.ts's tuskOfTheUnvanquishedSwineLord
+  // for the pattern it should follow once written).
+  broarDrops: { tuskDrops: 6, chicken: 4, misc: 3, noobTreasure: 2 },
+  // No 'nothing' entry - guaranteed, same reasoning as hastilyAbandonedCampDrops.
+  // Once partialHumanLeg hits its cap, resolvePool has nothing left to give
+  // (pool has no other entries) - a repeat dig just turns up nothing further,
+  // which is the right read for a spot that's already given up what it had.
+  broarAftermathDrops: { partialHumanLeg: 1 },
   honeybeeDrops: { nothing: 9, honeycomb: 6, misc: 2, noobTreasure: 1 },
   badgerDrops: { nothing: 15, badgerClaw: 6, chicken: 6, misc: 2, noobTreasure: 1 },
   shrubberyDrops: { nothing: 15, thorn: 6, twig: 6, misc: 2, noobTreasure: 1 },

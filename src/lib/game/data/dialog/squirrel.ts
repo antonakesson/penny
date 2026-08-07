@@ -53,4 +53,15 @@ export default {
       },
     ],
   },
+  // Substituted in once `pet` is unlocked (encounters.ts's ENCOUNTER_SUBSTITUTIONS)
+  // - this exact spot, revisited, with the same squirrel already riding along.
+  'squirrel:recognize': {
+    lines: [
+      {
+        kind: 'say',
+        speaker: 'narrator',
+        text: "It's already at your heel, and looks personally offended that you'd stop here to stare.",
+      },
+    ],
+  },
 } satisfies Record<string, DialogNode>;

@@ -20,6 +20,11 @@ export interface MonsterEntityDef {
 
 export const MONSTER_ENTITIES = {
   boar: { name: 'Boar', level: 1, maxHp: 5, xpReward: 2, dropTableId: ['boarDrops'] },
+  // Superunique - a Corpsefire, not a boss. Same family as boar, level held
+  // close on purpose (not a difficulty spike), hp padded 6x so he doesn't
+  // melt like the trash he's standing next to. xpReward keeps boar's
+  // 0.4xp/hp ratio rather than inventing a bonus multiplier.
+  broar: { name: 'Broar', level: 2, maxHp: 30, xpReward: 12, dropTableId: ['broarDrops'] },
   honeybee: { name: 'Honeybee', level: 1, maxHp: 2, xpReward: 8, dropTableId: ['honeybeeDrops'] },
   badger: { name: 'Badger', level: 1, maxHp: 3, xpReward: 1, dropTableId: ['badgerDrops'] },
   fish: { name: 'Fish', level: 1, maxHp: 3, xpReward: 5, dropTableId: ['fishDrops'] },
@@ -87,6 +92,15 @@ export const INVESTIGATION_ENTITIES = {
   // MonsterDef-shaped entries; this is the entity split paying for itself
   // immediately instead of hypothetically.
   pleasantClearing: { name: 'Pleasant Clearing', durationMs: 3_000, xpReward: 5, dropTableId: [] },
+  // What broar's POI permanently substitutes to once ENCOUNTER_SUBSTITUTIONS
+  // sees broarSlain (encounters.ts) - low xp on purpose, this is a flavor
+  // beat with one guaranteed find, not a farming node.
+  broarAftermath: {
+    name: 'Empty, Bloody Patch of Grass',
+    durationMs: 3_000,
+    xpReward: 3,
+    dropTableId: ['broarAftermathDrops'],
+  },
 } as const satisfies Record<string, InvestigationEntityDef>;
 
 export type InvestigationEntityId = keyof typeof INVESTIGATION_ENTITIES;

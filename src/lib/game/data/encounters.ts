@@ -65,6 +65,10 @@ export type EncounterDef = MonsterDef | InvestigationDef | SocialDef | Crossroad
 
 export const ENCOUNTERS = {
   boar: { kind: 'monster', entity: 'boar' },
+  broar: { kind: 'monster', entity: 'broar' },
+  // Substituted in once broarSlain is set - never placed directly. See
+  // ENCOUNTER_SUBSTITUTIONS below.
+  broarAftermath: { kind: 'investigation', entity: 'broarAftermath' },
   honeybee: { kind: 'monster', entity: 'honeybee' },
   badger: { kind: 'monster', entity: 'badger' },
   thornyShrubbery: { kind: 'investigation', entity: 'thornyShrubbery' },
@@ -97,6 +101,17 @@ export const ENCOUNTERS = {
     name: 'Friendly (but possibly rabid) Squirrel',
     level: 1,
     dialogRoot: 'squirrel:greet',
+  },
+  // Substituted in once `pet` is unlocked - never placed directly. Re-running
+  // the standoff/offer against a squirrel you already recruited doesn't make
+  // sense (recruit it twice? stare it down again?), so this is a distinct,
+  // shorter node rather than the same dialogRoot with a flag check baked in.
+  // See ENCOUNTER_SUBSTITUTIONS below.
+  rabbidSquirrelRecruited: {
+    kind: 'social',
+    name: 'Your Squirrel',
+    level: 1,
+    dialogRoot: 'squirrel:recognize',
   },
 
   genie: {
@@ -179,6 +194,8 @@ export type EncounterId = keyof typeof ENCOUNTERS;
 // the id is looked up, not a revisit mechanic.
 export const ENCOUNTER_SUBSTITUTIONS: Partial<Record<EncounterId, { when: Condition; fallback: EncounterId }>> = {
   pleasantClearing: { when: { kind: 'hasFeature', feature: 'pet' }, fallback: 'pleasantClearingRecruited' },
+  rabbidSquirrel: { when: { kind: 'hasFeature', feature: 'pet' }, fallback: 'rabbidSquirrelRecruited' },
+  broar: { when: { kind: 'flag', flag: 'broarSlain' }, fallback: 'broarAftermath' },
 };
 
 export function substituteEncounter(id: EncounterId): EncounterId {

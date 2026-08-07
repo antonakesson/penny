@@ -8,6 +8,7 @@ const FLAG_BITS: Record<FlagId, bigint> = {
   genieWishGranted: 1n,
   genieBottleFound: 2n,
   lingered: 16n,
+  broarSlain: 32n,
 };
 
 let mask = $state<bigint>(0n);

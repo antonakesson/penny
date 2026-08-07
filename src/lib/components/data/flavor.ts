@@ -107,6 +107,16 @@ export const ENCOUNTER_FLAVOR: Partial<Record<EncounterId, EncounterFlavor>> = {
   hastilyAbandonedCamp: {
     beats: ['The embers are still warm. Whoever left here didn’t mean to.'],
   },
+  broar: {
+    description:
+      "This one's bigger than the others, and it knows it. Same flattened patch of grass every time anyone's come looking, and it isn't leaving until someone makes it. Scholars remain unclear on whether the posturing is territorial or performative. The tusks, unlike everything else about him, are not for show.",
+  },
+  // Substituted in once broarSlain (encounters.ts's ENCOUNTER_SUBSTITUTIONS).
+  broarAftermath: {
+    beats: [
+      'The grass is flattened the same as always, except it isn\'t grass-colored anymore. Whatever was here had time to dig.',
+    ],
+  },
   // Default/declared id - what's placed in zones.ts. Same coordinate, same
   // name, either way; only the last line of the beat (and the squirrel's
   // mood) says otherwise. See encounters.ts's ENCOUNTER_SUBSTITUTIONS.
