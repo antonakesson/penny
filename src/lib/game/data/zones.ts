@@ -79,6 +79,31 @@ export const ZONES = {
     // own yet) so the layout is walkable and testable before any of that
     // content is actually authored.
     subZones: [
+      // Not reachable by walking forward - only by retreating past distance
+      // 0 (Turn Around, then keep going; see state/map.svelte.ts's advance(),
+      // unclamped on purpose). Sits first in this array specifically so
+      // resolveSubZone's fallthrough (`!next || distance < next.startingDistance`)
+      // catches every distance below Tree Line's own 0, not just -2..-1 -
+      // the two POIs below are what's actually authored, but the corridor
+      // itself has no far edge yet. cliffsEdge's placement is a hand-wave at
+      // one someday existing (see its own comment on the pois array).
+      {
+        id: 'youHaveBeenHereBefore',
+        name: 'You have been here before',
+        startingDistance: -2,
+        // Deliberately not Tree Line's fauna - the point isn't "there's more
+        // woods back here," it's that the woods thin out into paperwork.
+        // rabbitHole already carries that exact throughline (LORE.md:
+        // "administration that keeps running after whatever it was tracking
+        // has stopped making sense") everywhere else in the zone, so it's
+        // the one thing that belongs at every step of a place this rarely
+        // reachable, rather than diluting it with borrowed critters.
+        encounters: [{ id: 'rabbitHole', weight: 1 }] as EncounterTableEntry[],
+        pois: [
+          { id: 'cliffsEdge', members: [{ encounter: 'cliffsEdge', offset: 0 }], at: -2 },
+          { id: 'gwendolynsCat', members: [{ encounter: 'gwendolynsCat', offset: 0 }], at: -1 },
+        ] as PoiGroupDef[],
+      },
       {
         id: 'treeLine',
         name: 'Tree Line',

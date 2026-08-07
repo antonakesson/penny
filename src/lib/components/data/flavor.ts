@@ -33,6 +33,16 @@ interface SubZoneFlavor {
 // shouldn't silently orphan its flavor text.
 export const SUBZONE_FLAVOR: Record<ZoneId, Record<string, SubZoneFlavor>> = {
   zone1: {
+    // Secret, and meant to stay that way - reachable only by retreating
+    // past distance 0 (see zones.ts's comment on this subzone). Description
+    // leans on the actual math instead of describing a place, on purpose:
+    // there's no in-fiction reason for this ground to be strange, since it's
+    // the same woods either way - it's strange only relative to a zero
+    // someone drew on a number line, which is exactly the joke.
+    youHaveBeenHereBefore: {
+      description:
+        "Somewhere back there, someone drew a line and called it zero. Everything on this side of it is just displacement in the negative direction — the same ground, the same trees, filed on the wrong side of an arbitrary reference point. The trail doesn't know it's already been walked. Only you do.",
+    },
     treeLine: {
       description:
         'The trees are suspiciously well-behaved — evenly spaced, uniformly tall, like something got tired of the mess and started grooming. Adventurers who linger report a profound sense of purpose, followed shortly by a normal sense of purpose.',

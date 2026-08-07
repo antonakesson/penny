@@ -117,6 +117,26 @@ export const ENCOUNTERS = {
     dialogRoot: 'indifferentBog:root',
   },
 
+  cliffsEdge: {
+    kind: 'social',
+    name: "Cliff's Edge",
+    level: 1,
+    dialogRoot: 'cliffsEdge:root',
+  },
+
+  // id names it for our own bookkeeping only - LORE.md's "only ever hinted,
+  // never explained" rule means the player-facing `name` below can't. The
+  // open question this answers (LORE.md: "Did Gwendolyn's cat ever turn
+  // up?") stays unstated in-fiction; the id is the only place that connects
+  // the dots, and ids aren't shown to players (see forkTowardTheBog above
+  // for the same move).
+  gwendolynsCat: {
+    kind: 'social',
+    name: 'A Cat',
+    level: 1,
+    dialogRoot: 'gwendolynsCat:root',
+  },
+
   // Default/declared id - what's placed in zones.ts. Same coordinate, same
   // entity, same mechanics, either way - only the flavor (components/data/
   // flavor.ts's ENCOUNTER_FLAVOR) and the squirrel's mood differ. See
