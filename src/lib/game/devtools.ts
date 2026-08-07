@@ -7,6 +7,7 @@ import { addXp, getXp } from './state/xp.svelte';
 import {
   getSeed,
   getDistance,
+  getSignalAt,
   getAllDistances,
   getAllFrontiers,
   isReturning,
@@ -14,6 +15,8 @@ import {
   setReturning,
   hydrateMap,
 } from './state/map.svelte';
+import { resolveSubZone } from './map';
+import { habitatFitReport, pickByHabitat } from './util/habitat';
 import { getCurrentZoneId, switchZone } from './state/zone.svelte';
 import { triggerEffect } from './state/effect.svelte';
 import { serializeModifiers } from './state/modifier.svelte';
@@ -64,6 +67,30 @@ export function devLearnSkill(skillId: SkillId) {
   learnSkill(skillId);
 }
 
+// Balancing readout for the signal-driven spawn table (util/habitat.ts).
+// `declared` is what the table asks for, `expected` what the habitat fit
+// actually converges to, `actual` what a simulated walk of `steps` from the
+// current distance really produced - so a habitat parked somewhere the signal
+// never goes shows up as a shortfall here instead of silently starving, which
+// is exactly how the old signal-as-roll version failed unnoticed.
+export function devSampleSpawns(steps = 20_000) {
+  const { subZone } = resolveSubZone(getCurrentZoneId(), getDistance());
+  const rows = habitatFitReport(subZone.encounters);
+  const counts = new Map<EncounterId, number>();
+  const start = getDistance();
+  for (let i = 0; i < steps; i++) {
+    const id = pickByHabitat(subZone.encounters, getSignalAt(start + i));
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
+  return rows.map((row) => ({
+    id: row.id,
+    declared: pct(row.declared),
+    expected: pct(row.expected),
+    actual: pct((counts.get(row.id) ?? 0) / steps),
+  }));
+}
+
 export function devDumpState() {
   return {
     encounter: getEncounter(),
@@ -91,6 +118,7 @@ if (import.meta.env.DEV) {
     setZone: devSetZone,
     triggerEffect: devTriggerEffect,
     learnSkill: devLearnSkill,
+    sampleSpawns: devSampleSpawns,
     state: devDumpState,
   };
 }

@@ -4,8 +4,8 @@
 // purity discipline elevationNoise already follows for terrain.
 import { ZONES, type ZoneId, type SubZoneDef, type PoiGroupDef } from './data/zones';
 import { idHash } from './util/noise';
-import { weightedPick } from './util/weighted';
-import { getDistance } from './state/map.svelte';
+import { pickByHabitat } from './util/habitat';
+import { getDistance, getSignal } from './state/map.svelte';
 import { substituteEncounter } from './data/encounters';
 import type { EncounterId } from './data/encounters';
 
@@ -59,16 +59,23 @@ function resolveGroup(group: PoiGroupDef, subZoneStart: number, subZoneLength: n
   return group.members.map((m) => ({ encounter: m.encounter, distance: anchor + m.offset }));
 }
 
-// Exact match, not a threshold - mathematically one-shot with zero stored
-// state. `advance()` (state/map.svelte.ts) only ever moves distance by 1, so
-// distance is a strict, never-repeating walk during real play: each integer
-// value is visited by exactly one decision call, ever, which means each
-// POI's hash-resolved anchor distance is reached exactly once, automatically
-// - no "already fired" bookkeeping required. (DevTools' devSetDistance can
-// jump distance arbitrarily, including backward - that's a deliberate dev
-// affordance for re-triggering a POI to test its content, not a case real
-// play can produce.) Two POIs landing on the same distance is an authoring
-// collision, not something this function defends against - see zones.ts.
+// Exact match, not a threshold, with zero stored state - no "already fired"
+// bookkeeping anywhere. `advance()` (state/map.svelte.ts) only ever moves
+// distance by 1, so a POI's hash-resolved anchor distance is stepped onto
+// exactly when the player is standing on it, and never skipped past.
+//
+// It is NOT one-shot, and this comment used to claim it was: Turn Around
+// flips `returning`, advance() then steps backward, and every distance
+// behind the player is walked again - POIs included. That's load-bearing
+// rather than incidental. substituteEncounter() below re-evaluates its
+// Condition fresh on every resolution, so a POI can genuinely be a
+// different encounter on the way back than it was on the way out - a
+// different `kind`, even (see ENCOUNTER_SUBSTITUTIONS in encounters.ts, and
+// the `returning` Condition in data/condition.ts). Re-walking known ground
+// and finding it changed is the design, not a leak.
+//
+// Two POIs landing on the same distance is an authoring collision, not
+// something this function defends against - see zones.ts.
 export function resolvePoiAt(zoneId: ZoneId, distance: number, seed: number): EncounterId | undefined {
   const subZones = ZONES[zoneId].subZones;
   for (let i = 0; i < subZones.length; i++) {
@@ -82,12 +89,16 @@ export function resolvePoiAt(zoneId: ZoneId, distance: number, seed: number): En
   return undefined;
 }
 
-// Deterministic - draws from the active subzone's flat weighted table via
-// plain weightedPick (uniform Math.random() roll). No noise signal, no
-// authoring tax from shape-matching a bell curve.
+// Draws from the active subzone's table, re-weighted by the terrain signal at
+// the player's current distance - so a stretch of low signal is a stretch of
+// low-habitat critters, and the world stays coherent to walk through rather
+// than rerolling from scratch every step. util/habitat.ts carries the why
+// (and why this isn't the hard signal-as-roll partition it used to be).
+// Entries that declare no habitat behave exactly as they did under the flat
+// weightedPick this replaced.
 export function pickEncounter(zoneId: ZoneId): EncounterId {
   const { subZone } = resolveSubZone(zoneId, getDistance());
-  return substituteEncounter(weightedPick(subZone.encounters.map((e) => [e.id, e.weight] as const)));
+  return substituteEncounter(pickByHabitat(subZone.encounters, getSignal()));
 }
 
 // UI-facing view of "where the player is right now" - identity (ids + display

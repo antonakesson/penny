@@ -28,6 +28,23 @@ export interface PoiGroupDef {
   at?: number;
 }
 
+// One line of a subzone's ambient spawn table. `weight` is how much of this
+// subzone's traffic this encounter is, full stop - `habitat` only moves it
+// around in space, never changes how often it shows up overall (util/habitat.ts
+// fits out the difference). So the two are authored independently: pick the
+// share you want, then pick where it clusters.
+export interface EncounterTableEntry {
+  id: EncounterId;
+  // Where in the terrain signal (0..1, see state/map.svelte.ts's getSignal)
+  // this thing lives. Omit for something that's simply everywhere - it then
+  // scatters evenly at its declared weight, no banding.
+  habitat?: number;
+  // How tolerant it is of signal away from its habitat, in signal units.
+  // Omit for the default; lower makes a tighter, more sharply-bounded band.
+  spread?: number;
+  weight: number;
+}
+
 export interface SubZoneDef {
   // Stable identity - keys the UI-owned flavor lookup (see
   // components/data/flavor.ts). Never reassigned once shipped, same rule
@@ -42,7 +59,7 @@ export interface SubZoneDef {
   // last subzone in a zone has no explicit end and stays active
   // indefinitely past its own start (no travel graph past it yet).
   startingDistance: number;
-  encounters: readonly { id: EncounterId; weight: number }[];
+  encounters: readonly EncounterTableEntry[];
   pois?: readonly PoiGroupDef[];
 }
 
@@ -66,14 +83,17 @@ export const ZONES = {
         id: 'treeLine',
         name: 'Tree Line',
         startingDistance: 0,
+        // Habitats read low-to-high: waterline, scrub, the open middle, the
+        // sunny high ground. Overlap is fine and intended - a boar showing up
+        // in the shrubs is a boar off its patch, not a table error.
         encounters: [
-          { id: 'thornyShrubbery', weight: 8 },
-          { id: 'fish', weight: 3 },
-          { id: 'boar', weight: 20 },
-          { id: 'honeybee', weight: 3 },
-          { id: 'badger', weight: 15 },
+          { id: 'fish', habitat: 0.05, weight: 3 },
+          { id: 'thornyShrubbery', habitat: 0.2, weight: 8 },
+          { id: 'boar', habitat: 0.45, weight: 20 },
+          { id: 'badger', habitat: 0.6, weight: 15 },
+          { id: 'honeybee', habitat: 0.85, weight: 3 },
           { id: 'rabbitHole', weight: 1 },
-        ] as { id: EncounterId; weight: number }[],
+        ] as EncounterTableEntry[],
         pois: [
           { id: 'rabbidSquirrel', members: [{ encounter: 'rabbidSquirrel', offset: 0 }] },
           { id: 'unpromptedCreek', members: [{ encounter: 'unpromptedCreek', offset: 0 }] },
@@ -89,13 +109,13 @@ export const ZONES = {
         name: 'Deep Woods',
         startingDistance: 80,
         encounters: [
-          { id: 'thornyShrubbery', weight: 4 },
-          { id: 'boar', weight: 15 },
-          { id: 'honeybee', weight: 2 },
-          { id: 'feralGoat', weight: 3 },
-          { id: 'badger', weight: 15 },
+          { id: 'thornyShrubbery', habitat: 0.2, weight: 4 },
+          { id: 'boar', habitat: 0.45, weight: 15 },
+          { id: 'badger', habitat: 0.6, weight: 15 },
+          { id: 'honeybee', habitat: 0.75, weight: 2 },
+          { id: 'feralGoat', habitat: 0.9, weight: 3 },
           { id: 'rabbitHole', weight: 1 },
-        ] as { id: EncounterId; weight: number }[],
+        ] as EncounterTableEntry[],
         pois: [
           { id: 'hastilyAbandonedCamp', members: [{ encounter: 'hastilyAbandonedCamp', offset: 0 }] },
           // Squirrel recruitment (Tree Line) is always resolved one way or
@@ -114,13 +134,13 @@ export const ZONES = {
         name: 'Lake Camp',
         startingDistance: 150,
         encounters: [
-          { id: 'thornyShrubbery', weight: 4 },
-          { id: 'boar', weight: 15 },
-          { id: 'honeybee', weight: 2 },
-          { id: 'feralGoat', weight: 3 },
-          { id: 'badger', weight: 15 },
+          { id: 'thornyShrubbery', habitat: 0.2, weight: 4 },
+          { id: 'boar', habitat: 0.45, weight: 15 },
+          { id: 'badger', habitat: 0.6, weight: 15 },
+          { id: 'honeybee', habitat: 0.75, weight: 2 },
+          { id: 'feralGoat', habitat: 0.9, weight: 3 },
           { id: 'rabbitHole', weight: 1 },
-        ] as { id: EncounterId; weight: number }[],
+        ] as EncounterTableEntry[],
       },
       // DRAFT - placeholder, not locked in. Grasslands over wetlands on
       // purpose: Rainbow Bog (past the crossroad ahead) is already
@@ -131,13 +151,13 @@ export const ZONES = {
         name: 'Grasslands',
         startingDistance: 200,
         encounters: [
-          { id: 'thornyShrubbery', weight: 4 },
-          { id: 'boar', weight: 15 },
-          { id: 'honeybee', weight: 2 },
-          { id: 'feralGoat', weight: 3 },
-          { id: 'badger', weight: 15 },
+          { id: 'thornyShrubbery', habitat: 0.2, weight: 4 },
+          { id: 'boar', habitat: 0.45, weight: 15 },
+          { id: 'badger', habitat: 0.6, weight: 15 },
+          { id: 'honeybee', habitat: 0.75, weight: 2 },
+          { id: 'feralGoat', habitat: 0.9, weight: 3 },
           { id: 'rabbitHole', weight: 1 },
-        ] as { id: EncounterId; weight: number }[],
+        ] as EncounterTableEntry[],
       },
       // DRAFT - placeholder, not locked in. Meant to hold a short (~10
       // distance) buildup -> miniboss/lore -> boss -> reward sequence before
@@ -148,13 +168,13 @@ export const ZONES = {
         name: 'Boss Approach',
         startingDistance: 250,
         encounters: [
-          { id: 'thornyShrubbery', weight: 4 },
-          { id: 'boar', weight: 15 },
-          { id: 'honeybee', weight: 2 },
-          { id: 'feralGoat', weight: 3 },
-          { id: 'badger', weight: 15 },
+          { id: 'thornyShrubbery', habitat: 0.2, weight: 4 },
+          { id: 'boar', habitat: 0.45, weight: 15 },
+          { id: 'badger', habitat: 0.6, weight: 15 },
+          { id: 'honeybee', habitat: 0.75, weight: 2 },
+          { id: 'feralGoat', habitat: 0.9, weight: 3 },
           { id: 'rabbitHole', weight: 1 },
-        ] as { id: EncounterId; weight: number }[],
+        ] as EncounterTableEntry[],
         pois: [
           // Fixed landmark, not hash-placed - a fork in the road should sit
           // at the same spot every seed. First crossroad in the game; see
@@ -180,15 +200,15 @@ export const ZONES = {
         name: 'Rainbow Bog',
         startingDistance: 0,
         encounters: [
-          { id: 'watersnake', weight: 12 },
-          { id: 'deceptiveMoundLookingSolidButWasActuallyWetFeet', weight: 4 },
-          { id: 'duckJustADuck', weight: 14 },
-          { id: 'moose', weight: 6 },
-          { id: 'blueberry', weight: 5 },
-          { id: 'feralGoat', weight: 9 },
-          { id: 'fox', weight: 9 },
+          { id: 'watersnake', habitat: 0.1, weight: 12 },
+          { id: 'duckJustADuck', habitat: 0.2, weight: 14 },
+          { id: 'deceptiveMoundLookingSolidButWasActuallyWetFeet', habitat: 0.35, weight: 4 },
+          { id: 'moose', habitat: 0.5, weight: 6 },
+          { id: 'fox', habitat: 0.65, weight: 9 },
+          { id: 'blueberry', habitat: 0.75, weight: 5 },
+          { id: 'feralGoat', habitat: 0.9, weight: 9 },
           { id: 'rabbitHole', weight: 3 },
-        ] as { id: EncounterId; weight: number }[],
+        ] as EncounterTableEntry[],
         pois: [
           // The far end of zone1's forkTowardTheBog - see its comment in
           // encounters.ts. Sits at distance 1 because that's where its
@@ -213,12 +233,12 @@ export const ZONES = {
         name: 'The Last Ledger',
         startingDistance: 0,
         encounters: [
-          { id: 'guyWhoDefinitelyOwnsThisNow', weight: 10 },
-          { id: 'ruffian', weight: 12 },
-          { id: 'suspiciouslyOrganizedRatKing', weight: 3 },
-          { id: 'theAuditor', weight: 2 },
+          { id: 'suspiciouslyOrganizedRatKing', habitat: 0.15, weight: 3 },
+          { id: 'ruffian', habitat: 0.35, weight: 12 },
+          { id: 'guyWhoDefinitelyOwnsThisNow', habitat: 0.5, weight: 10 },
+          { id: 'theAuditor', habitat: 0.9, weight: 2 },
           { id: 'rabbitHole', weight: 3 },
-        ] as { id: EncounterId; weight: number }[],
+        ] as EncounterTableEntry[],
       },
     ] as SubZoneDef[],
   },
