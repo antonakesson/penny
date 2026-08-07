@@ -14,21 +14,6 @@ export const JOURNAL_ENTRIES: Partial<Record<string, readonly JournalVariant[]>>
       text: 'The cork popped on its own. Something stepped out of the smoke.',
     },
   ],
-  occupiedOuthouse: [
-    {
-      text: 'Found an outhouse. The OCCUPIED sign was laminated. Someone takes this seriously.',
-    },
-  ],
-  'outhouse:accident': [
-    {
-      text: "Waited outside an outhouse for a queue that didn't exist. Regret was immediate and specific.",
-    },
-  ],
-  'outhouse:enter': [
-    {
-      text: "Went in anyway. Someone's writing a letter about it. Wonder if it'll arrive.",
-    },
-  ],
   'unpromptedCreek:linger': [
     {
       text: 'Waited by a creek for a reason to keep waiting. None arrived. Jumped it anyway.',

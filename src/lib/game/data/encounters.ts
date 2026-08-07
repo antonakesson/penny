@@ -103,13 +103,6 @@ export const ENCOUNTERS = {
     dialogRoot: 'genie:root',
   },
 
-  occupiedOuthouse: {
-    kind: 'social',
-    name: 'Occupied Outhouse',
-    level: 1,
-    dialogRoot: 'outhouse:root',
-  },
-
   unpromptedCreek: {
     kind: 'social',
     name: 'Unprompted Creek',

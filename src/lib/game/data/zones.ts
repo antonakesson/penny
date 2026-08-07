@@ -76,7 +76,6 @@ export const ZONES = {
         ] as { id: EncounterId; weight: number }[],
         pois: [
           { id: 'rabbidSquirrel', members: [{ encounter: 'rabbidSquirrel', offset: 0 }] },
-          { id: 'occupiedOuthouse', members: [{ encounter: 'occupiedOuthouse', offset: 0 }] },
           { id: 'unpromptedCreek', members: [{ encounter: 'unpromptedCreek', offset: 0 }] },
         ] as PoiGroupDef[],
       },

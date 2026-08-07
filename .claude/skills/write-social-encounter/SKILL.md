@@ -4,7 +4,7 @@ description: Author a new social/dialog encounter (branching conversation POI) f
 ---
 
 A social encounter is a branching conversation POI (the genie, the
-squirrel, the outhouse, the creek — all in `src/lib/game/data/dialog/`).
+squirrel, the creek — all in `src/lib/game/data/dialog/`).
 This skill covers both halves: how the dialog system actually wires
 together, and the voice this game writes in, which is unusually specific
 and easy to get wrong in an obvious-sounding way (puns/euphemism read as
@@ -26,7 +26,7 @@ required; the rest are opt-in depending on what the dialog does.
    `dialogRoot` is the node the encounter opens on.
 3. **`src/lib/game/data/zones.ts`** — place the encounter id somewhere a
    player can reach it: a subzone's `pois` array (a one-off landmark,
-   the usual case for a social — see `rabbidSquirrel`/`occupiedOuthouse`)
+   the usual case for a social — see `rabbidSquirrel`)
    or its `encounters` weighted pool (if it should spawn ambiently/
    repeatably instead of as a fixed landmark).
 4. **`src/lib/game/data/characters.ts`** — if a node's `speaker` is a new
@@ -101,9 +101,10 @@ Things worth knowing that aren't obvious from the shape alone:
   (`hasItem` / `hasFeature` / `flag`) on the choice's `when`.
 - **Leaving a permanent record:** `FLAG_TRIGGERS` in `journalFlags.ts`
   maps a dialog node id (or encounter/item id) to a `FlagId` — set once,
-  checked later via the `flag` condition. Two mutually-exclusive outcome
-  nodes of the same encounter can each set a different flag (see
-  `outhouse:accident` vs `outhouse:enter`).
+  checked later via the `flag` condition (see `unpromptedCreek:linger` →
+  `lingered`). Nothing stops two different outcome nodes of the same
+  encounter from each setting their own flag if a branch needs to be
+  distinguishable later.
 - **Journal prose:** `JOURNAL_ENTRIES` in `journalEntries.ts`, keyed by
   the same id space (encounter id for the spawn-time entry, dialog node
   id for entries logged as the conversation progresses — both fire
@@ -121,7 +122,7 @@ Full compass: [[game-vision]] memory (`game_vision.md`) — read it, this
 is a condensed pointer, not a replacement.
 
 **The one failure mode to actively avoid: puns and cute euphemism.**
-A first draft of the outhouse encounter used wordplay ("finished",
+An earlier encounter (since torn out) drafted wordplay ("finished",
 "dignity leaves first") to gesture at its outcome — verdict was "came
 more childish than hilarious." The fix wasn't removing the joke, it was
 changing *how* it's delivered:
@@ -142,15 +143,16 @@ changing *how* it's delivered:
      pure earnestness (the genie's deadpan matter-of-factness).
   2. *Bureaucracy as procedure, not wordplay* — invented rules,
      entitlements, paper trails described with administrative precision.
-     The outhouse's laminated-sign/fake-queue rework was still judged
-     "over the top" on a second pass — the theme was right, the
-     execution was still a prop bolted onto the scene rather than an
-     actual system being depicted. Match `perpetualRequisitionSlip`
-     (`loot.ts`), not the outhouse's own laminated sign.
+     A laminated-sign/fake-queue rework of the same torn-out encounter
+     was still judged "over the top" on a second pass — the theme was
+     right, the execution was still a prop bolted onto the scene rather
+     than an actual system being depicted. Match `perpetualRequisitionSlip`
+     (`loot.ts`) — a rule described as if it's genuinely load-bearing,
+     not a punchline with a form attached.
   3. *Social awkwardness / decorum under pressure* — characters
      performing calm, politeness, or conformity at any cost while
-     something is clearly wrong (both the squirrel standoff and the
-     outhouse occupant's insistence on a queue that doesn't exist).
+     something is clearly wrong (the squirrel standoff is the standing
+     example).
 - **Named characters (genie, squirrel, occupant, …) are their own thing**
   — distinct from the four house voices (zone descriptions, item flavor,
   narrator, journal/protagonist). Persona here is deliberately *not*
@@ -170,11 +172,9 @@ changing *how* it's delivered:
   own line ("she says, tail twitching" inside `genie`'s or `occupant`'s
   text) — that's the narrator's job, on its own `'say', speaker: 'narrator'`
   line. A character's line is only what they'd actually say out loud,
-  in their own cadence. Compare `outhouse:knock`'s `occupant` lines
-  (`'Occupied.'` / `'There is a queue.'` — clipped, entirely without
-  self-narration) against the surrounding `narrator` lines that carry
-  all the scene description — that split is the pattern, keep it that
-  sharp.
+  in their own cadence — clipped, entirely without self-narration —
+  while the surrounding `narrator` lines carry all the scene
+  description. Keep that split sharp.
 - If the encounter touches established lore (zone mysteries, factions,
   named NPCs beyond a one-off POI), read `LORE.md` at the repo root
   first — [[lore-bible-reference]].

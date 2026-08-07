@@ -46,8 +46,8 @@ export const SUBZONE_FLAVOR: Record<ZoneId, Record<string, SubZoneFlavor>> = {
       description:
         "Past the tree line proper, the Ranger Office's numbered trail markers grow sparse, then stop entirely — mid-post, as if whoever was counting simply lost the thread. Official policy holds that the trail continues regardless; it declines to specify for how long that's supposed to be reassuring.",
       quote: {
-        text: 'Half my regulars stopped coming back after Tree Line. The other half just started going further in first.',
-        attribution: 'elsa',
+        text: "I don't know how I made it out. My hands were shaking for hours after. She never even raised her voice.",
+        attribution: { freeform: 'witchcraft survivor' },
       },
     },
   },
@@ -94,12 +94,6 @@ interface EncounterFlavor {
 // only needs to know an encounter exists and what kind it is; what it says
 // about itself is entirely this layer's concern.
 export const ENCOUNTER_FLAVOR: Partial<Record<EncounterId, EncounterFlavor>> = {
-  occupiedOuthouse: {
-    quote: {
-      text: 'Occupied.',
-      attribution: 'occupant',
-    },
-  },
   hastilyAbandonedCamp: {
     beats: ['The embers are still warm. Whoever left here didn’t mean to.'],
   },

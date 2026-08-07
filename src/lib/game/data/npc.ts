@@ -23,7 +23,7 @@ export const NPCS = {
   genie: { name: 'The Genie' },
   occupant: { name: 'A Voice', title: 'From Within' },
   cobbThistlewood: { name: 'Cobb Thistlewood', title: 'Ranger / Coroner' },
-  elsa: { name: 'Elsa', title: 'Hairdresser' },
+  elsa: { name: 'Elsa', title: 'the Witch' },
   widowPruitt: { name: 'Widow Pruitt', title: 'Innkeeper' },
 } as const satisfies Record<string, NpcDef>;
 

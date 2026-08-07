@@ -1,12 +1,12 @@
 import type { FlagId } from '../data/journalFlags';
 
 // Bit assignments are fixed once used - a saved mask is only meaningful
-// against the layout that wrote it.
+// against the layout that wrote it. 4n/8n retired with the outhouse
+// encounter (soiledPants/breakingAndEnteringAndPooping) - don't recycle
+// them onto a new flag, an old save could still carry those bits set.
 const FLAG_BITS: Record<FlagId, bigint> = {
   genieWishGranted: 1n,
   genieBottleFound: 2n,
-  soiledPants: 4n,
-  breakingAndEnteringAndPooping: 8n,
   lingered: 16n,
 };
 
