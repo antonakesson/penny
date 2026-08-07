@@ -167,20 +167,30 @@ export const ZONES = {
           { id: 'rabbitHole', weight: 1 },
         ] as EncounterTableEntry[],
       },
-      // DRAFT - placeholder, not locked in. Grasslands over wetlands on
-      // purpose: Rainbow Bog (past the crossroad ahead) is already
-      // wetland-themed, so this stretch stays dry for contrast rather than
-      // reading as more of the same biome before you even cross over.
+      // DRAFT - placeholder for POIs/loot, but the fauna table itself is no
+      // longer a Deep Woods borrow - Grasslands over wetlands is on purpose
+      // (Rainbow Bog, past the crossroad ahead, is already wetland-themed,
+      // so this stretch stays dry for contrast rather than reading as more
+      // of the same biome before you even cross over), and now the table
+      // says so too. boar/feralGoat carried over as the two things that
+      // plausibly graze open ground either side of a tree line; thornyShrubbery/
+      // badger/honeybee didn't (hedge-and-flower fauna, not open-field), so
+      // they're gone rather than kept out of inertia.
       {
         id: 'grasslands',
         name: 'Grasslands',
         startingDistance: 200,
         encounters: [
-          { id: 'thornyShrubbery', habitat: 0.2, weight: 4 },
-          { id: 'boar', habitat: 0.45, weight: 15 },
-          { id: 'badger', habitat: 0.6, weight: 15 },
-          { id: 'honeybee', habitat: 0.75, weight: 2 },
-          { id: 'feralGoat', habitat: 0.9, weight: 3 },
+          { id: 'boar', habitat: 0.25, weight: 10 },
+          { id: 'feralGoat', habitat: 0.35, weight: 10 },
+          { id: 'deer', habitat: 0.55, weight: 18 },
+          { id: 'antelope', habitat: 0.8, weight: 10 },
+          // High end, same band as antelope - up where there's enough open
+          // sky and enough of a kill count from everything else in this
+          // table to be worth circling for. Never stated as its reason for
+          // being there; it's just where it's always been, same as the
+          // other habitats.
+          { id: 'carrionBird', habitat: 0.9, weight: 8 },
           { id: 'rabbitHole', weight: 1 },
         ] as EncounterTableEntry[],
       },

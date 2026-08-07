@@ -38,6 +38,13 @@ export const MONSTER_ENTITIES = {
     dropTableId: [],
   },
   feralGoat: { name: 'Feral Goat', level: 5, maxHp: 36, xpReward: 14, dropTableId: [] },
+
+  // Grasslands' own fauna (zones.ts) - first pass, not playtested, same
+  // caveat as the zone2/zone3 block above.
+  deer: { name: 'Deer', level: 3, maxHp: 18, xpReward: 8, dropTableId: [] },
+  antelope: { name: 'Antelope', level: 4, maxHp: 24, xpReward: 11, dropTableId: [] },
+  carrionBird: { name: 'Carrion Bird', level: 3, maxHp: 14, xpReward: 7, dropTableId: [] },
+
   ruffian: { name: 'Ruffian', level: 7, maxHp: 55, xpReward: 22, dropTableId: [] },
   suspiciouslyOrganizedRatKing: {
     name: 'Suspiciously Organized Rat King',
